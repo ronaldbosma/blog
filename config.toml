@@ -6,6 +6,7 @@ summaryLength = 25
 copyright = "Ronald Bosma - All rights reserved"
 # disqusShortname = "shortDisquis"
 # googleAnalytics = "UA-1XXXXXXX1-X"
+pygmentsCodeFences = true
 
 [params]
   # description ="Ronald's Blog"
