@@ -5,7 +5,7 @@ publishdate: 2019-03-16T13:24:49+01:00
 image: "images/blog/cleaning-up-your-test-data-builders.jpg"
 tags: [ "Cleaner Code", "Test Automation" ]
 comments: true
-draft: false
+draft: true
 ---
 
 I've been using the [Test Data Builder](http://www.natpryce.com/articles/000714.html) pattern for quite a while now. It's really improved the readability of my test automation code. I've always had the nagging feeling though that it could be better.
@@ -81,7 +81,7 @@ Person sherlock = A.Man.Called("Sherlock Holmes")
 
 ### Simplifying address creation
 
-The `AddressBuilder` is still a bit ugly. So I've refactored the `LivingAt` method to take the first and second address line in one string, separated by a comma. The `AddressBuilder` is used inside `LivingAt` to parse the string.  
+The `AddressBuilder` is still a bit ugly. So I've refactored the `LivingAt` method to take the first and second address line in one string, separated by a comma. The `AddressBuilder` is used inside `LivingAt` to parse the string and create the address.  
 
 ```csharp
 Person sherlock = A.Man.Called("Sherlock Holmes")
@@ -93,7 +93,7 @@ Keep this kind of logic simple or you'll have to test your builders too.
 
 ### Finishing touch
 
-If your using explicit types instead of the `var` keyword there's one more step to take. You can remove the call to `Build` by introducing an [implicit type conversion operator](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/implicit) in the `PersonBuilder`. This will convert a `PersonBuilder` to a `Person` by calling the `Build` method.
+If you're using explicit types instead of the `var` keyword there's one more step to take. You can remove the call to `Build` by introducing an [implicit type conversion operator](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/implicit) in the `PersonBuilder`. This will convert a `PersonBuilder` to a `Person` by calling the `Build` method.
 
 ```csharp
 Person sherlock = A.Man.Called("Sherlock Holmes")
