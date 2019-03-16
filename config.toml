@@ -1,0 +1,40 @@
+baseURL = "https://ronaldbosma.github.io/"
+languageCode = "en-us"
+title = "Ronald's Blog"
+theme = "mediumish"
+summaryLength = 25
+copyright = "Ronald Bosma - All rights reserved"
+# disqusShortname = "shortDisquis"
+# googleAnalytics = "UA-1XXXXXXX1-X"
+
+[params]
+  # description ="Ronald's Blog"
+
+[params.author]
+  name = "Ronald Bosma"
+  thumbnail = "/images/author.png"
+  description = "Software engineer and TDD enthusiast."
+
+[params.index]
+  picture = "/images/author.png"
+  title = "Ronald Bosma"
+  subtitle = "Software engineer and TDD enthusiast."
+  mdtext = "I'm a software engineer working for Info Support in the Netherlands. I have over 10 years of experience in building distributed systems with Microsoft technology.<br /><br />Ever since the beginning of my career I’ve had a deep interest in test automation. I’m a TDD enthusiast and in recent years I’ve really come to appreciate Specification by Example and tools like SpecFlow."
+  alertbar = true
+
+[params.social]
+  github = "ronaldbosma"
+  linkedin = "ronald-bosma-1346a64"
+  twitter = "ronaldbosma1"
+
+## Main Menu
+[[menu.main]]
+    name = "Blog"
+    weight = 100
+    identifier = "blog"
+    url = "/blog"
+[[menu.main]]
+    name = "About Me"
+    identifier = "about"
+    weight = 200
+    url = "/"
