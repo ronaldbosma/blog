@@ -5,7 +5,7 @@ theme = "mediumish"
 summaryLength = 25
 copyright = "Ronald Bosma - All rights reserved"
 disqusShortname = "ronaldbosma-github-io"
-# googleAnalytics = "UA-1XXXXXXX1-X"
+googleAnalytics = "UA-136383708-1"
 pygmentsCodeFences = true
 
 [params]
