@@ -4,7 +4,7 @@ date: 2019-03-16T13:24:49+01:00
 publishdate: 2019-03-16T13:24:49+01:00
 image: "images/blog/cleaning-up-your-test-data-builders.jpg"
 tags: [ "Cleaner Code", "Test Automation" ]
-comments: false
+comments: true
 draft: false
 ---
 

@@ -4,7 +4,7 @@ title = "Ronald's Blog"
 theme = "mediumish"
 summaryLength = 25
 copyright = "Ronald Bosma - All rights reserved"
-# disqusShortname = "shortDisquis"
+disqusShortname = "ronaldbosma-github-io"
 # googleAnalytics = "UA-1XXXXXXX1-X"
 pygmentsCodeFences = true
 
