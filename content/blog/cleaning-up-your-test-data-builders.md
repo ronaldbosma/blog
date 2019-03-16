@@ -2,7 +2,7 @@
 title: "Cleaning Up Your Test Data Builders"
 date: 2019-03-16T13:24:49+01:00
 publishdate: 2019-03-16T13:24:49+01:00
-image: "images/hal-gatewood-484469-unsplash.jpg"
+image: "images/blog/cleaning-up-your-test-data-builders.jpg"
 tags: [ "Cleaner Code", "Test Automation" ]
 comments: false
 draft: false
