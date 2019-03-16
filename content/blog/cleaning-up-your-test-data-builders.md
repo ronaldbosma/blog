@@ -104,4 +104,4 @@ Person sherlock = A.Man.Called("Sherlock Holmes")
 
 By combining the [Object Mother](https://martinfowler.com/bliki/ObjectMother.html) and [Test Data Builder](http://www.natpryce.com/articles/000714.html) patterns and refactoring your build methods to flow more like natural language, your code can read more like a sentence. Almost like a Given step in a Gherkin scenario.
 
-The full C# code example with intermediate refactoring steps can be found [here](https://github.com/ronaldbosma/ronaldbosma.github.io/examples/CleaningUpYourTestDataBuilders).
+The full C# code example with intermediate refactoring steps can be found [here](https://github.com/ronaldbosma/blog/examples/CleaningUpYourTestDataBuilders).
