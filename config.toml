@@ -38,3 +38,8 @@ copyright = "Ronald Bosma - All rights reserved"
     identifier = "about"
     weight = 200
     url = "/"
+[[menu.main]]
+    name = "RSS"
+    weight = 300
+    identifier = "rss"
+    url = "/index.xml"
