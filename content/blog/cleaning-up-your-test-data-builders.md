@@ -32,6 +32,8 @@ Person sherlock = new PersonBuilder()
 
 Inspired by a talk I attended a couple of months ago I decided to refactor some of my test data builders. In the rest of this post I'll go through some of the steps I've taken using the example above as the starting point.
 
+The code examples in this post are focussed on the use of the test data builder. More details on how the builder and other parts are implemented can be found [here](https://github.com/ronaldbosma/blog/tree/master/examples/CleaningUpYourTestDataBuilders).
+
 ### Introducing the Object Mother
 
 Step one is to move the instantiation of the `PersonBuilder`. In the test I'm not really interested in the fact that I'm using a builder. I want 'A Person'. We can combine the [Object Mother](https://martinfowler.com/bliki/ObjectMother.html) pattern with the Test Data Builder pattern to make this happen.
