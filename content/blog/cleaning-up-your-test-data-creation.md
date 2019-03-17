@@ -1,9 +1,9 @@
 ---
-title: "Cleaning Up Your Test Data Builders"
+title: "Cleaning Up Your Test Data Creation"
 date: 2019-03-16T13:24:49+01:00
 publishdate: 2019-03-16T13:24:49+01:00
 lastmod: 2019-03-17T00:00:00+01:00
-image: "images/blog/cleaning-up-your-test-data-builders.jpg"
+image: "images/blog/cleaning-up-your-test-data-creation.jpg"
 tags: [ "Cleaner Code", "Test Automation" ]
 comments: true
 draft: true
