@@ -107,6 +107,8 @@ Person sherlock = A.Man.Called("Sherlock Holmes")
     .LivingAt("221B Baker Street, London");
 ```
 
+Now the could is self explanatory: it creates a man called 'Sherlock Holmes' living at 221B Baker Street, London.
+
 ### Conclusion
 
 By combining the [Object Mother](https://martinfowler.com/bliki/ObjectMother.html) and [Test Data Builder](http://www.natpryce.com/articles/000714.html) patterns and refactoring your build methods to flow more like natural language, your code can read more like a sentence. Almost like a Given step in a Gherkin scenario. This will improve the readability of your tests and makes them easier to maintain.
