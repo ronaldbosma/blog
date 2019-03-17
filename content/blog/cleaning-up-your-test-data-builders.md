@@ -71,7 +71,7 @@ Person sherlock = A.Man
     .Build();
 ```
 
-Be cautious with this. Don't use more than one (business) concept like `A.ManWithName("Sherlock Holmes")`. Combining multiple build steps is what the builder is for.
+Be cautious with this. Don't use more than one (business) concept like `A.ManWithName("Sherlock Holmes")`. This could create an explosion of methods & properties in your object mother class. Making it harder to maintain. Besides, combining multiple build steps is what the test data builder is for.
 
 ### Rename methods to improve flow
 
