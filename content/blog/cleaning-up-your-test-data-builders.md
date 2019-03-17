@@ -11,7 +11,7 @@ draft: true
 
 I still come across a lot of automated tests with many lines of code just to create an object. Even when most data is not relevant for the scenario being tested. Making the tests harder to read and maintain.
 
-Using a [Test Data Builder](http://www.natpryce.com/articles/000714.html) can minimize the lines of code in your test to what's relevant. By default the builder will create all necessary data for you. Using a Fluent API you can call methods on the builder to tweak the data to fit the requirements of your test scenario.
+Using a [Test Data Builder](http://www.natpryce.com/articles/000714.html) can minimize the lines of code in your test to what's relevant. By default the builder will create all necessary data for you. Using a Fluent API you can call methods on the builder to tweak the data to fit your test scenario.
 
 Using test data builders has really improved the readability of my test automation code. I've always had the nagging feeling though that the readability could be improved. Even when using a fairly simple builder, the code seems clunky to me most of the time.
 
