@@ -75,7 +75,7 @@ Be cautious with this. Don't use more than one (business) concept like `A.ManWit
 
 ### Rename methods to improve flow
 
-The next step is to improve the flow of the code. I've renamed `WithName` to `Called` and `WithAddress` to `LivingAt`. Making the code read more like a normal sentence.
+The next step is to improve the flow of the code. In the `PersonBuilder` I've renamed `WithName` to `Called` and `WithAddress` to `LivingAt`. Making the code read more like a normal sentence.
 
 ```csharp
 Person sherlock = A.Man.Called("Sherlock Holmes")
