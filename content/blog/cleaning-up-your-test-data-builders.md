@@ -5,14 +5,16 @@ publishdate: 2019-03-16T13:24:49+01:00
 image: "images/blog/cleaning-up-your-test-data-builders.jpg"
 tags: [ "Cleaner Code", "Test Automation" ]
 comments: true
-draft: false
+draft: true
 ---
 
-I've been using the [Test Data Builder](http://www.natpryce.com/articles/000714.html) pattern for quite a while now. It's really improved the readability of my test automation code. I've always had the nagging feeling though that it could be better.
+I still come across a lot of automated tests with many lines of code just to create an object. Even when most data is not relevant for the scenario being tested. Making the tests harder to read and maintain.
 
-Inspired by a talk I attended a couple of months ago I decided to refactor some of my test data builders. In this post I'll go through some of the steps I've taken.
+Using the [Test Data Builder](http://www.natpryce.com/articles/000714.html) pattern can minimize the lines of code in your test to what's relevant. It's really improved the readability of my test automation code.
 
-The code example below is my initial take on a builder to create a simple Person object. It has a name, gender and address.
+I've always had the nagging feeling though that it could be better. Even when using a fairly simple builder, the code seems clunky to me most of the time.
+
+Here's my initial take on a builder to create a simple `Person` object. I only specify a name, gender and address but it's still a lot of code for just three properties.
 
 ```csharp
 Person sherlock = new PersonBuilder()
@@ -26,6 +28,8 @@ Person sherlock = new PersonBuilder()
     )
     .Build();
 ```
+
+Inspired by a talk I attended a couple of months ago I decided to refactor some of my test data builders. In the rest of this post I'll go through some of the steps I've taken using the example above as the starting point.
 
 ### Introducing the Object Mother
 
@@ -81,7 +85,7 @@ Person sherlock = A.Man.Called("Sherlock Holmes")
 
 ### Simplifying address creation
 
-The `AddressBuilder` is still a bit ugly. So I've refactored the `LivingAt` method to take the first and second address line in one string, separated by a comma. The `AddressBuilder` is used inside `LivingAt` to parse the string and create the address.  
+The code to create the address still looks a bit ugly. So I've refactored the `LivingAt` method to take the first and second address line in one string, separated by a comma. The `AddressBuilder` is used inside `LivingAt` to parse the string and create the address.  
 
 ```csharp
 Person sherlock = A.Man.Called("Sherlock Holmes")
@@ -102,6 +106,6 @@ Person sherlock = A.Man.Called("Sherlock Holmes")
 
 ### Conclusion
 
-By combining the [Object Mother](https://martinfowler.com/bliki/ObjectMother.html) and [Test Data Builder](http://www.natpryce.com/articles/000714.html) patterns and refactoring your build methods to flow more like natural language, your code can read more like a sentence. Almost like a Given step in a Gherkin scenario.
+By combining the [Object Mother](https://martinfowler.com/bliki/ObjectMother.html) and [Test Data Builder](http://www.natpryce.com/articles/000714.html) patterns and refactoring your build methods to flow more like natural language, your code can read more like a sentence. Almost like a Given step in a Gherkin scenario. This will improve the readability of your tests and makes them easier to maintain.
 
 The full C# code example with intermediate refactoring steps can be found [here](https://github.com/ronaldbosma/blog/tree/master/examples/CleaningUpYourTestDataBuilders).
