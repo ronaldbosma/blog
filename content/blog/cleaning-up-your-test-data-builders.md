@@ -38,6 +38,8 @@ The code examples in this post are focussed on the use of the test data builder.
 
 Step one is to move the instantiation of the `PersonBuilder`. In the test I'm not really interested in the fact that I'm using a builder. I want 'A Person'. We can combine the [Object Mother](https://martinfowler.com/bliki/ObjectMother.html) pattern with the Test Data Builder pattern to make this happen.
 
+An object mother is a factory class. Containing one or more methods/properties to create test data. It will create an object with default data just like a test data builder. The downside of the object mother is that it's harder to tweak your test data. Which can result in a lot of different factory methods all doing almost the same thing. That's why I prefer test data builders.
+
 I've created an object mother class called `A`. It has a static `Person` property that returns a new instance of the `PersonBuilder`.  
 
 ```csharp
