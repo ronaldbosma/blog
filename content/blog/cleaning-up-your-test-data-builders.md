@@ -15,7 +15,7 @@ Using a [Test Data Builder](http://www.natpryce.com/articles/000714.html) can mi
 
 Using test data builders has really improved the readability of my test automation code. I've always had the nagging feeling though that the readability could be improved. Even when using a fairly simple builder, the code seems clunky to me most of the time.
 
-Here's my initial take on a builder to create a simple `Person` object. It creates **a man called 'Sherlock Holmes' living at 221B Baker Street, London**. Although I only specify a name, gender and address it's still a lot of code for just three properties.
+Here's my initial take on a builder to create a simple `Person` object. It creates _**a man called Sherlock Holmes living at 221B Baker Street, London**_. Although I only specify a name, gender and address it's still a lot of code for just three properties.
 
 ```csharp
 Person sherlock = new PersonBuilder()
@@ -107,7 +107,7 @@ Person sherlock = A.Man.Called("Sherlock Holmes")
     .LivingAt("221B Baker Street, London");
 ```
 
-Now the could is self explanatory: it creates a man called 'Sherlock Holmes' living at 221B Baker Street, London.
+The example at the start of the blog still needed the explanation that the code creates _**a man called Sherlock Holmes living at 221B Baker Street, London**_. Now the code is self explanatory.
 
 ### Conclusion
 
