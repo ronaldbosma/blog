@@ -1,12 +1,12 @@
 ---
 title: "Cleaning Up Your Test Data Creation"
 date: 2019-03-16T13:24:49+01:00
-publishdate: 2019-03-16T13:24:49+01:00
+publishdate: 2019-03-20T00:00:00+01:00
 lastmod: 2019-03-17T00:00:00+01:00
 image: "images/blog/cleaning-up-your-test-data-creation.jpg"
 tags: [ "Cleaner Code", "Test Automation" ]
 comments: true
-draft: true
+draft: false
 ---
 
 I still come across a lot of automated tests with many lines of code just to create an object. Even when most data is not relevant for the scenario being tested. Making the tests harder to read and maintain.
