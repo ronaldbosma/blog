@@ -14,12 +14,12 @@ pygmentsCodeFences = true
 [params.author]
   name = "Ronald Bosma"
   thumbnail = "/images/author.png"
-  description = "Software engineer and TDD enthusiast"
+  description = "Software engineer"
 
 [params.index]
   picture = "/images/author.png"
   title = "Ronald Bosma"
-  subtitle = "Software engineer and TDD enthusiast"
+  subtitle = "Software engineer"
   mdtext = "I'm a software engineer working for Info Support in the Netherlands. I have over 10 years of experience in building distributed systems with Microsoft technology.<br /><br />Ever since the beginning of my career I’ve had a deep interest in test automation. I’m a TDD enthusiast and in recent years I’ve really come to appreciate Specification by Example and tools like SpecFlow."
   alertbar = true
 
