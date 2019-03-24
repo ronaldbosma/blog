@@ -15,9 +15,19 @@ In this post I'll give a step-by-step explanation on how I publish my Hugo blog 
 
 In Azure Devops you'll need a project that has the 'Pipelines' Azure DevOps service enabled. You can enable this service in your Project settings.
 
+There are also two extension we'll need to intall from the Marketplace. These will be installed at the Organization level in Azure DevOps. So be sure you have the proper permissions.
+
 #### Installing the Hugo extension
 
-https://marketplace.visualstudio.com/items?itemName=giuliovdev.hugo-extension
+We're going to use the Hugo extension to generate our Hugo site. You can find it [here](https://marketplace.visualstudio.com/items?itemName=giuliovdev.hugo-extension) in the Marketplace. You'll have to sign in first before you can actually install the extension.
+
+After signing in. Click 'Get it free'. Select your Azure DevOps organization and click 'Install'.
+
+#### Installing the GitHub Pages Publish extension
+
+We also need the GitHub Pages Publish extension to publish our Hugo site to GitHub pages. You can find it [here](https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish) in the Marketplace.
+
+Click 'Get it free' again. Select your Azure DevOps organization and click 'Install'.
 
 ### Generate Hugo site
 
@@ -30,6 +40,8 @@ We'll start with a new build pipeline. (_See [create your first pipeline](https:
 - Click the 'New pipeline' button.
 - Select 'GitHub' as the source of your code.
 - Select your blog repository containing your Hugo templates, themes, markdown posts, etc.
+- Install Azure Pipelines in your GitHub account if you haven't already.
+- Authorize Azure Pipelines to access your GitHub resources.
 - Select the pipeline template you want to start from. In our case 'Starter pipeline' will do fine.
 - An editor is opened where you can configure your pipeline using yaml.  
   Remove all content from the .yml file. We'll start from scratch in the next section.
