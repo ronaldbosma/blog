@@ -17,17 +17,31 @@ In Azure Devops you'll need a project that has the 'Pipelines' Azure DevOps serv
 
 There are also two extension we'll need to intall from the Marketplace. These will be installed at the Organization level in Azure DevOps. So be sure you have the proper permissions.
 
-#### Installing the Hugo extension
+#### Install the Hugo extension
 
 We're going to use the Hugo extension to generate our Hugo site. You can find it [here](https://marketplace.visualstudio.com/items?itemName=giuliovdev.hugo-extension) in the Marketplace. You'll have to sign in first before you can actually install the extension.
 
 After signing in. Click 'Get it free'. Select your Azure DevOps organization and click 'Install'.
 
-#### Installing the GitHub Pages Publish extension
+#### Install the GitHub Pages Publish extension
 
 We also need the GitHub Pages Publish extension to publish our Hugo site to GitHub pages. You can find it [here](https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish) in the Marketplace.
 
 Click 'Get it free' again. Select your Azure DevOps organization and click 'Install'.
+
+#### Generate GitHub Personal Access Token
+
+We're going to need a GitHub Personal Access Token to publish the Hugo site to our GitHub pages repository. So login to GitHub and follow these steps.
+
+- Click in top right and choose 'Settings'.  
+ ![GitHub settings](../../images/blog/publishing-hugo-blog-using-azure-devops/access-token-settings.png)
+- Choose 'Developer settings' in the left menu.
+- Choose 'Personal access tokens' in the left menu.
+- Click 'Generate new token' button
+- Enter a description and select public_repo.  
+ ![Generate token](../../images/blog/publishing-hugo-blog-using-azure-devops/access-token-generate.png)
+- Click 'Generate token' at the bottom of the page.
+- Copy the token for later use.
 
 ### Generate Hugo site
 
