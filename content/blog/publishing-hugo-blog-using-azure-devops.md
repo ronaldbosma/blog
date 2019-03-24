@@ -3,7 +3,7 @@ title: "Publishing Hugo Blog Using Azure Devops"
 date: 2019-03-24T00:00:00+01:00
 publishdate: 2019-03-24T00:00:00+01:00
 lastmod: 2019-03-24T00:00:00+01:00
-image: "images/blog/publishing-hugo-blog-using-azure-devops.jpg"
+image: "images/blog/publishing-hugo-blog-using-azure-devops/publishing-hugo-blog-using-azure-devops.jpg"
 tags: [ "Azure DevOps", "Continuous Integration" ]
 comments: true
 draft: true
