@@ -9,7 +9,7 @@ pool:
 steps:
 - checkout: self
   displayName: 'Checkout repository including submodules'
-  submodules: true  # true so theme submodule is checked out
+  submodules: true  # true so Hugo theme submodule is checked out
 
 - task: HugoTask@1
   displayName: 'Generate Hugo site'
@@ -19,5 +19,5 @@ steps:
 - task: PublishPipelineArtifact@0
   displayName: 'Publish Hugo site as artifact'
   inputs:
-    artifactName: 'test-ronaldbosma.github.io'
+    artifactName: 'hugo-site'
     targetPath: '$(Build.ArtifactStagingDirectory)'
