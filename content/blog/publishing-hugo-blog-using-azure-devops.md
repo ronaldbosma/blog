@@ -92,4 +92,30 @@ The last step is to publish the generate Hugo site as an artifact of our build. 
     targetPath: '$(Build.ArtifactStagingDirectory)'
 ```
 
-That's it. You can click 'Save and run. Provide a comment and click 'Save and run' again. This will create an 'azure-pipelines.yml' file in your repository containing your build pipeline.
+That's it. You can click 'Save and run. Provide a comment and click 'Save and run' again. This will create an 'azure-pipelines.yml' file in your repository containing your build pipeline. It will then trigger a build.
+
+You can find the final .yml [here](https://github.com/ronaldbosma/blog/blob/master/azure-pipelines.yml).
+
+After your build succeeds it should have an artifact as shown in the image below.
+![Build artifacts](../../images/blog/publishing-hugo-blog-using-azure-devops/hugo-site-artifacts.png)
+
+### Release pipeline
+
+Now that we have a successful build it's time to create a release.
+
+- Open your Azure DevOps project.
+- In the left menu choose Pipelines > Releases.
+- Click the 'New pipeline' button.
+- Select the 'Empty job' template.
+- Give the stage a name like 'GitHub Pages'.
+- Click 'Add an artifact'.
+- Select 'Build' as the source type and select the build we've just created as the source. Enter a different source alias if you want, like 'blog'.  
+  ![Add artifact](../../images/blog/publishing-hugo-blog-using-azure-devops/release-add-an-artifact.png)
+  
+- Enable the 'Continuous deployment trigger' so the release will automatically start after the build succeeds.  
+![Continuous deployment trigger](../../images/blog/publishing-hugo-blog-using-azure-devops/release-continuous-deployment-trigger.png)
+- Open the Tasks tab for the 'GitHub Pages' stage.
+- Add the 'Publish to GitHub Pages' task and configure it:
+  - 'Documentation Source' should be something like '$(System.DefaultWorkingDirectory)/blog/*'. Where blog is the artifact alias you've configured.
+  - Configure the 'GitHub Personal Access Token' as [a secret](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#secret-variables) using a variable.  
+  ![Publish to GitHub Pages configuration](../../images/blog/publishing-hugo-blog-using-azure-devops/release-publish-to-github-pages.png)
