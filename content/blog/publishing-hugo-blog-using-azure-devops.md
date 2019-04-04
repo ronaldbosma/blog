@@ -3,7 +3,7 @@ title: "Publishing Hugo Blog Using Azure Devops"
 date: 2019-03-24T00:00:00+01:00
 publishdate: 2019-03-24T00:00:00+01:00
 lastmod: 2019-03-24T00:00:00+01:00
-image: "images/blog/publishing-hugo-blog-using-azure-devops/publishing-hugo-blog-using-azure-devops.jpg"
+image: "images/publishing-hugo-blog-using-azure-devops/publishing-hugo-blog-using-azure-devops.jpg"
 tags: [ "Azure DevOps", "Continuous Integration" ]
 comments: true
 draft: true
@@ -34,12 +34,12 @@ Click 'Get it free' again. Select your Azure DevOps organization and click 'Inst
 We're going to need a GitHub Personal Access Token to publish the Hugo site to our GitHub Pages repository. So login to GitHub and follow these steps.
 
 - Click in top right and choose 'Settings'.  
- ![GitHub settings](../../images/blog/publishing-hugo-blog-using-azure-devops/access-token-settings.png)
+ ![GitHub settings](../../../../../images/publishing-hugo-blog-using-azure-devops/access-token-settings.png)
 - Choose 'Developer settings' in the left menu.
 - Choose 'Personal access tokens' in the left menu.
 - Click the 'Generate new token' button.
 - Enter a description and select public_repo.  
- ![Generate token](../../images/blog/publishing-hugo-blog-using-azure-devops/access-token-generate.png)
+ ![Generate token](../../../../../images/publishing-hugo-blog-using-azure-devops/access-token-generate.png)
 - Click 'Generate token' at the bottom of the page.
 - Copy the token for later use.
 
@@ -111,7 +111,7 @@ The last step is to publish the generate Hugo site as an artifact of our build. 
 That's it. You can click 'Save and run'. Provide a comment and click 'Save and run' again. This will create an 'azure-pipelines.yml' file in your repository containing your build pipeline. You can find the final azure-pipelines.yml [here](https://github.com/ronaldbosma/blog/blob/master/azure-pipelines.yml).
 
 Because of the trigger on master it will start a new build immediately. After your build succeeds it should have an artifact as shown in the image below.
-![Build artifacts](../../images/blog/publishing-hugo-blog-using-azure-devops/hugo-site-artifacts.png)
+![Build artifacts](../../../../../images/publishing-hugo-blog-using-azure-devops/hugo-site-artifacts.png)
 
 ### Release pipeline
 
@@ -124,14 +124,14 @@ Now that we have a successful build it's time to create a release. This will tak
 - Give the stage a name. E.g. 'GitHub Pages'.
 - Click 'Add an artifact'.
 - Select 'Build' as the source type. As the source, select the build we've just created. Enter a different source alias if you want, like 'blog'.  
-  ![Add artifact](../../images/blog/publishing-hugo-blog-using-azure-devops/release-add-an-artifact.png)
+  ![Add artifact](../../../../../images/publishing-hugo-blog-using-azure-devops/release-add-an-artifact.png)
   
 - Enable the 'Continuous deployment trigger' so the release will automatically start after the build succeeds.  
-![Continuous deployment trigger](../../images/blog/publishing-hugo-blog-using-azure-devops/release-continuous-deployment-trigger.png)
+![Continuous deployment trigger](../../../../../images/publishing-hugo-blog-using-azure-devops/release-continuous-deployment-trigger.png)
 - Open the Tasks tab for the 'GitHub Pages' stage.
 - Add the 'Publish to GitHub Pages' task and configure it:
   - 'Documentation Source' should be something like '$(System.DefaultWorkingDirectory)/blog/*'. Where blog is the artifact alias you've configured.
   - Configure the 'GitHub Personal Access Token' as [a secret](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#secret-variables) using a variable.  
-  ![Publish to GitHub Pages configuration](../../images/blog/publishing-hugo-blog-using-azure-devops/release-publish-to-github-pages.png)
+  ![Publish to GitHub Pages configuration](../../../../../images/publishing-hugo-blog-using-azure-devops/release-publish-to-github-pages.png)
 
   You can now trigger a new build. After the build succeeds the release will start and publish any change in your site to GitHub Pages.
