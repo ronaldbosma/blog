@@ -148,3 +148,50 @@ Now that we have a successful build it's time to create a release. This will tak
   ![Publish to GitHub Pages configuration](../../../../../images/publishing-hugo-blog-using-azure-devops/release-publish-to-github-pages.png)
 
   You can now trigger a new build. After the build succeeds the release will start and publish any change in your site to GitHub Pages.
+
+
+```powershell
+$docPath = "$(System.DefaultWorkingDirectory)/blog/*"
+$githubusername = "ronaldbosma"
+$githubemail = "release@ronaldbosma.github.io"
+$githubaccesstoken = "$(github-personal-access-token)"
+$repositoryname = "ronaldbosma.github.io"
+$branch="master"
+$commitMessage = "Automated Release $(Release.ReleaseId)"
+
+$repoWorkingDirectory = "$(System.DefaultWorkingDirectory)/temp-repo"
+    
+Write-Host "Cloning existing GitHub Pages branch"
+
+git clone https://$githubaccesstoken@github.com/$githubusername/$repositoryname.git --branch=$branch $repoWorkingDirectory --quiet
+
+if ($lastexitcode -gt 0)
+{
+	Write-Host "##vso[task.logissue type=error;]Unable to clone repository - check username, access token and repository name. Error code $lastexitcode"
+	[Environment]::Exit(1)
+}
+
+Write-Host "Copying new documentation into branch"
+Copy-Item $docPath $repoWorkingDirectory -recurse -Force
+
+Write-Host "Committing the GitHub Pages Branch"
+cd $repoWorkingDirectory
+git config core.autocrlf false
+git config user.email $githubemail
+git config user.name $githubusername
+git add *
+git commit -m $commitMessage
+
+if ($lastexitcode -gt 0)
+{
+	Write-Host "##vso[task.logissue type=error;]Error committing - see earlier log, error code $lastexitcode"
+	[Environment]::Exit(1)
+}
+
+git push
+
+if ($lastexitcode -gt 0)
+{
+	Write-Host "##vso[task.logissue type=error;]Error pushing to gh-pages branch, probably an incorrect Personal Access Token, error code $lastexitcode"
+	[Environment]::Exit(1)
+}```
