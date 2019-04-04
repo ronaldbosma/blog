@@ -20,7 +20,7 @@ pygmentsCodeFences = true
   picture = "/images/author.png"
   title = "Ronald Bosma"
   subtitle = "Software engineer"
-  mdtext = "I'm a software engineer working for Info Support in the Netherlands. I have over 10 years of experience in building distributed systems with Microsoft technology.<br /><br />Ever since the beginning of my career I’ve had a deep interest in test automation. I’m a TDD enthusiast and in recent years I’ve really come to appreciate Specification by Example and tools like SpecFlow."
+  mdtext = "I'm a software engineer working for Info Support in the Netherlands. I have over 10 years of experience in building distributed systems with Microsoft technology.<br /><br />Ever since the beginning of my career I’ve had a deep interest in test automation. I’m a TDD enthusiast and in recent years I’ve really come to appreciate Specification by Example and tools like SpecFlow.<br /><br />So true: <i>&#34;The bitterness of poor quality remains long after the sweet taste of low price is forgotten.&#34;</i>"
   alertbar = true
 
 [params.social]
