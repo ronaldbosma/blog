@@ -32,7 +32,7 @@ Person sherlock = new PersonBuilder()
 
 Inspired by a talk I attended a couple of months ago I decided to refactor some of my test data builders. In the rest of this post I'll go through some of the steps I've taken using the example above as the starting point.
 
-The code examples in this post are focussed on the use of the test data builder. More details on how the builder and other parts are implemented can be found [here](https://github.com/ronaldbosma/blog/tree/master/examples/CleaningUpYourTestDataCreation).
+The code examples in this post are focussed on the use of the test data builder. More details on how the builder and other parts are implemented can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/CleaningUpYourTestDataCreation).
 
 ### Introducing the Object Mother
 
@@ -115,4 +115,4 @@ The example at the start of the blog still needed the explanation that the code 
 
 By combining the [Object Mother](https://martinfowler.com/bliki/ObjectMother.html) and [Test Data Builder](http://www.natpryce.com/articles/000714.html) patterns and refactoring your build methods to flow more like natural language, your code can read more like a sentence. Almost like a Given step in a Gherkin scenario. This will improve the readability of your tests and makes them easier to maintain.
 
-The full C# code example with intermediate refactoring steps can be found [here](https://github.com/ronaldbosma/blog/tree/master/examples/CleaningUpYourTestDataCreation).
+The full C# code example with intermediate refactoring steps can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/CleaningUpYourTestDataCreation).
