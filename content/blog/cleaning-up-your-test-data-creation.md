@@ -3,7 +3,7 @@ title: "Cleaning Up Your Test Data Creation"
 date: 2019-03-20T00:00:00+01:00
 publishdate: 2019-03-20T00:00:00+01:00
 lastmod: 2019-03-17T00:00:00+01:00
-image: "images/blog/cleaning-up-your-test-data-creation.jpg"
+image: "images/cleaning-up-your-test-data-creation.jpg"
 tags: [ "Cleaner Code", "Test Automation" ]
 comments: true
 draft: false
