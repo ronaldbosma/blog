@@ -11,7 +11,7 @@ draft: true
 
 In this post I'll give a step-by-step explanation on how I publish my Hugo blog to GitHub Pages using Azure DevOps.
 
-### Preperations
+### Step 1: Prerequisites
 
 You'll need a Azure DevOps project that has the 'Pipelines' Azure DevOps service enabled. You can enable this service in your Project settings.
 
@@ -22,12 +22,6 @@ There are also two extension we'll need to intall from the Marketplace. These wi
 We're going to use the Hugo extension to generate our Hugo site. You can find it [here](https://marketplace.visualstudio.com/items?itemName=giuliovdev.hugo-extension) in the Marketplace. You'll have to sign in first before you can actually install the extension.
 
 After signing in. Click 'Get it free'. Select your Azure DevOps organization and click 'Install'.
-
-#### Install the GitHub Pages Publish extension
-
-We also need the GitHub Pages Publish extension to publish our Hugo site to GitHub Pages. You can find it [here](https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish) in the Marketplace.
-
-Click 'Get it free' again. Select your Azure DevOps organization and click 'Install'.
 
 #### Generate GitHub Personal Access Token
 
@@ -43,7 +37,20 @@ We're going to need a GitHub Personal Access Token to publish the Hugo site to o
 - Click 'Generate token' at the bottom of the page.
 - Copy the token for later use.
 
-### Generate Hugo site
+### Step 2: Remove submodule
+
+If you've included your GitHub pages repository as a submodule to your blog repo like me. You can remove the submodule, because you don't need it anymore.
+Follow these steps:
+
+- Delete the 'public' submodule section from the .gitmodules file.
+- Stage the .gitmodules changes: `git add .gitmodules`
+- Delete the 'public' submodule section from the .git/config file.
+- Run `git rm --cached public` (no trailing slash).
+- Remove the folder ".git/modules/public"
+- Commit `git commit -m "Removed public submodule"`
+- Delete the now untracked public folder from your cloned repo.
+
+### Step 3: Build Hugo site
 
 Now that we're finished with the preperations it's time to generate our Hugo site.
 
@@ -113,7 +120,7 @@ That's it. You can click 'Save and run'. Provide a comment and click 'Save and r
 Because of the trigger on master it will start a new build immediately. After your build succeeds it should have an artifact as shown in the image below.
 ![Build artifacts](../../../../../images/publishing-hugo-blog-using-azure-devops/hugo-site-artifacts.png)
 
-### Release pipeline
+### Step 4: Publish Hugo site
 
 Now that we have a successful build it's time to create a release. This will take the generated Hugo site and publish it to GitHub Pages.
 
