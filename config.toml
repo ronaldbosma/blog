@@ -9,7 +9,7 @@ googleAnalytics = "UA-136383708-1"
 pygmentsCodeFences = true
 
 [permalinks]
-    blog = "/:year/:month/:day/:slug"
+  blog = "/:year/:month/:day/:slug"
 
 [params]
   # description ="Ronald's Blog"
