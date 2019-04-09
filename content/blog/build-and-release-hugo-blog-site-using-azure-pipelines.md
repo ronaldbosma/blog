@@ -19,8 +19,8 @@ Initial repository setup
 
 I know right. Epic Paint skills :-D
 
-  ![Pipeline](../../static/images/build-and-release-hugo-site-using-azure-pipelines/pipeline.jpg)
-  ![Pipeline](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/pipeline.jpg)
+  ![Pipeline](../../static/images/build-and-release-hugo-site-using-azure-pipelines/pipeline.png)
+  ![Pipeline](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/pipeline.png)
 
 ### Step 1: Prerequisites
 
