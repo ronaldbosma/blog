@@ -98,7 +98,7 @@ pool:
   vmImage: 'vs2017-win2016'  # need a Windows host because the Hugo task uses PowerShell
 ```
 
-I've included the Hugo theme I use as a submodule in my blog repository. So the first build step is to [checkout the blog repository including the theme submodule](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#checkout).
+I've included the Hugo theme I use as a submodule in my blog repository. So the first build step will [checkout the blog repository including the theme submodule](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#checkout).
 
 ```yaml
 steps:
@@ -137,6 +137,10 @@ Because of the trigger on master it will start a new build immediately. After yo
 ### Step 4: Publish Hugo site
 
 Now that we have a successful build it's time to create a release. This will take the generated Hugo site and publish it to GitHub Pages.
+
+https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish
+https://github.com/JamesRandall/Vsts-GitHub-Pages-Publish/blob/master/README.md
+
 
 - Open your Azure DevOps project.
 - In the left menu choose Pipelines > Releases.
