@@ -11,6 +11,13 @@ draft: true
 
 In this post I'll give a step-by-step explanation on how I build and publish my Hugo blog site to GitHub Pages using Azure Pipelines.
 
+
+
+I know right. Epic Paint skills :-D
+
+  ![Pipeline](../../static/images/build-and-release-hugo-site-using-azure-pipelines/pipeline.jpg)
+  ![Pipeline](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/pipeline.jpg)
+
 ### Step 1: Prerequisites
 
 You'll need a Azure DevOps project that has the 'Pipelines' Azure DevOps service enabled. You can enable this service in your Project settings.
