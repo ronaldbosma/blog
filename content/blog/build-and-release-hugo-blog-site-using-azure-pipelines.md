@@ -9,7 +9,7 @@ comments: true
 draft: true
 ---
 
-In this post I'll give a step-by-step explanation on how I publish my Hugo blog to GitHub Pages using Azure DevOps.
+In this post I'll give a step-by-step explanation on how I build and publish my Hugo blog site to GitHub Pages using Azure Pipelines.
 
 ### Step 1: Prerequisites
 
