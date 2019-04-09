@@ -1,10 +1,10 @@
 ---
-title: "Publishing Hugo Blog Using Azure Devops"
+title: "Build And Release Hugo Site Using Azure Pipelines"
 date: 2019-03-24T00:00:00+01:00
 publishdate: 2019-03-24T00:00:00+01:00
 lastmod: 2019-03-24T00:00:00+01:00
-image: "images/publishing-hugo-blog-using-azure-devops/publishing-hugo-blog-using-azure-devops.jpg"
-tags: [ "Azure DevOps", "Continuous Integration" ]
+image: "images/build-and-release-hugo-site-using-azure-pipelines/post.jpg"
+tags: [ "Azure Pipelines", "Azure DevOps", "Hugo", "Continuous Integration" ]
 comments: true
 draft: true
 ---
@@ -28,14 +28,14 @@ After signing in. Click 'Get it free'. Select your Azure DevOps organization and
 We're going to need a GitHub Personal Access Token to publish the Hugo site to our GitHub Pages repository. So login to GitHub and follow these steps.
 
 - Click in top right and choose 'Settings'.  
-  ![GitHub settings](../../static/images/publishing-hugo-blog-using-azure-devops/access-token-settings.png)
-  ![GitHub settings](../../../../../images/publishing-hugo-blog-using-azure-devops/access-token-settings.png)
+  ![GitHub settings](../../static/images/build-and-release-hugo-site-using-azure-pipelines/access-token-settings.png)
+  ![GitHub settings](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/access-token-settings.png)
 - Choose 'Developer settings' in the left menu.
 - Choose 'Personal access tokens' in the left menu.
 - Click the 'Generate new token' button.
 - Enter a description and select public_repo.  
- ![Generate token](../../static/images/publishing-hugo-blog-using-azure-devops/access-token-generate.png)
- ![Generate token](../../../../../images/publishing-hugo-blog-using-azure-devops/access-token-generate.png)
+ ![Generate token](../../static/images/build-and-release-hugo-site-using-azure-pipelines/access-token-generate.png)
+ ![Generate token](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/access-token-generate.png)
 - Click 'Generate token' at the bottom of the page.
 - Copy the token for later use.
 
@@ -120,8 +120,8 @@ The last step is to publish the generate Hugo site as an artifact of our build. 
 That's it. You can click 'Save and run'. Provide a comment and click 'Save and run' again. This will create an 'azure-pipelines.yml' file in your repository containing your build pipeline. You can find the final azure-pipelines.yml [here](https://github.com/ronaldbosma/blog/blob/master/azure-pipelines.yml).
 
 Because of the trigger on master it will start a new build immediately. After your build succeeds it should have an artifact as shown in the image below.
-![Build artifacts](../../static/images/publishing-hugo-blog-using-azure-devops/hugo-site-artifacts.png)
-![Build artifacts](../../../../../images/publishing-hugo-blog-using-azure-devops/hugo-site-artifacts.png)
+![Build artifacts](../../static/images/build-and-release-hugo-site-using-azure-pipelines/hugo-site-artifacts.png)
+![Build artifacts](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/hugo-site-artifacts.png)
 
 ### Step 4: Publish Hugo site
 
@@ -134,12 +134,12 @@ Now that we have a successful build it's time to create a release. This will tak
 - Give the stage a name. E.g. 'GitHub Pages'.
 - Click 'Add an artifact'.
 - Select 'Build' as the source type. As the source, select the build we've just created. Enter a different source alias if you want, like 'blog'.  
-  ![Add artifact](../../static/images/publishing-hugo-blog-using-azure-devops/release-add-an-artifact.png)
-  ![Add artifact](../../../../../images/publishing-hugo-blog-using-azure-devops/release-add-an-artifact.png)
+  ![Add artifact](../../static/images/build-and-release-hugo-site-using-azure-pipelines/release-add-an-artifact.png)
+  ![Add artifact](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/release-add-an-artifact.png)
   
 - Enable the 'Continuous deployment trigger' so the release will automatically start after the build succeeds.  
-![Continuous deployment trigger](../../static/images/publishing-hugo-blog-using-azure-devops/release-continuous-deployment-trigger.png)
-![Continuous deployment trigger](../../../../../images/publishing-hugo-blog-using-azure-devops/release-continuous-deployment-trigger.png)
+![Continuous deployment trigger](../../static/images/build-and-release-hugo-site-using-azure-pipelines/release-continuous-deployment-trigger.png)
+![Continuous deployment trigger](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/release-continuous-deployment-trigger.png)
 - Open the Tasks tab for the 'GitHub Pages' stage.
 - Add a PowerShell task. Select Inline as the type and add the following script.
 
