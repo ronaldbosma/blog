@@ -12,6 +12,15 @@ draft: true
 In this post I'll give a step-by-step explanation on how I build and publish my Hugo blog site to GitHub Pages using Azure Pipelines.
 
 
+- [Step 1: Prerequisites](#step-1-prerequisites)
+  - [Install the Hugo extension](#install-the-hugo-extension)
+  - [Generate GitHub Personal Access Token](#generate-github-personal-access-token)
+- [Step 2: Remove submodule](#step-2-remove-submodule)
+- [Step 3: Build Hugo site](#step-3-build-hugo-site)
+  - [Create build pipeline linked to GitHub](#create-build-pipeline-linked-to-github)
+  - [Configure build pipeline](#configure-build-pipeline)
+- [Step 4: Publish Hugo site](#step-4-publish-hugo-site)
+
 Initial repository setup
 
   ![Initial repository setup](../../static/images/build-and-release-hugo-site-using-azure-pipelines/initial-repo-setup.png)
@@ -82,7 +91,7 @@ We'll start with a new build pipeline. (_See [create your first pipeline](https:
 - An editor is opened where you can configure your pipeline using yaml.  
   Remove all content from the .yml file. We'll start from scratch in the next section.
 
-#### Configure the actual build pipeline
+#### Configure build pipeline
 
 First of we can [configure a trigger](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#trigger). The following will configure the build to trigger whenever code is pushed to master.
 
