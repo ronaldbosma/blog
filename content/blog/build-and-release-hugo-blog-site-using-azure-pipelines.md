@@ -11,41 +11,42 @@ draft: true
 
 In this post I'll give a step-by-step explanation on how I build and publish my Hugo blog site to GitHub Pages using Azure Pipelines.
 
-I'm using [Hugo](https://gohugo.io) to create my blog site. Ìt lets me create my posts in markdown and with a simple command generate a static website. This static website is hosted on my personal [GitHub Pages](https://pages.github.com/) site. GitHub Pages allows me to turn content in a git repository into a website.
+I'm using [Hugo](https://gohugo.io) to create my blog site. Ìt lets me create my posts in markdown and with a simple command generate a static website. This website is hosted on my personal [GitHub Pages](https://pages.github.com/) site. GitHub Pages allows me to turn content in a git repository into a website.
 
-My goal was to publish my blog site whenever I push a change to the master branch of my blog repository. Before I go into the details of how I did this, lets first have a look at what I started with. 
+My goal was to publish changes to my blog whenever I push a change to the master branch of my blog repository. Before I go into the details of how I did this, lets first have a look at what I started with. 
 
-I used the instructions described on [Hosting Hugo site on GitHub](https://gohugo.io/hosting-and-deployment/hosting-on-github/) to create 2 git repositories.  
-1. A `blog` repository containing my markdown files, Hugo templates and theme.  
-2. A `<username>.github.io` repository that will is the source of my GitHub Pages site.
+I used the instructions on [Hosting Hugo site on GitHub](https://gohugo.io/hosting-and-deployment/hosting-on-github/) to create 2 git repositories.  
+1. A `blog` repository containing my markdown files, Hugo templates and theme, etc.  
+2. A `<username>.github.io` repository that is the source of my GitHub Pages site.
 
-The `<username>.github.io` repository was included as a submodule in the `blog` repository. This let me run the Hugo command and generate the static website in the `<username>.github.io` repository. The image below shows a graphical representation of this.
+The `ronaldbosma.github.io` repository was included as a submodule in the `blog` repository. This allowed me to run the Hugo command and generate the static website in `ronaldbosma.github.io`. The image below shows a graphical representation of this.
 
 ![Initial repository setup](../../static/images/build-and-release-hugo-site-using-azure-pipelines/initial-repo-setup.png)
 ![Initial repository setup](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/initial-repo-setup.png)
 
-As per the instructions I used a `deploy.sh` script to generate the Hugo static website in the public folder and push any changes to `<username>.github.io`. This has a few disadvantages though.
+As per the instructions I used a `deploy.sh` script to generate the Hugo static website in the public folder and push any changes to `ronaldbosma.github.io`. This has a few disadvantages though.
 
-First of it's a manual action which can be forgotten easily. Also, I'm a developer and I dislike doing things manually.
+First off it's a manual action which can be forgotten easily. Also, I'm a developer and I dislike doing things manually.
 
-I also like to create seperate branches for my posts so I can create a pull request and ask my peers for feedback. The `deploy.sh` script can be run from every branch. Possibly publishing something I don't want to or removing changed I haven't merged from master yet.
+I also prefer to create seperate branches for my posts so I can create a pull request and ask my peers for feedback. The `deploy.sh` script can be run from every branch. Possibly publishing something I don't want to or removing changes I haven't merged from master yet.
 
-The last problem I personally had was that the link to the submodule seemed to disappear. Making pushing any changes to `<username>.github.io` impossible. For lack of a better solution I removed and added the submodule manually. Which is cumbersome.
+The last problem I had was that for some reason the link to the submodule seemed to disappear. Making pushing any changes to `ronaldbosma.github.io` impossible. As a pragmatic solution I just removed and added the submodule manually. Which is cumbersome.
 
 What I wanted was to automatically build and release my blog whenever I push a change in the master branch of my `blog` repository. I used Azure Pipelines to make this happen.
 
 ![Pipeline](../../static/images/build-and-release-hugo-site-using-azure-pipelines/pipeline.png)
 ![Pipeline](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/pipeline.png)
 
-The image above shows the various steps that are executed. First of a build pipeline is triggered whenever I push to master. Using a Hugo build task the static site is generated and published as an artifact of the build. When the build succeeds a release pipeline is triggered which will take the site and push this into the `<username>.github.io` repository using a simple PowerShell script.
+The image above shows the various steps that are executed. First a build pipeline is triggered whenever I push to master. Using a Hugo build task the static site is generated and published as an artifact of the build. When the build succeeds a release pipeline is triggered which will take the site and push this into the `ronaldbosma.github.io` repository using a GitHub Pages Publish task.
 
-Although I'm interacting with a git repository in the release step, I decided to put this step in a release pipeline because I'm releasing my site. This also allows me to add more stages to for example a testing environment or change the target location and type of my site altogether.
+Although I'm interacting with a git repository during the publish step, I decided to put this step in a release pipeline and not a build pipeline because I'm releasing my site here. Not building it. This also allows me to add more stages to for example a testing environment or change the target location and type of my site altogether.
 
 In the next section of this post you'll find a step-by-step explanation of what I did to create this pipeline.
 
 - [Step 1: Prerequisites](#step-1-prerequisites)
   - [1.1 Install the Hugo extension](#1-1-install-the-hugo-extension)
-  - [1.2 Generate GitHub Personal Access Token](#1-2-generate-github-personal-access-token)
+  - [1.2 Install the GitHub Pages Publish extension](#1-2-install-the-github-pages-publish-extension)
+  - [1.3 Generate GitHub Personal Access Token](#1-3-generate-github-personal-access-token)
 - [Step 2: Remove submodule](#step-2-remove-submodule)
 - [Step 3: Build Hugo site](#step-3-build-hugo-site)
   - [3.1 Create build pipeline linked to GitHub](#3-1-create-build-pipeline-linked-to-github)
@@ -56,7 +57,7 @@ In the next section of this post you'll find a step-by-step explanation of what 
 
 You'll need an Azure DevOps project that has the 'Pipelines' Azure DevOps service enabled. You can enable this service in your Project settings.
 
-There is also an extension we'll need to intall from the Marketplace. This will be installed at the Organization level in Azure DevOps. So be sure you have the proper permissions.
+There are also two extension we'll need to intall from the Marketplace. These will be installed at the Organization level in Azure DevOps. So be sure you have the proper permissions.
 
 #### 1.1 Install the Hugo extension
 
@@ -64,9 +65,15 @@ We're going to use the Hugo extension to generate our Hugo site. You can find it
 
 After signing in. Click 'Get it free'. Select your Azure DevOps organization and click 'Install'.
 
-#### 1.2 Generate GitHub Personal Access Token
+#### 1.2 Install the GitHub Pages Publish extension
 
-We're going to need a GitHub Personal Access Token to publish the Hugo site to our GitHub Pages repository. So login to GitHub and follow these steps.
+We also need the GitHub Pages Publish extension to publish our Hugo site to GitHub Pages. You can find it [here](https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish) in the Marketplace. You need version 1.0.0 which has the option to specify a branch to publish to.
+
+Click 'Get it free' again. Select your Azure DevOps organization and click 'Install'.
+
+#### 1.3 Generate GitHub Personal Access Token
+
+The GitHub Pages Publish task requires a GitHub Personal Access Token to access the GitHub Pages repository. So login to GitHub and follow these steps to create one.
 
 - Click on your avatar in the top right corner and choose 'Settings'.  
   ![GitHub settings](../../static/images/build-and-release-hugo-site-using-azure-pipelines/access-token-settings.png)
@@ -82,13 +89,13 @@ We're going to need a GitHub Personal Access Token to publish the Hugo site to o
 
 ### Step 2: Remove submodule
 
-If you've included your GitHub pages repository as a submodule to your blog repo like me. You can remove the submodule, because you don't need it anymore. Follow these steps:
+If you've included your GitHub pages repository as a submodule to your blog repository like me. You can remove the submodule, because you don't need it anymore. Follow these steps:
 
 - Delete the 'public' submodule section from the .gitmodules file.
 - Stage the .gitmodules changes: `git add .gitmodules`.
 - Delete the 'public' submodule section from the .git/config file.
 - Run `git rm --cached public` (no trailing slash).
-- Remove the folder ".git/modules/public".
+- Remove the folder '.git/modules/public'.
 - Commit `git commit -m "Removed public submodule"`.
 - Delete the now untracked public folder from your cloned repo.
 
@@ -113,7 +120,7 @@ We'll start with a new build pipeline. You can follow the steps below or have a 
 
 #### 3.2 Configure build pipeline
 
-First of we can [configure a trigger](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#trigger). The following will configure the build to trigger whenever a change is pushed to master.
+The first thing to do is [configure a trigger](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#trigger). The following will make the build trigger whenever a change is pushed to master.
 
 ```yaml
 trigger:
@@ -127,7 +134,7 @@ pool:
   vmImage: 'vs2017-win2016'  # need a Windows host because the Hugo task uses PowerShell
 ```
 
-I've included the Hugo theme I use as a submodule in my blog repository. So the first build step will [checkout the blog repository including the theme submodule](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#checkout).
+I've included the Hugo theme I use as a submodule in my blog repository. This step will [checkout the blog repository including the theme submodule](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#checkout).
 
 ```yaml
 steps:
@@ -145,9 +152,9 @@ Next step is to generate the Hugo site. This will use the Hugo task we've instal
     destination: '$(Build.ArtifactStagingDirectory)'
 ```
 
-You can find a description of the possible task parameters [here](https://github.com/giuliov/hugo-vsts-extension/blob/master/README.md). Have a look at the [task.json](https://github.com/giuliov/hugo-vsts-extension/blob/master/hugo-task/task.json) if you're looking for the exact input names.
+_You can find a description of the possible task parameters [here](https://github.com/giuliov/hugo-vsts-extension/blob/master/README.md). Have a look at the [task.json](https://github.com/giuliov/hugo-vsts-extension/blob/master/hugo-task/task.json) if you're looking for the exact input names._
 
-The last step is to publish the generated Hugo site as an artifact of our build. This will make it possible to use a release pipeline when publishing the site to GitHbub pages.
+The last step is to publish the generated Hugo site as an artifact of our build. This will make it possible to use the result in a release pipeline when publishing the site.
 
 ```yaml
 - task: PublishPipelineArtifact@0
@@ -159,17 +166,13 @@ The last step is to publish the generated Hugo site as an artifact of our build.
 
 That's it. You can click 'Save and run'. Provide a comment and click 'Save and run' again. This will create an 'azure-pipelines.yml' file in your repository containing your build pipeline. You can find the final azure-pipelines.yml for my blog site [here](https://github.com/ronaldbosma/blog/blob/master/azure-pipelines.yml).
 
-Because of the trigger on master it will start a new build immediately. After your build succeeds it should have an artifact as shown in the image below.
+Because of the trigger on master it will start a new build immediately. After your build succeeds it should contain an artifact as shown in the image below.
 ![Build artifacts](../../static/images/build-and-release-hugo-site-using-azure-pipelines/hugo-site-artifacts.png)
 ![Build artifacts](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/hugo-site-artifacts.png)
 
 ### Step 4: Publish Hugo site
 
-Now that we have a successful build it's time to create a release. This will take the generated Hugo site and publish it to GitHub Pages.
-
-https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish
-https://github.com/JamesRandall/Vsts-GitHub-Pages-Publish/blob/master/README.md
-
+Now that we have a successful build it's time to create a release pipeline. This will take the generated Hugo site and publish it to GitHub Pages.
 
 - Open your Azure DevOps project.
 - In the left menu choose Pipelines > Releases.
@@ -177,7 +180,9 @@ https://github.com/JamesRandall/Vsts-GitHub-Pages-Publish/blob/master/README.md
 - Select the 'Empty job' template.
 - Give the stage a name. E.g. 'GitHub Pages'.
 - Click 'Add an artifact'.
-- Select 'Build' as the source type. As the source, select the build we've just created. Enter a different source alias if you want, like 'blog'.  
+- Select 'Build' as the source type.  
+  As the source, select the build we've just created.  
+  Enter a different source alias if you want, like 'blog'.  
   ![Add artifact](../../static/images/build-and-release-hugo-site-using-azure-pipelines/release-add-an-artifact.png)
   ![Add artifact](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/release-add-an-artifact.png)
   
@@ -185,6 +190,19 @@ https://github.com/JamesRandall/Vsts-GitHub-Pages-Publish/blob/master/README.md
 ![Continuous deployment trigger](../../static/images/build-and-release-hugo-site-using-azure-pipelines/release-continuous-deployment-trigger.png)
 ![Continuous deployment trigger](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/release-continuous-deployment-trigger.png)
 - Open the Tasks tab for the 'GitHub Pages' stage.
+- Add the [Publish to GitHub Pages](https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish) task installed in the prerequisites and configure it:
+  - 'Documentation Source' should be something like '$(System.DefaultWorkingDirectory)/blog/*'. Where blog is the artifact alias you've configured.
+  - Configure the 'GitHub Personal Access Token' as [a secret](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#secret-variables) using a variable.  
+  - Set 'Branch Name' to master.
+  ![Publish to GitHub Pages configuration](../../static/images/build-and-release-hugo-site-using-azure-pipelines/release-publish-to-github-pages.png)
+  ![Publish to GitHub Pages configuration](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/release-publish-to-github-pages.png)
+  
+You can now trigger a new build. After the build succeeds the release will start and publish any change in your site to GitHub Pages.
+
+With this pipeline it's a breeze to publish new changes to my blog. No more manual labor!
+
+
+<!--
 - Add a PowerShell task. Select Inline as the type and add the following script.
 
   ```powershell
@@ -236,3 +254,4 @@ https://github.com/JamesRandall/Vsts-GitHub-Pages-Publish/blob/master/README.md
 
 
   You can now trigger a new build. After the build succeeds the release will start and publish any change in your site to GitHub Pages.
+-->
