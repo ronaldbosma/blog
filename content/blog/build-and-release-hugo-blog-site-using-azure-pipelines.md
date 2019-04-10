@@ -98,7 +98,7 @@ Now that we're finished with the preperations it's time to generate our Hugo sit
 
 #### 3.1 Create build pipeline linked to GitHub
 
-We'll start with a new build pipeline. (_See [create your first pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/get-started-yaml?view=azure-devops) for a detailed explanation._)
+We'll start with a new build pipeline. You can follow the steps below or have a look at [create your first pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/get-started-yaml?view=azure-devops) for a detailed description.
 
 - Open your Azure DevOps project.
 - In the left menu choose Pipelines > Builds.
@@ -107,13 +107,13 @@ We'll start with a new build pipeline. (_See [create your first pipeline](https:
 - Select your blog repository containing your Hugo templates, themes, markdown posts, etc.
 - Install Azure Pipelines in your GitHub account if you haven't already.
 - Authorize Azure Pipelines to access your GitHub resources.
-- Select the pipeline template you want to start from. In our case 'Starter pipeline' will do fine.
+- Select the pipeline template you want to start from. In our case the 'Starter pipeline' will do.
 - An editor is opened where you can configure your pipeline using yaml.  
   Remove all content from the .yml file. We'll start from scratch in the next section.
 
 #### 3.2 Configure build pipeline
 
-First of we can [configure a trigger](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#trigger). The following will configure the build to trigger whenever code is pushed to master.
+First of we can [configure a trigger](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#trigger). The following will configure the build to trigger whenever a change is pushed to master.
 
 ```yaml
 trigger:
@@ -136,7 +136,7 @@ steps:
   submodules: true  # true so Hugo theme submodule is checked out
 ```
 
-Next up is to generate the Hugo site. This will use the Hugo task we've installed earlier. The output will be generated to the artifact staging directory.  
+Next step is to generate the Hugo site. This will use the Hugo task we've installed earlier. The output will be generated to the artifact staging directory.  
 
 ```yaml
 - task: HugoTask@1
@@ -145,9 +145,9 @@ Next up is to generate the Hugo site. This will use the Hugo task we've installe
     destination: '$(Build.ArtifactStagingDirectory)'
 ```
 
-You can find a description of the possible parameters [here](https://github.com/giuliov/hugo-vsts-extension/blob/master/README.md). Have a look at the [task.json](https://github.com/giuliov/hugo-vsts-extension/blob/master/hugo-task/task.json) if you're looking for the exact input names.
+You can find a description of the possible task parameters [here](https://github.com/giuliov/hugo-vsts-extension/blob/master/README.md). Have a look at the [task.json](https://github.com/giuliov/hugo-vsts-extension/blob/master/hugo-task/task.json) if you're looking for the exact input names.
 
-The last step is to publish the generate Hugo site as an artifact of our build. This will make it possible to use a release pipeline when publishing the site to GitHbub pages.
+The last step is to publish the generated Hugo site as an artifact of our build. This will make it possible to use a release pipeline when publishing the site to GitHbub pages.
 
 ```yaml
 - task: PublishPipelineArtifact@0
@@ -157,7 +157,7 @@ The last step is to publish the generate Hugo site as an artifact of our build. 
     targetPath: '$(Build.ArtifactStagingDirectory)'
 ```
 
-That's it. You can click 'Save and run'. Provide a comment and click 'Save and run' again. This will create an 'azure-pipelines.yml' file in your repository containing your build pipeline. You can find the final azure-pipelines.yml [here](https://github.com/ronaldbosma/blog/blob/master/azure-pipelines.yml).
+That's it. You can click 'Save and run'. Provide a comment and click 'Save and run' again. This will create an 'azure-pipelines.yml' file in your repository containing your build pipeline. You can find the final azure-pipelines.yml for my blog site [here](https://github.com/ronaldbosma/blog/blob/master/azure-pipelines.yml).
 
 Because of the trigger on master it will start a new build immediately. After your build succeeds it should have an artifact as shown in the image below.
 ![Build artifacts](../../static/images/build-and-release-hugo-site-using-azure-pipelines/hugo-site-artifacts.png)
