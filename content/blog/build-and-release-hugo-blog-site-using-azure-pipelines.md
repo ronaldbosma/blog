@@ -11,25 +11,26 @@ draft: true
 
 In this post I'll give a step-by-step explanation on how I build and publish my Hugo blog site to GitHub Pages using Azure Pipelines.
 
-I'm using [Hugo](https://gohugo.io) to create my blog site. Hugo lets me create my posts in markdown and with a simple command generate a static website. This static website is hosted on my personal [GitHub Pages](https://pages.github.com/) site. GitHub Pages allows me to turn content in a git repository into a website.
+I'm using [Hugo](https://gohugo.io) to create my blog site. Ìt lets me create my posts in markdown and with a simple command generate a static website. This static website is hosted on my personal [GitHub Pages](https://pages.github.com/) site. GitHub Pages allows me to turn content in a git repository into a website.
 
 My goal was to publish my blog site whenever I push a change to the master branch of my blog repository. Before I go into the details of how I did this, lets first have a look at what I started with. 
 
 I used the instructions described on [Hosting Hugo site on GitHub](https://gohugo.io/hosting-and-deployment/hosting-on-github/) to create 2 git repositories.  
 1. A `blog` repository containing my markdown files, Hugo templates and theme.  
-2. A `<username>.github.io` repository that will be the source of my GitHub Pages site.
+2. A `<username>.github.io` repository that will is the source of my GitHub Pages site.
 
-The `<username>.github.io` repository was included as a submodule in the `blog` repository. This let me run the Hugo command and generate the static website in the `<username>.github.io` repository. The image below shows a graphical representation.
+The `<username>.github.io` repository was included as a submodule in the `blog` repository. This let me run the Hugo command and generate the static website in the `<username>.github.io` repository. The image below shows a graphical representation of this.
 
 ![Initial repository setup](../../static/images/build-and-release-hugo-site-using-azure-pipelines/initial-repo-setup.png)
 ![Initial repository setup](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/initial-repo-setup.png)
 
 As per the instructions I used a `deploy.sh` script to generate the Hugo static website in the public folder and push any changes to `<username>.github.io`. This has a few disadvantages though.
 
-First of it's a manual action which can be forgotten easily.
-I like to create seperate branches for my posts so I can create a pull request and ask my peers for feedback. The `deploy.sh` script can be run from every branch. Possible publishing something I don't want to.
+First of it's a manual action which can be forgotten easily. Also, I'm a developer and I dislike doing things manually.
 
-The last problem I personally had was that the link to the submodule seemed to disappear. Making pushing any changes to `<username>.github.io` impossible. For lack of a better solution I removed and added the submodule again. Which is cumbersome.
+I also like to create seperate branches for my posts so I can create a pull request and ask my peers for feedback. The `deploy.sh` script can be run from every branch. Possibly publishing something I don't want to or removing changed I haven't merged from master yet.
+
+The last problem I personally had was that the link to the submodule seemed to disappear. Making pushing any changes to `<username>.github.io` impossible. For lack of a better solution I removed and added the submodule manually. Which is cumbersome.
 
 
 
