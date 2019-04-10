@@ -32,9 +32,16 @@ I also like to create seperate branches for my posts so I can create a pull requ
 
 The last problem I personally had was that the link to the submodule seemed to disappear. Making pushing any changes to `<username>.github.io` impossible. For lack of a better solution I removed and added the submodule manually. Which is cumbersome.
 
+What I wanted was to automatically build and release my blog whenever I push a change in the master branch of my `blog` repository. I used Azure Pipelines to make this happen.
 
+![Pipeline](../../static/images/build-and-release-hugo-site-using-azure-pipelines/pipeline.png)
+![Pipeline](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/pipeline.png)
 
+The image above shows the various steps that are executed. First of a build pipeline is triggered whenever I push to master. Using a Hugo build task the static site is generated and published as an artifact of the build. When the build succeeds a release pipeline is triggered which will take the site and push this into the `<username>.github.io` repository using a simple PowerShell script.
 
+Although I'm interacting with a git repository in the release step, I decided to put this step in a release pipeline because I'm releasing my site. This also allows me to add more stages to for example a testing environment or change the target location and type of my site altogether.
+
+In the next section of this post you'll find a step-by-step explanation of what I did to create this pipeline.
 
 - [Step 1: Prerequisites](#step-1-prerequisites)
   - [Install the Hugo extension](#install-the-hugo-extension)
@@ -44,12 +51,6 @@ The last problem I personally had was that the link to the submodule seemed to d
   - [Create build pipeline linked to GitHub](#create-build-pipeline-linked-to-github)
   - [Configure build pipeline](#configure-build-pipeline)
 - [Step 4: Publish Hugo site](#step-4-publish-hugo-site)
-
-
-I know right. Epic Paint skills :-D
-
-  ![Pipeline](../../static/images/build-and-release-hugo-site-using-azure-pipelines/pipeline.png)
-  ![Pipeline](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/pipeline.png)
 
 ### Step 1: Prerequisites
 
