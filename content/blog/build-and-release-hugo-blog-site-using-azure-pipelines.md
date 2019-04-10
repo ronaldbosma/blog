@@ -11,9 +11,9 @@ draft: true
 
 In this post I'll give a step-by-step explanation on how I build and publish my Hugo blog site to GitHub Pages using Azure Pipelines.
 
-I'm using [Hugo](https://gohugo.io) to create my blog site. Ìt lets me create my posts in markdown and with a simple command generate a static website. This website is hosted on my personal [GitHub Pages](https://pages.github.com/) site. GitHub Pages allows me to turn content in a git repository into a website.
+I'm using [Hugo](https://gohugo.io) to create my blog site. It lets me create my posts in markdown and with a simple command generate a static website. This website is hosted on my personal [GitHub Pages](https://pages.github.com/) site. GitHub Pages allows me to turn content in a git repository into a website.
 
-My goal was to publish changes to my blog whenever I push a change to the master branch of my blog repository. Before I go into the details of how I did this, lets first have a look at what I started with. 
+My goal was to publish changes to my blog whenever I push a change to the master branch of my blog repository. Before I go into the details of how I did this, let’s first have a look at what I started with. 
 
 I used the instructions on [Hosting Hugo site on GitHub](https://gohugo.io/hosting-and-deployment/hosting-on-github/) to create 2 git repositories.  
 1. A `blog` repository containing my markdown files, Hugo templates and theme, etc.  
@@ -28,7 +28,7 @@ As per the instructions I used a `deploy.sh` script to generate the Hugo static 
 
 First off it's a manual action which can be forgotten easily. Also, I'm a developer and I dislike doing things manually.
 
-I also prefer to create seperate branches for my posts so I can create a pull request and ask my peers for feedback. The `deploy.sh` script can be run from every branch. Possibly publishing something I don't want to or removing changes I haven't merged from master yet.
+I also prefer to create separate branches for my posts so I can create a pull request and ask my peers for feedback. The `deploy.sh` script can be run from every branch. Possibly publishing something I don't want to or removing changes I haven't merged from master yet.
 
 The last problem I had was that for some reason the link to the submodule seemed to disappear. Making pushing any changes to `ronaldbosma.github.io` impossible. As a pragmatic solution I just removed and added the submodule manually. Which is cumbersome.
 
@@ -57,7 +57,7 @@ In the next section of this post you'll find a step-by-step explanation of what 
 
 You'll need an Azure DevOps project that has the 'Pipelines' Azure DevOps service enabled. You can enable this service in your Project settings.
 
-There are also two extension we'll need to intall from the Marketplace. These will be installed at the Organization level in Azure DevOps. So be sure you have the proper permissions.
+There are also two extension we'll need to install from the Marketplace. These will be installed at the Organization level in Azure DevOps. So be sure you have the proper permissions.
 
 #### 1.1 Install the Hugo extension
 
@@ -101,7 +101,7 @@ If you've included your GitHub pages repository as a submodule to your blog repo
 
 ### Step 3: Build Hugo site
 
-Now that we're finished with the preperations it's time to generate our Hugo site.
+Now that we're finished with the preparations it's time to generate our Hugo site.
 
 #### 3.1 Create build pipeline linked to GitHub
 
