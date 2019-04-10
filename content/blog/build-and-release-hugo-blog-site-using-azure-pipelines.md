@@ -44,27 +44,27 @@ Although I'm interacting with a git repository in the release step, I decided to
 In the next section of this post you'll find a step-by-step explanation of what I did to create this pipeline.
 
 - [Step 1: Prerequisites](#step-1-prerequisites)
-  - [Install the Hugo extension](#install-the-hugo-extension)
-  - [Generate GitHub Personal Access Token](#generate-github-personal-access-token)
+  - [1.1 Install the Hugo extension](#1-1-install-the-hugo-extension)
+  - [1.2 Generate GitHub Personal Access Token](#1-2-generate-github-personal-access-token)
 - [Step 2: Remove submodule](#step-2-remove-submodule)
 - [Step 3: Build Hugo site](#step-3-build-hugo-site)
-  - [Create build pipeline linked to GitHub](#create-build-pipeline-linked-to-github)
-  - [Configure build pipeline](#configure-build-pipeline)
+  - [3.1 Create build pipeline linked to GitHub](#3-1-create-build-pipeline-linked-to-github)
+  - [3.2 Configure build pipeline](#3-2-configure-build-pipeline)
 - [Step 4: Publish Hugo site](#step-4-publish-hugo-site)
 
 ### Step 1: Prerequisites
 
-You'll need a Azure DevOps project that has the 'Pipelines' Azure DevOps service enabled. You can enable this service in your Project settings.
+You'll need an Azure DevOps project that has the 'Pipelines' Azure DevOps service enabled. You can enable this service in your Project settings.
 
 There are also two extension we'll need to intall from the Marketplace. These will be installed at the Organization level in Azure DevOps. So be sure you have the proper permissions!
 
-#### Install the Hugo extension
+#### 1.1 Install the Hugo extension
 
 We're going to use the Hugo extension to generate our Hugo site. You can find it [here](https://marketplace.visualstudio.com/items?itemName=giuliovdev.hugo-extension) in the Marketplace. You'll have to sign in first before you can actually install the extension.
 
 After signing in. Click 'Get it free'. Select your Azure DevOps organization and click 'Install'.
 
-#### Generate GitHub Personal Access Token
+#### 1.2 Generate GitHub Personal Access Token
 
 We're going to need a GitHub Personal Access Token to publish the Hugo site to our GitHub Pages repository. So login to GitHub and follow these steps.
 
@@ -97,7 +97,7 @@ Follow these steps:
 
 Now that we're finished with the preperations it's time to generate our Hugo site.
 
-#### Create build pipeline linked to GitHub
+#### 3.1 Create build pipeline linked to GitHub
 
 We'll start with a new build pipeline. (_See [create your first pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/get-started-yaml?view=azure-devops) for a detailed explanation._)
 
@@ -112,7 +112,7 @@ We'll start with a new build pipeline. (_See [create your first pipeline](https:
 - An editor is opened where you can configure your pipeline using yaml.  
   Remove all content from the .yml file. We'll start from scratch in the next section.
 
-#### Configure build pipeline
+#### 3.2 Configure build pipeline
 
 First of we can [configure a trigger](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#trigger). The following will configure the build to trigger whenever code is pushed to master.
 
