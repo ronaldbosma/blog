@@ -75,13 +75,10 @@ Click 'Get it free' again. Select your Azure DevOps organization and click 'Inst
 
 The GitHub Pages Publish task requires a GitHub Personal Access Token to access the GitHub Pages repository. So login to GitHub and follow these steps to create one.
 
-- Click on your avatar in the top right corner and choose 'Settings'.  
-  ![GitHub settings](../../static/images/build-and-release-hugo-site-using-azure-pipelines/access-token-settings.png)
-  ![GitHub settings](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/access-token-settings.png)
-- Choose 'Developer settings' in the left menu.
-- Choose 'Personal access tokens' in the left menu.
-- Click the 'Generate new token' button.
-- Enter a description and select public_repo.  
+- Browse to https://github.com/settings/tokens/new.
+- Enter your password if requested.
+- Enter a description.
+- Check the public_repo option.  
  ![Generate token](../../static/images/build-and-release-hugo-site-using-azure-pipelines/access-token-generate.png)
  ![Generate token](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/access-token-generate.png)
 - Click 'Generate token' at the bottom of the page.
