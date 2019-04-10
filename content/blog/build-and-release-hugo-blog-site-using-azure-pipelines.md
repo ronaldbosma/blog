@@ -73,7 +73,7 @@ Click 'Get it free' again. Select your Azure DevOps organization and click 'Inst
 
 #### 1.3 Generate GitHub Personal Access Token
 
-The GitHub Pages Publish task requires a GitHub Personal Access Token to access the GitHub Pages repository. So login to GitHub and follow these steps to create one.
+The GitHub Pages Publish task requires a GitHub Personal Access Token to access the GitHub Pages repository. Create one using these steps.
 
 - Browse to https://github.com/settings/tokens/new.
 - Enter your password if requested.
