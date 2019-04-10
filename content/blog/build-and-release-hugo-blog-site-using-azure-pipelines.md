@@ -56,7 +56,7 @@ In the next section of this post you'll find a step-by-step explanation of what 
 
 You'll need an Azure DevOps project that has the 'Pipelines' Azure DevOps service enabled. You can enable this service in your Project settings.
 
-There are also two extension we'll need to intall from the Marketplace. These will be installed at the Organization level in Azure DevOps. So be sure you have the proper permissions!
+There is also an extension we'll need to intall from the Marketplace. This will be installed at the Organization level in Azure DevOps. So be sure you have the proper permissions.
 
 #### 1.1 Install the Hugo extension
 
@@ -68,7 +68,7 @@ After signing in. Click 'Get it free'. Select your Azure DevOps organization and
 
 We're going to need a GitHub Personal Access Token to publish the Hugo site to our GitHub Pages repository. So login to GitHub and follow these steps.
 
-- Click in top right and choose 'Settings'.  
+- Click on your avatar in the top right corner and choose 'Settings'.  
   ![GitHub settings](../../static/images/build-and-release-hugo-site-using-azure-pipelines/access-token-settings.png)
   ![GitHub settings](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/access-token-settings.png)
 - Choose 'Developer settings' in the left menu.
@@ -78,19 +78,18 @@ We're going to need a GitHub Personal Access Token to publish the Hugo site to o
  ![Generate token](../../static/images/build-and-release-hugo-site-using-azure-pipelines/access-token-generate.png)
  ![Generate token](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/access-token-generate.png)
 - Click 'Generate token' at the bottom of the page.
-- Copy the token for later use.
+- Store the token for later use.
 
 ### Step 2: Remove submodule
 
-If you've included your GitHub pages repository as a submodule to your blog repo like me. You can remove the submodule, because you don't need it anymore.
-Follow these steps:
+If you've included your GitHub pages repository as a submodule to your blog repo like me. You can remove the submodule, because you don't need it anymore. Follow these steps:
 
 - Delete the 'public' submodule section from the .gitmodules file.
-- Stage the .gitmodules changes: `git add .gitmodules`
+- Stage the .gitmodules changes: `git add .gitmodules`.
 - Delete the 'public' submodule section from the .git/config file.
 - Run `git rm --cached public` (no trailing slash).
-- Remove the folder ".git/modules/public"
-- Commit `git commit -m "Removed public submodule"`
+- Remove the folder ".git/modules/public".
+- Commit `git commit -m "Removed public submodule"`.
 - Delete the now untracked public folder from your cloned repo.
 
 ### Step 3: Build Hugo site
