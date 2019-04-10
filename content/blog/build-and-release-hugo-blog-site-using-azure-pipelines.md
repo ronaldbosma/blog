@@ -172,7 +172,7 @@ Because of the trigger on master it will start a new build immediately. After yo
 
 ### Step 4: Publish Hugo site
 
-Now that we have a successful build it's time to create a release pipeline. This will take the generated Hugo site and publish it to GitHub Pages.
+Now that we have a successful build we can create a release pipeline. It will take the generated Hugo site and publish it to GitHub Pages.
 
 - Open your Azure DevOps project.
 - In the left menu choose Pipelines > Releases.
