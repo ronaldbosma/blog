@@ -164,7 +164,7 @@ The last step is to publish the generated Hugo site as an artifact of our build.
     targetPath: '$(Build.ArtifactStagingDirectory)'
 ```
 
-That's it. You can click 'Save and run'. Provide a comment and click 'Save and run' again. This will create an 'azure-pipelines.yml' file in your repository containing your build pipeline. You can find the final azure-pipelines.yml for my blog site [here](https://github.com/ronaldbosma/blog/blob/master/azure-pipelines.yml).
+That's it. You can click 'Save and run'. Provide a comment and click 'Save and run' again. This will create an 'azure-pipelines.yml' file in your blog repository which contains your build pipeline. You can find the final azure-pipelines.yml for my blog site [here](https://github.com/ronaldbosma/blog/blob/master/azure-pipelines.yml).
 
 Because of the trigger on master it will start a new build immediately. After your build succeeds it should contain an artifact as shown in the image below.
 ![Build artifacts](../../static/images/build-and-release-hugo-site-using-azure-pipelines/hugo-site-artifacts.png)
