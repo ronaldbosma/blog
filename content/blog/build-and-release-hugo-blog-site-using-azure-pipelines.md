@@ -173,6 +173,10 @@ Because of the trigger on master it will start a new build immediately. After yo
 
 Now that we have a successful build we can create a release pipeline. It will take the generated Hugo site and publish it to GitHub Pages.
 
+_We're going to use a task to push the Hugo site to a GitHub repository. It actually uses a PowerShell script internally. If you want push to a local repository or have some extra requirements. Have a look at [this publish.ps1 script](https://github.com/JamesRandall/Vsts-GitHub-Pages-Publish/blob/master/buildAndReleaseTask/publish.ps1) that's used by the task._
+
+To configure the release pipeline:
+
 - Open your Azure DevOps project.
 - In the left menu choose Pipelines > Releases.
 - Click the 'New pipeline' button.
