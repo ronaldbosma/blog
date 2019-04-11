@@ -17,7 +17,7 @@ pygmentsCodeFences = true
 [params.author]
   name = "Ronald Bosma"
   thumbnail = "/images/author.png"
-  description = "Software engineer Delux"
+  description = "Software engineer"
 
 [params.index]
   picture = "/images/author.png"
