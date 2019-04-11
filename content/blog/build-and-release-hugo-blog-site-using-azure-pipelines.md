@@ -37,7 +37,7 @@ What I wanted was to automatically build and release my blog whenever I push a c
 ![Pipeline](../../static/images/build-and-release-hugo-site-using-azure-pipelines/pipeline.png)
 ![Pipeline](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/pipeline.png)
 
-The image above shows the various steps that are executed. First a build pipeline is triggered whenever I push to master. Using a Hugo build task the static site is generated and published as an artifact of the build. When the build succeeds a release pipeline is triggered which will take the site and push this into the `ronaldbosma.github.io` repository using a GitHub Pages Publish task.
+The image above shows the various steps that are executed. First a build pipeline is triggered whenever I push to master. Using a Hugo build task the static site is generated and published as an artifact of the build. When the build succeeds a release pipeline is triggered which will take the site and push this into the `ronaldbosma.github.io` repository using a Publish to GitHub Pages task.
 
 Although I'm interacting with a git repository during the publish step, I decided to put this step in a release pipeline and not a build pipeline because I'm releasing my site here. Not building it. This also allows me to add more stages to for example a testing environment or change the target location and type of my site altogether.
 
@@ -69,13 +69,13 @@ After signing in. Click 'Get it free'. Select your Azure DevOps organization and
 
 #### 1.2 Install the GitHub Pages Publish extension
 
-We also need the GitHub Pages Publish extension to publish our Hugo site to GitHub Pages. You can find it [here](https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish) in the Marketplace. You need version 1.0.0 which has the option to specify a branch to publish to.
+We also need the GitHub Pages Publish extension to publish our Hugo site to GitHub Pages. You can find it [here](https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish) in the Marketplace. You need version 1.0.0 or higher. It has the option to specify a branch to publish to.
 
 Click 'Get it free' again. Select your Azure DevOps organization and click 'Install'.
 
 #### 1.3 Generate GitHub Personal Access Token
 
-The GitHub Pages Publish task requires a GitHub Personal Access Token to access the GitHub Pages repository. Create one using these steps.
+The Publish to GitHub Pages task requires a GitHub Personal Access Token to access the GitHub Pages repository. Create one using these steps.
 
 - Browse to https://github.com/settings/tokens/new.
 - Enter your password if requested.
