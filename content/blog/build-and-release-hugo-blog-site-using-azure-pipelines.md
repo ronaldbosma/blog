@@ -22,7 +22,7 @@ I used the instructions on [Hosting Hugo site on GitHub](https://gohugo.io/hosti
 The `ronaldbosma.github.io` repository was included as a submodule in the `blog` repository. This allowed me to run the Hugo command and generate the static website in the `ronaldbosma.github.io` repository. The image below shows a graphical representation of this.
 
 ![Initial repository setup](../../static/images/build-and-release-hugo-site-using-azure-pipelines/initial-repo-setup.png)
-![Initial repository setup](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/initial-repo-setup.png)
+<!-- ![Initial repository setup](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/initial-repo-setup.png) -->
 
 As per the instructions I used a `deploy.sh` script to generate the Hugo static website in the public folder and push any changes to `ronaldbosma.github.io`. This has a few disadvantages though.
 
@@ -35,7 +35,7 @@ The last problem I had was that for some reason the link to the submodule seemed
 What I wanted was to automatically build and release my blog whenever I push a change in the master branch of my `blog` repository. I used Azure Pipelines to make this happen.
 
 ![Pipeline](../../static/images/build-and-release-hugo-site-using-azure-pipelines/pipeline.png)
-![Pipeline](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/pipeline.png)
+<!-- ![Pipeline](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/pipeline.png) -->
 
 The image above shows the various steps that are executed. First a build pipeline is triggered whenever I push to master. Using a Hugo build task the static site is generated and published as an artifact of the build. When the build succeeds a release pipeline is triggered which will take the site and push this into the `ronaldbosma.github.io` repository using a Publish to GitHub Pages task.
 
@@ -86,7 +86,7 @@ The Publish to GitHub Pages task requires a GitHub Personal Access Token to acce
 - Enter a description.
 - Check the public_repo option.  
  ![Generate token](../../static/images/build-and-release-hugo-site-using-azure-pipelines/access-token-generate.png)
- ![Generate token](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/access-token-generate.png)
+ <!-- ![Generate token](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/access-token-generate.png) -->
 - Click 'Generate token' at the bottom of the page.
 - Store the token for later use.
 
@@ -170,7 +170,7 @@ That's it. You can click 'Save and run'. Provide a comment and click 'Save and r
 
 Because of the trigger on master it will start a new build immediately. After your build succeeds it should contain an artifact as shown in the image below.
 ![Build artifacts](../../static/images/build-and-release-hugo-site-using-azure-pipelines/hugo-site-artifacts.png)
-![Build artifacts](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/hugo-site-artifacts.png)
+<!-- ![Build artifacts](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/hugo-site-artifacts.png) -->
 
 ### Step 4: Publish Hugo site
 
@@ -190,18 +190,18 @@ To configure the release pipeline:
   As the source, select the build we've just created.  
   Enter a different source alias if you want, like 'blog'.  
   ![Add artifact](../../static/images/build-and-release-hugo-site-using-azure-pipelines/release-add-an-artifact.png)
-  ![Add artifact](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/release-add-an-artifact.png)
+  <!-- ![Add artifact](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/release-add-an-artifact.png) -->
   
 - Enable the 'Continuous deployment trigger' so the release will automatically start after the build succeeds.  
 ![Continuous deployment trigger](../../static/images/build-and-release-hugo-site-using-azure-pipelines/release-continuous-deployment-trigger.png)
-![Continuous deployment trigger](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/release-continuous-deployment-trigger.png)
+<!-- ![Continuous deployment trigger](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/release-continuous-deployment-trigger.png) -->
 - Open the Tasks tab for the 'GitHub Pages' stage.
 - Add the [Publish to GitHub Pages](https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish) task installed in the prerequisites and configure it:
   - 'Documentation Source' should be '$(System.DefaultWorkingDirectory)/blog/*'. Where blog is the artifact alias you've configured.
   - Configure the 'GitHub Personal Access Token' as [a secret](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#secret-variables) using a variable.  
   - Set 'Branch Name' to master.
   ![Publish to GitHub Pages configuration](../../static/images/build-and-release-hugo-site-using-azure-pipelines/release-publish-to-github-pages.png)
-  ![Publish to GitHub Pages configuration](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/release-publish-to-github-pages.png)
+  <!-- ![Publish to GitHub Pages configuration](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/release-publish-to-github-pages.png) -->
   
 You can now trigger a new build. After the build succeeds the release will start and publish any change in your site to GitHub Pages.
 
