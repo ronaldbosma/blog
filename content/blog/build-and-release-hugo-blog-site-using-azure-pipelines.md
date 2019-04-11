@@ -168,7 +168,7 @@ The last step is to publish the generated Hugo site as an artifact of our build.
 
 That's it. You can click 'Save and run'. Provide a comment and click 'Save and run' again. This will create an 'azure-pipelines.yml' file in your blog repository which contains your build pipeline. You can find the final azure-pipelines.yml for my blog site [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/BuildAndReleaseHugoSiteUsingAzurePipelines/azure-pipelines.yml).
 
-Because of the trigger on master it will start a new build immediately. After your build succeeds it should contain an artifact as shown in the image below.
+Because of the trigger on master it will start a new build immediately. After your build succeeds it should contain an artifact as shown in the image below.  
 ![Build artifacts](../../static/images/build-and-release-hugo-site-using-azure-pipelines/hugo-site-artifacts.png)
 <!-- ![Build artifacts](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/hugo-site-artifacts.png) -->
 
@@ -199,7 +199,7 @@ To configure the release pipeline:
 - Add the [Publish to GitHub Pages](https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish) task installed in the prerequisites and configure it:
   - 'Documentation Source' should be '$(System.DefaultWorkingDirectory)/blog/*'. Where blog is the artifact alias you've configured.
   - Configure the 'GitHub Personal Access Token' as [a secret](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#secret-variables) using a variable.  
-  - Set 'Branch Name' to master.
+  - Set 'Branch Name' to master.  
   ![Publish to GitHub Pages configuration](../../static/images/build-and-release-hugo-site-using-azure-pipelines/release-publish-to-github-pages.png)
   <!-- ![Publish to GitHub Pages configuration](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/release-publish-to-github-pages.png) -->
   
