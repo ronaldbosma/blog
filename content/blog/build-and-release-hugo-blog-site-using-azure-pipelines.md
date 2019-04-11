@@ -41,6 +41,8 @@ The image above shows the various steps that are executed. First a build pipelin
 
 Although I'm interacting with a git repository during the publish step, I decided to put this step in a release pipeline and not a build pipeline because I'm releasing my site here. Not building it. This also allows me to add more stages to for example a testing environment or change the target location and type of my site altogether.
 
+Besides having to do less manual work there's another advantage to this solution. I can set a publish date in my posts. Posts with a publish date in the future will be ignored when generating my Hugo site. By scheduling my build pipeline to trigger at a regular interval I'm able to schedule posts to be published in the future.
+
 In the next section of this post you'll find a step-by-step explanation of what I did to create this pipeline.
 
 - [Step 1: Prerequisites](#step-1-prerequisites)
