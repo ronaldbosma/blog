@@ -53,6 +53,8 @@ In the next section of this post you'll find a step-by-step explanation of what 
   - [3.2 Configure build pipeline](#3-2-configure-build-pipeline)
 - [Step 4: Publish Hugo site](#step-4-publish-hugo-site)
 
+If you already have experience with Azure Pipelines in combination with GitHub repositories you can just setup the [Prerequisites](#step-1-prerequisites) and jump right into configuring the [build pipeline](#3-2-configure-build-pipeline) and [release pipeline](#step-4-publish-hugo-site).
+
 ### Step 1: Prerequisites
 
 You'll need an Azure DevOps project that has the 'Pipelines' Azure DevOps service enabled. You can enable this service in your Project settings.
