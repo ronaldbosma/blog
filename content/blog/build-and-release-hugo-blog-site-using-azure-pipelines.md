@@ -118,7 +118,7 @@ We'll start with a new build pipeline. You can follow the steps below or have a 
 - Install Azure Pipelines in your GitHub account if you haven't already.
 - Authorize Azure Pipelines to access your GitHub resources.
 - Select the pipeline template you want to start from. In our case the 'Starter pipeline' will do.
-- An editor is opened where you can configure your pipeline using yaml. Remove all content from the .yml file. We'll start from scratch in the next section.
+- An editor is opened where you can configure your pipeline using yaml. Remove all content. We'll start from scratch in the next section.
 
 #### 3.2 Configure build pipeline
 
