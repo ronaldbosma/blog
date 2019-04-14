@@ -9,17 +9,17 @@ comments: true
 draft: true
 ---
 
-In this post I'll give a step-by-step explanation on how I build and publish my Hugo blog site to GitHub Pages using Azure Pipelines.
+_In this post I'll give a step-by-step explanation on how I build and publish my Hugo blog site to GitHub Pages using Azure Pipelines._
 
-I'm using [Hugo](https://gohugo.io) to create my blog site. It lets me create my posts in markdown and with a simple command generate a static website. This website is hosted on my personal [GitHub Pages](https://pages.github.com/) site. GitHub Pages allows me to turn content in a git repository into a website and host it online.
+I'm using [Hugo](https://gohugo.io) to create my blog site. It lets me create my posts in markdown and, with a simple command, generate a static website. This website is hosted on my personal [GitHub Pages](https://pages.github.com/) site. GitHub Pages allows me to turn content in a git repository into a website and host it online.
 
 My goal was to publish changes to my blog whenever I push a change to the master branch of my blog repository. Before I go into the details of how I did this, let’s first have a look at what I started with. 
 
 I used the instructions on [Hosting Hugo site on GitHub](https://gohugo.io/hosting-and-deployment/hosting-on-github/) to create 2 git repositories.  
 1. A `blog` repository containing my markdown files, Hugo templates, theme, etc.  
-2. A `<username>.github.io` repository that is the source of my GitHub Pages site.
+2. A `<username>.github.io` repository as the source of my GitHub Pages site.
 
-The `ronaldbosma.github.io` repository was included as a submodule in the `blog` repository. This allowed me to run the Hugo command and generate the static website in the `ronaldbosma.github.io` repository. The image below shows a graphical representation of this.
+The `ronaldbosma.github.io` repository was included as a submodule in the `blog` repository. This allowed me to run the Hugo command and generate the static website in the `ronaldbosma.github.io` repository. Here's a graphical representation.
 
 ![Initial repository setup](../../static/images/build-and-release-hugo-site-using-azure-pipelines/initial-repo-setup.png)
 <!-- ![Initial repository setup](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/initial-repo-setup.png) -->
@@ -30,7 +30,7 @@ First off it's a manual action which can be forgotten easily. Also, I'm a develo
 
 I also prefer to create separate branches for my posts so I can create a pull request and ask my peers for feedback. The `deploy.sh` script can be run from every branch. Possibly publishing something I don't want to or removing changes I haven't merged from master yet.
 
-The last problem I had was that for some reason the link to the submodule seemed to disappear. Making pushing any changes to `ronaldbosma.github.io` impossible. As a pragmatic solution I just removed and added the submodule manually. Which was cumbersome.
+The last problem I had was that for some reason the link from the `blog` repository to the `ronaldbosma.github.io` submodule seemed to disappear. Making pushing any changes to `ronaldbosma.github.io` impossible. As a pragmatic solution I just removed and added the submodule manually, which was cumbersome.
 
 What I wanted was to automatically build and release my blog whenever I push a change in the master branch of my `blog` repository. I used Azure Pipelines to make this happen. The image below shows the various steps that are executed in the pipeline.
 
@@ -61,15 +61,15 @@ If you already have experience with Azure Pipelines in combination with GitHub r
 
 You'll need an Azure DevOps project that has the 'Pipelines' Azure DevOps service enabled. You can enable this service in your Project settings.
 
-There are also two extension we'll need to install from the Marketplace. These will be installed at the Organization level in Azure DevOps. So be sure you have the proper permissions.
+There are also two extensions we'll need to install from the Marketplace. These will be installed at the Organization level in Azure DevOps. So be sure you have the proper permissions.
 
-_Both extension use PowerShell. So if you're unable to install these extension. Have a look at the PowerShell scripts in their GitHub repositories. You might find what you need._
+_Both extensions use PowerShell. So if you're unable to install these extensions. Have a look at the PowerShell scripts in their GitHub repositories. You might find what you need._
 
 #### 1.1 Install the Hugo extension
 
 We're going to use the Hugo extension to generate our Hugo site. You can find it [here](https://marketplace.visualstudio.com/items?itemName=giuliovdev.hugo-extension) in the Marketplace. You'll have to sign in first before you can actually install the extension.
 
-After signing in. Click 'Get it free'. Select your Azure DevOps organization and click 'Install'.
+After signing in, click 'Get it free' and select your Azure DevOps organization and click 'Install'.
 
 #### 1.2 Install the GitHub Pages Publish extension
 
@@ -92,7 +92,9 @@ The Publish to GitHub Pages task requires a GitHub Personal Access Token to acce
 
 ### Step 2: Remove submodule
 
-If you've included your GitHub Pages repository as a submodule to your blog repository like me. You can remove the submodule, because you don't need it anymore. Follow these steps:
+If you've included your GitHub Pages repository as a submodule to your blog repository like me. You can remove the submodule. Our new build pipeline will generate the site as an artifact that will be pushed to our GitHub Pages repository. So you don't need the submodule anymore.
+
+Follow these steps:
 
 - Delete the 'public' submodule section from the .gitmodules file.
 - Stage the .gitmodules changes: `git add .gitmodules`.
