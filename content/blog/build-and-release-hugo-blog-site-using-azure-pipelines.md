@@ -2,7 +2,7 @@
 title: "Build And Release Hugo Site Using Azure Pipelines"
 date: 2019-03-24T00:00:00+01:00
 publishdate: 2019-03-24T00:00:00+01:00
-lastmod: 2019-04-13T00:00:00+01:00
+lastmod: 2019-04-15T00:00:00+01:00
 image: "images/build-and-release-hugo-site-using-azure-pipelines/post.jpg"
 tags: [ "Azure Pipelines", "Azure DevOps", "Hugo", "Continuous Integration" ]
 comments: true
@@ -37,7 +37,7 @@ What I wanted was to automatically build and release my blog whenever I push a c
 ![Pipeline](../../static/images/build-and-release-hugo-site-using-azure-pipelines/pipeline.png)
 <!-- ![Pipeline](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/pipeline.png) -->
 
-First a build pipeline is triggered whenever I push to master. Using a Hugo build task the static site is generated and published as an artifact of the build. When the build succeeds a release pipeline is triggered which will take the site and push this into the `ronaldbosma.github.io` repository using a Publish to GitHub Pages task.
+First a build pipeline is triggered whenever I push to master. Using a Hugo build task the static site is generated and published as an artifact of the build. When the build succeeds a release pipeline is triggered, which will take the site and push this into the `ronaldbosma.github.io` repository using a Publish to GitHub Pages task.
 
 Although I'm interacting with a git repository when I publish my site, I decided to put this step in a release pipeline and not a build pipeline. I'm releasing my site here. Not building it. This also allows me to add more stages to for example a testing environment or change the target location and type of my site altogether without affecting my build pipeline.
 
