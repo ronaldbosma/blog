@@ -7,9 +7,8 @@ image: "images/build-and-release-hugo-site-using-azure-pipelines/post.jpg"
 tags: [ "Azure Pipelines", "Azure DevOps", "Hugo", "Continuous Integration" ]
 comments: true
 draft: false
+summary: "In this post I'll give a step-by-step explanation on how I build and publish my Hugo blog site to GitHub Pages using Azure Pipelines."
 ---
-
-_In this post I'll give a step-by-step explanation on how I build and publish my Hugo blog site to GitHub Pages using Azure Pipelines._
 
 I'm using [Hugo](https://gohugo.io) to create my blog site. It lets me create my posts in markdown and, with a simple command, generate a static website. This website is hosted on my personal [GitHub Pages](https://pages.github.com/) site. GitHub Pages allows me to turn content in a git repository into a website and host it online.
 
