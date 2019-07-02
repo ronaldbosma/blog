@@ -50,27 +50,25 @@ public void IsTenaamstellingCorrect_Geeft_True_Terug_Indien_Rekeningnummer_Leeg_
 }
 ```
 
-Het probleem met deze test is dat wanneer de controle `rekeningnummer != null` wordt weggehaald de test nog steeds zal slagen. Dit is echter niet de bedoeling.
+Het probleem met deze test is dat wanneer de controle `rekeningnummer != null` wordt weggehaald de test nog steeds zal slagen. Dit is niet de bedoeling.
 
 In dit voorbeeld is het scenario onvolledig getest. De test zou eigenlijk moeten controleren dat true wordt teruggegeven als zowel rekeningnummer als tenaamstelling leeg is.
 
-Hoewel dit een simpel voorbeeld is die je misschien snel ziet kom ik vergelijkbare situaties geregeld tegen tijdens het uitvoeren van code reviews. Wanneer TDD toegepast wordt zouden dit soort fouten eerder gevonden worden.
+Hoewel dit een simpel voorbeeld waar je misschien snel het probleem ziet kom ik vergelijkbare situaties geregeld tegen tijdens het uitvoeren van code reviews. Wanneer TDD toegepast wordt zouden dit soort fouten eerder gevonden worden.
 
 ### Valkuil 2: code is slecht testbaar
-Wanneer testen achteraf geschreven worden wordt eerst volop gefocust op de werking van de nieuw te schrijven feature. Hierbij wordt vaak niet stilgestaan bij de testbaarheid van de code. Als de code af is en daarna testen worden geschreven kom je er pas achter hoe lastig dit is en zul je moeten refactoren. Omdat je nog geen geautomatiseerde testen hebt om op terug te vallen wordt een stuk risicovoller.
+Wanneer testen achteraf geschreven worden wordt eerst volop gefocust op de werking van de nieuw te schrijven feature. Hierbij wordt vaak niet stilgestaan bij de testbaarheid van de code. Als de code af is en daarna testen worden geschreven kom je er pas achter hoe lastig dit is en zul je moeten refactoren. Omdat je nog geen geautomatiseerde testen hebt om op terug te vallen wordt dit een stuk risicovoller.
 
-Een situatie die ik in de praktijk nogal eens tegenkom is het gebruik van code uit libraries die niet testbaar zijn opgezet. Een voorbeeld hiervan uit de ASP.NET wereld is bijvoorbeeld het HttpContext object. Deze wordt door ASP.NET gevuld met gegevens en in code vaak als singleton gebruikt. Vanuit unit testen is het echter vaak erg lastig om deze te vullen op een manier zoals ASP.NET dit zou doen. Vaak wordt daarom een wrapper geschreven die je kunt stubben.
+Een situatie die ik in de praktijk nogal eens tegenkom is het gebruik van code uit libraries die niet testbaar zijn opgezet. Een voorbeeld hiervan uit de ASP.NET wereld is bijvoorbeeld het HttpContext object. Deze wordt door ASP.NET gevuld met gegevens en in code vaak als singleton gebruikt. Vanuit unit testen is het echter vaak erg lastig om deze te vullen op een manier zoals ASP.NET dit zou doen.
 
-Bij het toepassen van TDD ben je vanaf begin af aan bezig met het testen van de code die je schrijft. Je loopt meteen tegen eventuele problemen aan en kan deze snel oplossen. Alle code die je daarna schrijft heeft hier weer voordeel van.
-
->Note: Moet ik hier wel HttpContext noemen. Misschien code voorbeeld gebruiken?
+Bij het toepassen van TDD ben je vanaf begin af aan bezig met het testen van de code die je schrijft. Je loopt meteen tegen eventuele problemen aan zoals bij het gebruik van de HttpContext en kan deze snel oplossen. Alle code die je daarna schrijft heeft hier weer voordeel van.
 
 ## Onvoldoende testdekking
 Naast de focus die TDD legt op de te implementeren functionaliteit door test voor test te werk te gaan is een van de andere grote voordelen de hoge mate van testdekking (ook wel code coverage genoemd). Doordat je eerst een test schrijft en pas daarna de bijgehorende code is het relatief simpel om een code coverage percentage van boven de 95% te halen.
 
-Nu is code coverage geen doel op zich, maar hoe hoger het percentage, hoe meer vertrouwen je kunt hebben dat bij wijzigingen geen regressie optreedt. Hier moet ik wel bij zeggen dat de kwaliteit van je testen ook belangrijk is.
+Nu is code coverage geen doel op zich, maar hoe hoger het percentage, hoe meer vertrouwen je kunt hebben dat bij wijzigingen geen regressie optreedt. Hier moet wel bij gezegd worden dat de kwaliteit van je testen ook belangrijk is.
 
-Als code coverage een doel opzich is worden er nog wel eens testen geschreven die alle code paden raken, maar vervolgens niets controleren. Om dit tegen te gaan kan een mutation testing framework ingezet worden. Een onderwerp op zich waar ik nu niet verder op in ga. Voor meer informatie kun je kunnen kijken op https://stryker-mutator.io/. Een open source tool dat door collega’s is geschreven en wordt onderhouden.
+Als code coverage een doel opzich is worden er nog wel eens testen geschreven die alle code paden raken, maar vervolgens niets controleren. Om dit tegen te gaan kan een mutation testing framework ingezet worden. Een onderwerp op zich waar ik nu niet verder op in ga. Voor meer informatie kun je kunnen kijken op https://stryker-mutator.io/. Een open source tool dat door collega’s is geschreven.
 
 ### Valkuil 3: testen worden geschreven op basis van al geïmplementeerde code
 Eén van de meest voorkomende valkuilen als het om onvoldoende testdekking gaat is dat testen worden geschreven op basis van de al bestaande code. Hierbij wordt een analyse gemaakt van de geschreven code en worden op basis daarvan scenario’s gekozen die geautomatiseerd worden getest. Hierbij wordt vaak niet nagedacht over alle requirements die mogelijk ook relevant zijn, maar niet zijn geïmplementeerd. Het code voorbeeld bij valkuil 1 is hier een mooi voorbeeld van.
