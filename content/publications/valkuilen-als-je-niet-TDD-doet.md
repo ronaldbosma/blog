@@ -71,25 +71,25 @@ Nu is code coverage geen doel op zich, maar hoe hoger het percentage, hoe meer v
 Als code coverage een doel opzich is worden er nog wel eens testen geschreven die alle code paden raken, maar vervolgens niets controleren. Om dit tegen te gaan kan een mutation testing framework ingezet worden. Een onderwerp op zich waar ik nu niet verder op in ga. Voor meer informatie kun je kunnen kijken op https://stryker-mutator.io/. Een open source tool dat door collega’s is geschreven.
 
 ### Valkuil 3: testen worden geschreven op basis van al geïmplementeerde code
-Eén van de meest voorkomende valkuilen als het om onvoldoende testdekking gaat is dat testen worden geschreven op basis van de al bestaande code. Hierbij wordt een analyse gemaakt van de geschreven code en worden op basis daarvan scenario’s gekozen die geautomatiseerd worden getest. Hierbij wordt vaak niet nagedacht over alle requirements die mogelijk ook relevant zijn, maar niet zijn geïmplementeerd. Het code voorbeeld bij valkuil 1 is hier een mooi voorbeeld van.
+Eén van de meest voorkomende valkuilen als het om onvoldoende testdekking gaat is dat testen worden geschreven op basis van de al bestaande code. Hierbij wordt een analyse gemaakt van de geschreven code en worden op basis daarvan scenario’s gekozen die worden geautomatiseerd. Hierbij worden snel requirements over het hoofd gezien die mogelijk ook relevant zijn, maar niet zijn geïmplementeerd. Het code voorbeeld bij valkuil 1 is hier een mooi voorbeeld van.
 
-Bij TDD werk je test voor test de verschillende requirements af die je moet implementeren. Hierdoor zie je dat veel meer van deze requirements worden geverifieerd door een test. Dit resulteert uiteindelijk in een betere testdekking.
+Bij TDD werk je test voor test de verschillende requirements af die je moet implementeren. Hierdoor zie je dat veel meer van de requirements worden gecontroleerd door een test. Dit resulteert uiteindelijk in een betere testdekking.
 
 ### Valkuil 4: het schrijven van testen wordt afgeraffeld 
 Eén van de meest vervelende klusjes die ik in het verleden als ontwikkelaar heb mogen doen is het schrijven van testen voor de code die iemand anders heeft geschreven.
 
-Ik zie het schrijven van nieuwe software is een creatief proces. En weinig klusjes in software ontwikkeling zijn minder creatief dan het schrijven van testen achteraf. Het creatieve proces van software schrijven is al voorbij en het enig wat nog gedaan moet worden is controleren dat het werkt.
+Ik zie het schrijven van nieuwe software als een creatief proces. En weinig klusjes in software ontwikkeling zijn minder creatief dan het schrijven van testen achteraf. Het creatieve proces van software schrijven is al voorbij en het enig wat nog gedaan moet worden is controleren dat het werkt.
 
-Je ziet hierdoor dat de minimale set aan testen wordt geschreven zodat de code coverage richtlijn wordt gehaald. Voldoende testdekking van de relevante scenario’s krijg je hierdoor vaak niet.
+Je ziet hierdoor dat de minimale set aan testen wordt geschreven zodat de code coverage richtlijn wordt gehaald. Voldoende testdekking van de relevante scenario’s krijg je hierdoor vaak niet. Met een verhoogd risico op bugs bij toekomstige wijzigingen.
 
-Bij TDD wordt het schrijven van testen onderdeel van eht creatieve proces. Hierdoor blijf het werk continu interessant en is het geen naar klusje meer dat achteraf moet worden uitgevoerd.
+Bij TDD is het schrijven van testen onderdeel van het creatieve proces. Hierdoor blijf het werk continu interessant en is het geen naar klusje meer dat achteraf moet worden uitgevoerd.
 
 ### Valkuil 5: testen worden helemaal niet geschreven
-Als er druk op de ketel staat en testen worden achteraf geschreven zullen deze een van eerste slachtoffers zijn. Ze worden vaak uitgesteld om in een volgende sprint opgepakt te worden en later misschien nooit geschreven. Het risico op bugs zal hierdoor bij wijzigingen in de toekomst veel hoger zijn. Bij TDD zou dit nooit gebeuren.
+Als er druk op de ketel staat en testen worden achteraf geschreven zullen deze een van de eerste slachtoffers zijn. Ze worden vaak uitgesteld om in een volgende sprint opgepakt te worden en later misschien nooit geschreven. Ook hier zal het risico op bugs bij wijzigingen in de toekomst veel hoger zijn. Bij TDD zou dit nooit gebeuren.
 
-Daarnaast bestaat vooral bij managers en projectleiders nog wel eens de illusie dat het überhaupt schrijven van testen alleen maar tijd kost. Mijn ervaring is dat TDD juist tijdwinst oplevert. Bij het bouwen van de functionaliteit wordt code niet alleen direct getest, maar ook vaak en snel. Met handmatig testen zou dit velen malen meer tijd kosten.
+Daarnaast bestaat vooral bij managers en projectleiders nog wel eens de illusie dat het überhaupt schrijven van testen alleen maar tijd kost. Mijn ervaring is echter dat TDD juist tijdwinst oplevert. Bij het bouwen van de functionaliteit wordt code niet alleen direct getest, maar ook vaak en snel. Zou je dit handmatig doen dan zou dit velen malen meer tijd kosten.
 
 ## Conclusie
-TDD is een techniek die naar mijn menig iedere ontwikkelaar zou moeten beheersen. Omdat het denkproces net iets anders in elkaar steekt is het soms lastig om te starten. Maar als je deze techniek eenmaal onder de knie hebt kan het je veel voordelen opleveren.
+TDD is een techniek die naar mijn menig iedere ontwikkelaar zou moeten beheersen. Omdat het denkproces net iets anders in elkaar steekt is het soms lastig om hiermee te starten. Maar als je deze techniek eenmaal onder de knie hebt kan het je veel voordelen opleveren.
 
-TDD biedt een oplossing om verschillende valkuilen te vermijden. Zeker als kwaliteit en snelheid van belang zijn is test automatisering een must waarbij het onderste uit de kan kunt halen als je TDD toepast.
+TDD biedt een oplossing om verschillende valkuilen te vermijden. Zeker als kwaliteit en snelheid van belang zijn is test automatisering een must. Pas je hierbij ook TDD toe dan kun je het onderste uit de kan halen.
