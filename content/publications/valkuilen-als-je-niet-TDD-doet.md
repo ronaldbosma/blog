@@ -75,7 +75,7 @@ Eén van de meest vervelende klusjes die ik in het verleden als ontwikkelaar heb
 
 Ik zie het schrijven van nieuwe software als een creatief proces. En weinig klusjes in software ontwikkeling zijn minder creatief dan het schrijven van testen achteraf. Het creatieve proces van software schrijven is al voorbij en het enig wat nog gedaan moet worden is controleren dat het werkt.
 
-Je ziet hierdoor dat de minimale set aan testen wordt geschreven zodat de code coverage richtlijn wordt gehaald. Voldoende testdekking van de relevante scenario’s krijg je hierdoor vaak niet. Met een verhoogd risico op bugs bij toekomstige wijzigingen.
+Je ziet hierdoor dat de minimale set aan testen wordt geschreven dat nodig is om de code coverage richtlijn te halen. Voldoende testdekking van de relevante scenario’s krijg je hierdoor vaak niet. Met een verhoogd risico op bugs bij toekomstige wijzigingen.
 
 Bij TDD is het schrijven van testen onderdeel van het creatieve proces. Hierdoor blijf het werk continu interessant en is het geen naar klusje meer dat achteraf moet worden uitgevoerd.
 
