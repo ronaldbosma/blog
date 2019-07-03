@@ -46,11 +46,11 @@ Waarschijnlijk zie je de fout al. Op de laatste regel vergelijk ik `resultaat` m
 Hoewel dit een simpel voorbeeld is waarvan je zou denken dat dit nooit gebeurt is een collega recent nog deze fout tegengekomen. Wanneer TDD wordt toegepast zouden dit soort fouten niet optreden.
 
 ### Valkuil 2: code is slecht testbaar
-Wanneer testen achteraf geschreven worden wordt eerst volop gefocust op de werking van de nieuw te schrijven feature. Hierbij wordt vaak niet stilgestaan bij de testbaarheid van de code. Als de code af is en daarna testen worden geschreven kom je er pas achter hoe lastig dit is en zul je moeten refactoren. Omdat je nog geen geautomatiseerde testen hebt om op terug te vallen wordt dit een stuk risicovoller.
+Wanneer testen achteraf geschreven worden wordt eerst volop gefocust op de werking van de nieuw te schrijven functionaliteit. Hierbij wordt vaak niet stilgestaan bij de testbaarheid van de code. Als de code helemaal af is kom je er pas achter hoe lastig deze te testen is en zul je moeten refactoren. Omdat je nog geen geautomatiseerde testen hebt die controleren dat je refactor wijzigingen iets breken is dit een stuk risicovoller.
 
-Een situatie die ik in de praktijk nogal eens tegenkom is het gebruik van code uit libraries die niet testbaar zijn opgezet. Een voorbeeld hiervan uit de ASP.NET wereld is bijvoorbeeld het HttpContext object. Deze wordt door ASP.NET gevuld met gegevens en in code vaak als singleton gebruikt. Vanuit unit testen is het echter vaak erg lastig om deze te vullen op een manier zoals ASP.NET dit zou doen.
+Een situatie die ik in de praktijk nogal eens tegenkom is het gebruik van code uit libraries die niet testbaar zijn opgezet. Een voorbeeld hiervan uit ASP.NET is het HttpContext object. Deze wordt door ASP.NET gevuld met gegevens en in code vaak als singleton gebruikt. Vanuit unit testen is het echter vaak erg lastig om deze te vullen op een manier zoals ASP.NET dit zou doen.
 
-Bij het toepassen van TDD ben je vanaf begin af aan bezig met het testen van de code die je schrijft. Je loopt meteen tegen eventuele problemen aan zoals bij het gebruik van de HttpContext en kan deze snel oplossen. Alle code die je daarna schrijft heeft hier weer voordeel van.
+Bij het toepassen van TDD ben je vanaf begin af aan bezig met het testen van de code die je schrijft. Je loopt meteen tegen eventuele problemen aan en kan deze snel oplossen. Dit bespaart tijd en alle testen en code die je daarna schrijft hebben hier weer voordeel van.
 
 ## Onvoldoende testdekking
 Naast de focus die TDD legt op de te implementeren functionaliteit door test voor test te werk te gaan is een van de andere grote voordelen de hoge mate van testdekking (ook wel code coverage genoemd). Doordat je eerst een test schrijft en pas daarna de bijgehorende code is het relatief simpel om een code coverage percentage van boven de 95% te halen.
