@@ -2,59 +2,48 @@
 
 In recente jaren is test automatisering steeds meer de norm geworden. Bedrijven moeten steeds sneller nieuwe software naar productie kunnen brengen waardoor vergaande automatisering nodig is.
 
-Bij test automatisering zie je 2 grote stromingen. Ontwikkelaars die hun testen schrijven na het implementeren van een nieuwe feature en ontwikkelaars die dit vooraf doen.
+Bij test automatisering zie je 2 grote stromingen. Ontwikkelaars die hun testen schrijven na het implementeren van nieuwe functionaliteit en ontwikkelaars die dit vooraf doen.
 
 Het vooraf schrijven van testen is een techniek die Test Driven Development wordt genoemd. Deze techniek stelt je in staat om code van hoge kwaliteit te schrijven.
 
 De gedachte achter TDD is dat je eerst een test schrijft voordat je het bijgehorende stukje code schrijft dat door de test wordt gevalideerd. Deze test voer je uit en zal falen omdat de code nog niet is geïmplementeerd. De test is dan rood.
 
-Nadat de test is gefaald is het tijd om de bijbehorende code te schrijven. Als hierna opnieuw de test wordt uitgevoerd zal deze moeten slagen en is hij groen.
+Nadat de test is gefaald schrijf je de bijbehorende code. Als hierna opnieuw de test wordt uitgevoerd zal deze moeten slagen en is hij groen.
 
-Nu de test groen is heb je de mogelijkheid om de code te refactoren en de codekwaliteit te verbeteren. Met de test kun je verifiëren dat de code nog werkt zoals verwacht. Deze cyclus wordt ook wel Red, Green, Refactor cylus genoemd.
+Nu de test groen is heb je de mogelijkheid om de code te refactoren en de codekwaliteit te verbeteren. Met de test kun je continu verifiëren dat de code nog werkt zoals verwacht. Deze cyclus wordt ook wel de Red, Green, Refactor cyclus genoemd.
 
 ![Red, Green, Refactory](../../static/images/valkuilen-als-je-niet-TDD-doet.png)
 
-De cyclus wordt herhaald totdat de volledige feature is geïmplementeerd. Het resultaat is een werkend stuk software dat geautomatiseerd wordt gecontroleerd en een testdekking heeft van nagenoeg 100%.
+De cyclus wordt herhaald totdat de volledige functionaliteit is geïmplementeerd. Het resultaat is een werkend stuk software dat geautomatiseerd wordt getest en een testdekking heeft van nagenoeg 100%.
 
-Zelf schrijf ik al jaren op deze manier software. Het helpt mij om gefocust te werken aan de code die ik moet schrijven. Elke test is een requirement waar de code aan moet voldoen. Hierdoor kan ik stap voor stap een nieuwe feature schrijven en heb ik aan het eind code waarvan ik zeker weet dat hij doet wat hij moet doen.
+Zelf schrijf ik al jaren op deze manier software. Het helpt mij om gefocust te werken aan de code die ik moet schrijven. Elke test is een requirement waar de code aan moet voldoen. Hierdoor kan ik stap voor stap nieuwe functionaliteit schrijven en heb ik aan het eind code waarvan ik zeker weet dat hij doet wat hij moet doen.
 
-Op het internet en in bladen wordt al jaren veel geschreven over TDD. Vaak over hoe het toegepast kan worden en de bovengenoemde voordelen die men ervaart. Het leek mij daarom interessant om TDD is vanuit een andere invalkshoek te bekijken en te kijken tegen welke valkuilen je aan kunt lopen wanneer je TDD niet toepast. Deze valkuilen komen voort uit ervaringen die ik in de praktijk tegen ben gekomen op verschillende projecten die ik heb gedaan en code waar ik aan heb mogen werken.
+Op het internet en in bladen wordt al jaren veel geschreven over TDD. Vaak over hoe het toegepast kan worden en de voordelen die men ervaart. Het leek mij daarom interessant om TDD eens vanuit een andere invalkshoek te bekijken en te kijken tegen welke valkuilen je aan kunt lopen wanneer je TDD niet toepast. Deze valkuilen komen voort uit ervaringen die ik in de praktijk tegen ben gekomen.
 
 ### Valkuil 1: testen die niets testen
-Eén van de grootste valkuilen waar je in kunt trappen wanneer je testen achteraf schrijft is het schrijven van testen die niets testen. Ik heb meer dan eens een test geschreven die meteen groen was ondanks dat de te testen code nog niet geïmplementeerd was. Een goede indicatie dat er iets mis is met je test. Door de korte cyclus krijg je bij TDD snel feedback als je een foutje hebt gemaakt.
+Eén van de grootste valkuilen waar je in kunt trappen wanneer je testen achteraf schrijft is het schrijven van testen die niets testen. Ik heb meer dan eens een test geschreven die meteen groen was ondanks dat de te testen code er nog niet was. Een goede indicatie dat er iets mis is met je test. Door de test eerst te schrijven en uit te voeren krijg je snel feedback als je een fout hebt gemaakt.
 
 Wanneer je testen achteraf schrijft wordt de stap dat de test eerst faalt overgeslagen. De test kan daarom altijd groen zijn. Ook als er een fout in zit.
 
-Neem onderstaande code als voorbeeld. Hierin wordt gecontroleerd dat wanneer een rekeningnummer wordt opgegegeven ook de tenaamstelling gevuld moet zijn. Wanneer het rekeningnummer leeg is hoeft de tenaamstelling niet gevuld te zijn.
-
-```csharp
-public bool IsTenaamstellingCorrect(string rekeningnummer, string tenaamstelling)
-{
-    if (rekeningnummer != null)
-    {
-        return (tenaamstelling != null);
-    }
-
-    return true;
-}
-```
-
-De bijbehorende test om te controleren dat de tenaamstelling niet gevuld hoeft te zijn ziet er alsvolgt uit.
+Neem onderstaande test als voorbeeld. Ik heb een functie `GeefVolledigeNaam` geschreven die een voornaam, tussenvoegsel en achternaam combineert tot een volledige naam. In mijn test wil ik controleren dat de functie het juiste resultaat teruggeeft.
 
 ```csharp
 [TestMethod]
-public void IsTenaamstellingCorrect_Geeft_True_Terug_Indien_Rekeningnummer_Leeg_Is()
+public void Test()
 {
-    bool resultaat = IsTenaamstellingCorrect(null, "J. Jansen");
-    Assert.IsTrue(resultaat);
+    string voornaam = "Jan";
+    string tussenvoegsel = "de";
+    string achternaam = "Boer";
+
+    string resultaat = GeefVolledigeNaam(voornaam, tussenvoegsel, achternaam);
+
+    Assert.AreEqual(resultaat, resultaat);
 }
 ```
 
-Het probleem met deze test is dat wanneer de controle `rekeningnummer != null` wordt weggehaald de test nog steeds zal slagen. Dit is niet de bedoeling.
+Waarschijnlijk zie je de fout al. Op de laatste regel vergelijk ik `resultaat` met `resultaat`. Dit zal nooit een fout opleveren. De test altijd zal slagen. Ook als `GeefVolledigeNaam` iets verkeerds teruggeeft.
 
-In dit voorbeeld is het scenario onvolledig getest. De test zou eigenlijk moeten controleren dat true wordt teruggegeven als zowel rekeningnummer als tenaamstelling leeg is.
-
-Hoewel dit een simpel voorbeeld waar je misschien snel het probleem ziet kom ik vergelijkbare situaties geregeld tegen tijdens het uitvoeren van code reviews. Wanneer TDD toegepast wordt zouden dit soort fouten eerder gevonden worden.
+Hoewel dit een simpel voorbeeld is waarvan je zou denken dat dit nooit gebeurt is een collega recent nog deze fout tegengekomen. Wanneer TDD wordt toegepast zouden dit soort fouten niet optreden.
 
 ### Valkuil 2: code is slecht testbaar
 Wanneer testen achteraf geschreven worden wordt eerst volop gefocust op de werking van de nieuw te schrijven feature. Hierbij wordt vaak niet stilgestaan bij de testbaarheid van de code. Als de code af is en daarna testen worden geschreven kom je er pas achter hoe lastig dit is en zul je moeten refactoren. Omdat je nog geen geautomatiseerde testen hebt om op terug te vallen wordt dit een stuk risicovoller.
