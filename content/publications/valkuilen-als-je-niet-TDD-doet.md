@@ -55,9 +55,11 @@ Bij het toepassen van TDD ben je vanaf begin af aan bezig met het testen van de 
 ## Onvoldoende testdekking
 Naast de focus die TDD legt op de te implementeren functionaliteit door test voor test te werk te gaan is een van de andere grote voordelen de hoge mate van testdekking (ook wel code coverage genoemd). Doordat je eerst een test schrijft en pas daarna de bijgehorende code is het relatief simpel om een code coverage percentage van boven de 95% te halen.
 
-Nu is code coverage geen doel op zich, maar hoe hoger het percentage, hoe meer vertrouwen je kunt hebben dat bij wijzigingen geen regressie optreedt. Hier moet wel bij gezegd worden dat de kwaliteit van je testen ook belangrijk is.
+Nu is code coverage geen doel op zich, maar hoe hoger het percentage, hoe meer vertrouwen je kunt hebben dat bij wijzigingen geen bugs optreden. Hier moet wel bij gezegd worden dat de kwaliteit van je testen erg belangrijk is.
 
-Als code coverage een doel opzich is worden er nog wel eens testen geschreven die alle code paden raken, maar vervolgens niets controleren. Om dit tegen te gaan kan een mutation testing framework ingezet worden. Een onderwerp op zich waar ik nu niet verder op in ga. Voor meer informatie kun je kunnen kijken op https://stryker-mutator.io/. Een open source tool dat door collega’s is geschreven.
+De test bij valkuil 1 heeft waarschijnlijk een code coverage van 100%, maar test niets. Bij wijzigingen in de functie zul je daarom nooit bugs vinden. De test geeft in dit geval een onterecht gevoel van vertrouwen.
+
+Om de kwaliteit van je testen aan te tonen kun je een mutation testing tool inzetten. Mutation testing is een onderwerp op zich waar ik nu niet verder op in ga. Voor meer informatie kun je kunnen kijken op https://stryker-mutator.io/. Een open source tool die door collega’s is geschreven.
 
 ### Valkuil 3: testen worden geschreven op basis van al geïmplementeerde code
 Eén van de meest voorkomende valkuilen als het om onvoldoende testdekking gaat is dat testen worden geschreven op basis van de al bestaande code. Hierbij wordt een analyse gemaakt van de geschreven code en worden op basis daarvan scenario’s gekozen die worden geautomatiseerd. Hierbij worden snel requirements over het hoofd gezien die mogelijk ook relevant zijn, maar niet zijn geïmplementeerd. Het code voorbeeld bij valkuil 1 is hier een mooi voorbeeld van.
