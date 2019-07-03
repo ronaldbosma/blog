@@ -62,9 +62,13 @@ De test bij valkuil 1 heeft waarschijnlijk een code coverage van 100%, maar test
 Om de kwaliteit van je testen aan te tonen kun je een mutation testing tool inzetten. Mutation testing is een onderwerp op zich waar ik nu niet verder op in ga. Voor meer informatie kun je kunnen kijken op https://stryker-mutator.io/. Een open source tool die door collega’s is geschreven.
 
 ### Valkuil 3: testen worden geschreven op basis van al geïmplementeerde code
-Eén van de meest voorkomende valkuilen als het om onvoldoende testdekking gaat is dat testen worden geschreven op basis van de al bestaande code. Hierbij wordt een analyse gemaakt van de geschreven code en worden op basis daarvan scenario’s gekozen die worden geautomatiseerd. Hierbij worden snel requirements over het hoofd gezien die mogelijk ook relevant zijn, maar niet zijn geïmplementeerd. Het code voorbeeld bij valkuil 1 is hier een mooi voorbeeld van.
+Eén van de meest voorkomende valkuilen als het om onvoldoende testdekking gaat is dat testen worden geschreven op basis van de al bestaande code. Hierbij wordt een analyse gemaakt van de geschreven code en wordt op basis daarvan scenario’s gekozen die worden geautomatiseerd. Hierbij worden snel requirements over het hoofd gezien die mogelijk ook relevant zijn, maar niet zijn geïmplementeerd.
 
-Bij TDD werk je test voor test de verschillende requirements af die je moet implementeren. Hierdoor zie je dat veel meer van de requirements worden gecontroleerd door een test. Dit resulteert uiteindelijk in een betere testdekking.
+Een recente productieverstoring bij een van onze klanten is hier een mooi voorbeeld van. Er was een stukje code geschreven dat bij bepaalde type fouten afwijkend gedrag moest vertonen. Er was een test geschreven om dit gedrag te controleren. Helaas was er geen test die controleerde dat bij andere type fouten het afwijkende gedrag niet optrad. Het resultaat was een bug in productie.
+
+Bij TDD werk je test voor test de verschillende requirements af die je moet implementeren. Hierdoor zie je dat veel meer van de requirements worden gecontroleerd door een test omdat je hier bewuster mee bezig bent. Dit resulteert uiteindelijk in een betere testdekking.
+
+Met het toepassen van TDD was de productverstoring heel waarschijnlijk niet opgetreden.
 
 ### Valkuil 4: het schrijven van testen wordt afgeraffeld 
 Eén van de meest vervelende klusjes die ik in het verleden als ontwikkelaar heb mogen doen is het schrijven van testen voor de code die iemand anders heeft geschreven.
