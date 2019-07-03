@@ -80,11 +80,9 @@ Je ziet hierdoor dat de minimale set aan testen wordt geschreven dat nodig is om
 Bij TDD is het schrijven van testen onderdeel van het creatieve proces. Hierdoor blijf het werk continu interessant en is het geen naar klusje meer dat achteraf moet worden uitgevoerd.
 
 ### Valkuil 5: testen worden helemaal niet geschreven
-Als er druk op de ketel staat en testen worden achteraf geschreven zullen deze een van de eerste slachtoffers zijn. Ze worden vaak uitgesteld om in een volgende sprint opgepakt te worden en later misschien nooit geschreven. Ook hier zal het risico op bugs bij wijzigingen in de toekomst veel hoger zijn. Bij TDD zou dit nooit gebeuren.
+Als er druk op de ketel staat en testen worden achteraf geschreven dan zijn deze vaak het eerste slachtoffer. Ze worden vaak uitgesteld om in een volgende sprint opgepakt te worden en uiteindelijk worden ze misschien nooit geschreven. Ook hier zal het risico op bugs bij wijzigingen in de toekomst veel hoger zijn. Bij TDD zou dit nooit gebeuren.
 
-Daarnaast bestaat vooral bij managers en projectleiders nog wel eens de illusie dat het überhaupt schrijven van testen alleen maar tijd kost. Mijn ervaring is echter dat TDD juist tijdwinst oplevert. Bij het bouwen van de functionaliteit wordt code niet alleen direct getest, maar ook vaak en snel. Zou je dit handmatig doen dan zou dit velen malen meer tijd kosten.
+Daarnaast bestaat sommige mensen nog wel eens de illusie dat het überhaupt schrijven van testen alleen maar tijd kost. Mijn ervaring is echter dat TDD juist tijdwinst oplevert. Bij het bouwen van de functionaliteit wordt code niet alleen direct getest, maar ook vaak en snel. Zou je dit handmatig doen dan zou dit velen malen meer tijd kosten.
 
 ## Conclusie
-TDD is een techniek die naar mijn menig iedere ontwikkelaar zou moeten beheersen. Omdat het denkproces net iets anders in elkaar steekt is het soms lastig om hiermee te starten. Maar als je deze techniek eenmaal onder de knie hebt kan het je veel voordelen opleveren.
-
-TDD biedt een oplossing om verschillende valkuilen te vermijden. Zeker als kwaliteit en snelheid van belang zijn is test automatisering een must. Pas je hierbij ook TDD toe dan kun je het onderste uit de kan halen.
+TDD is een techniek die naar mijn menig iedere ontwikkelaar zou moeten beheersen. Omdat het denkproces net iets anders in elkaar steekt is het soms lastig om hiermee te starten. Maar als je deze techniek eenmaal beheerst kan het je veel voordelen opleveren en kun je de nodige valkuilen vermijden.
