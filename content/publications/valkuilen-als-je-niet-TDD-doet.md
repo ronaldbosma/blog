@@ -1,12 +1,12 @@
 # Valkuilen als je niet TDD doet
 
-In recente jaren is test automatisering steeds meer de norm geworden. Bedrijven moeten steeds sneller nieuwe software naar productie kunnen brengen waardoor vergaande automatisering nodig is.
+In recente jaren is test automatisering steeds meer de norm geworden. Bedrijven moeten steeds sneller nieuwe software naar productie brengen waardoor vergaande automatisering nodig is.
 
 Bij test automatisering zie je 2 grote stromingen. Ontwikkelaars die hun testen schrijven na het implementeren van nieuwe functionaliteit en ontwikkelaars die dit vooraf doen.
 
 Het vooraf schrijven van testen is een techniek die Test Driven Development wordt genoemd. Deze techniek stelt je in staat om code van hoge kwaliteit te schrijven.
 
-De gedachte achter TDD is dat je eerst een test schrijft voordat je het bijgehorende stukje code schrijft dat door de test wordt gevalideerd. Deze test voer je uit en zal falen omdat de code nog niet is geïmplementeerd. De test is dan rood.
+De gedachte achter TDD is dat je eerst een test schrijft voordat je het bijgehorende stukje code schrijft dat door de test wordt gevalideerd. Deze test voer je uit en zal falen omdat de bijbehorende code nog niet is geïmplementeerd. De test is dan rood.
 
 Nadat de test is gefaald schrijf je de bijbehorende code. Als hierna opnieuw de test wordt uitgevoerd zal deze moeten slagen en is hij groen.
 
@@ -25,7 +25,7 @@ Eén van de grootste valkuilen waar je in kunt trappen wanneer je testen achtera
 
 Wanneer je testen achteraf schrijft wordt de stap dat de test eerst faalt overgeslagen. De test kan daarom altijd groen zijn. Ook als er een fout in zit.
 
-Neem onderstaande test als voorbeeld. Ik heb een functie `GeefVolledigeNaam` geschreven die een voornaam, tussenvoegsel en achternaam combineert tot een volledige naam. In mijn test wil ik controleren dat de functie het juiste resultaat teruggeeft.
+Neem onderstaande test als voorbeeld. Ik heb een functie `GeefVolledigeNaam` geschreven die een voornaam, tussenvoegsel en achternaam combineert tot een volledige naam. In mijn test wil ik controleren dat deze functie het juiste resultaat teruggeeft.
 
 ```csharp
 [TestMethod]
@@ -41,14 +41,14 @@ public void Test()
 }
 ```
 
-Waarschijnlijk zie je de fout al. Op de laatste regel vergelijk ik `resultaat` met `resultaat`. Dit zal nooit een fout opleveren. De test altijd zal slagen. Ook als `GeefVolledigeNaam` iets verkeerds teruggeeft.
+Waarschijnlijk zie je de fout al. Op de laatste regel vergelijk ik `resultaat` met `resultaat`. Dit zal nooit een fout opleveren. De test zal altijd slagen. Ook als `GeefVolledigeNaam` iets verkeerds teruggeeft.
 
-Hoewel dit een simpel voorbeeld is waarvan je zou denken dat dit nooit gebeurt is een collega recent nog deze fout tegengekomen. Wanneer TDD wordt toegepast zouden dit soort fouten niet optreden.
+Hoewel dit een simpel voorbeeld is waarvan je zou denken dat dit nooit in de praktijk gebeurt is een collega recent nog deze fout tegengekomen. Wanneer TDD wordt toegepast zouden dit soort fouten niet worden gemaakt.
 
 ### Valkuil 2: code is slecht testbaar
-Wanneer testen achteraf geschreven worden wordt eerst volop gefocust op de werking van de nieuw te schrijven functionaliteit. Hierbij wordt vaak niet stilgestaan bij de testbaarheid van de code. Als de code helemaal af is kom je er pas achter hoe lastig deze te testen is en zul je moeten refactoren. Omdat je nog geen geautomatiseerde testen hebt die controleren dat je refactor wijzigingen iets breken is dit een stuk risicovoller.
+Wanneer testen achteraf geschreven worden wordt eerst volop gefocust op de werking van de nieuw te schrijven functionaliteit. Hierbij wordt vaak niet stilgestaan bij de testbaarheid van de code. Als de code helemaal af is kom je er pas achter hoe lastig deze geautomatiseerd te testen is en zul je moeten refactoren. Omdat je nog geen geautomatiseerde testen hebt die controleren dat je refactor wijzigingen iets breken is dit een stuk risicovoller.
 
-Een situatie die ik in de praktijk nogal eens tegenkom is het gebruik van code uit libraries die niet testbaar zijn opgezet. Een voorbeeld hiervan uit ASP.NET is het HttpContext object. Deze wordt door ASP.NET gevuld met gegevens en in code vaak als singleton gebruikt. Vanuit unit testen is het echter vaak erg lastig om deze te vullen op een manier zoals ASP.NET dit zou doen.
+Een situatie die ik in de praktijk nogal eens tegenkom is het gebruik van code uit libraries die niet testbaar zijn opgezet. Een voorbeeld hiervan uit ASP.NET is het HttpContext object. Deze wordt door de ASP.NET runtime gevuld met gegevens en in code vaak als singleton gebruikt. Vanuit unit testen is het echter lastig om deze te vullen op een manier zoals ASP.NET dit zou doen.
 
 Bij het toepassen van TDD ben je vanaf begin af aan bezig met het testen van de code die je schrijft. Je loopt meteen tegen eventuele problemen aan en kan deze snel oplossen. Dit bespaart tijd en alle testen en code die je daarna schrijft hebben hier weer voordeel van.
 
@@ -57,21 +57,19 @@ Naast de focus die TDD legt op de te implementeren functionaliteit door test voo
 
 Nu is code coverage geen doel op zich, maar hoe hoger het percentage, hoe meer vertrouwen je kunt hebben dat bij wijzigingen geen bugs optreden. Hier moet wel bij gezegd worden dat de kwaliteit van je testen erg belangrijk is.
 
-De test bij valkuil 1 heeft waarschijnlijk een code coverage van 100%, maar test niets. Bij wijzigingen in de functie zul je daarom nooit bugs vinden. De test geeft in dit geval een onterecht gevoel van vertrouwen.
+De voorbeeld test bij valkuil 1 heeft waarschijnlijk een code coverage van 100%, maar test niets. Bij wijzigingen in deze functie zul je daarom nooit bugs vinden. De test geeft in dit geval een onterecht gevoel van vertrouwen.
 
-Om de kwaliteit van je testen aan te tonen kun je een mutation testing tool inzetten. Mutation testing is een onderwerp op zich waar ik nu niet verder op in ga. Voor meer informatie kun je kunnen kijken op https://stryker-mutator.io/. Een open source tool die door collega’s is geschreven.
+Om de kwaliteit van je testen aan te tonen kun je een mutation testing tool inzetten. Mutation testing is een onderwerp op zich waar ik nu niet verder op in ga maar zeker de moeite waard om eens naar te kijken. Voor meer informatie kun je terecht op https://stryker-mutator.io/. Een open source tool die door collega’s is geschreven.
 
 ### Valkuil 3: testen worden geschreven op basis van al geïmplementeerde code
 Eén van de meest voorkomende valkuilen als het om onvoldoende testdekking gaat is dat testen worden geschreven op basis van de al bestaande code. Hierbij wordt een analyse gemaakt van de geschreven code en wordt op basis daarvan scenario’s gekozen die worden geautomatiseerd. Hierbij worden snel requirements over het hoofd gezien die mogelijk ook relevant zijn, maar niet zijn geïmplementeerd.
 
-Een recente productieverstoring bij een van onze klanten is hier een mooi voorbeeld van. Er was een stukje code geschreven dat bij bepaalde type fouten afwijkend gedrag moest vertonen. Er was een test geschreven om dit gedrag te controleren. Helaas was er geen test die controleerde dat bij andere type fouten het afwijkende gedrag niet optrad. Het resultaat was een bug in productie.
+Een recente productieverstoring bij een van mijn klanten is hier een mooi voorbeeld van. Er was een code geschreven dat bij een bepaald type fout afwijkend gedrag moest vertonen. Er was een test geschreven om dit gedrag te controleren. Helaas was er geen test die controleerde dat bij andere type fouten het afwijkende gedrag niet optrad. Het resultaat was een bug in productie.
 
 Bij TDD werk je test voor test de verschillende requirements af die je moet implementeren. Hierdoor zie je dat veel meer van de requirements worden gecontroleerd door een test omdat je hier bewuster mee bezig bent. Dit resulteert uiteindelijk in een betere testdekking.
 
-Met het toepassen van TDD was de productverstoring heel waarschijnlijk niet opgetreden.
-
 ### Valkuil 4: het schrijven van testen wordt afgeraffeld 
-Eén van de meest vervelende klusjes die ik in het verleden als ontwikkelaar heb mogen doen is het schrijven van testen voor de code die iemand anders heeft geschreven.
+Eén van de meest vervelende klusjes die ik in het verleden als ontwikkelaar heb mogen doen is het schrijven van testen voor de code die iemand anders had geschreven.
 
 Ik zie het schrijven van nieuwe software als een creatief proces. En weinig klusjes in software ontwikkeling zijn minder creatief dan het schrijven van testen achteraf. Het creatieve proces van software schrijven is al voorbij en het enig wat nog gedaan moet worden is controleren dat het werkt.
 
@@ -80,9 +78,9 @@ Je ziet hierdoor dat de minimale set aan testen wordt geschreven dat nodig is om
 Bij TDD is het schrijven van testen onderdeel van het creatieve proces. Hierdoor blijf het werk continu interessant en is het geen naar klusje meer dat achteraf moet worden uitgevoerd.
 
 ### Valkuil 5: testen worden helemaal niet geschreven
-Als er druk op de ketel staat en testen worden achteraf geschreven dan zijn deze vaak het eerste slachtoffer. Ze worden vaak uitgesteld om in een volgende sprint opgepakt te worden en uiteindelijk worden ze misschien nooit geschreven. Ook hier zal het risico op bugs bij wijzigingen in de toekomst veel hoger zijn. Bij TDD zou dit nooit gebeuren.
+Als er druk op de ketel staat en testen worden achteraf geschreven dan zijn deze vaak het eerste slachtoffer. Ze worden uitgesteld om in een volgende sprint opgepakt te worden en uiteindelijk worden ze misschien nooit geschreven. Ook hier zal het risico op bugs bij wijzigingen in de toekomst veel hoger zijn. Bij TDD zou dit nooit gebeuren.
 
-Daarnaast bestaat sommige mensen nog wel eens de illusie dat het überhaupt schrijven van testen alleen maar tijd kost. Mijn ervaring is echter dat TDD juist tijdwinst oplevert. Bij het bouwen van de functionaliteit wordt code niet alleen direct getest, maar ook vaak en snel. Zou je dit handmatig doen dan zou dit velen malen meer tijd kosten.
+Daarnaast bestaat bij sommige mensen nog wel eens de illusie dat het überhaupt schrijven van geautomatiseerde testen alleen maar tijd kost. Mijn ervaring is echter dat TDD juist tijdwinst oplevert. Bij het bouwen van de functionaliteit wordt code niet alleen direct getest, maar ook vaak en snel. Zou je dit handmatig doen dan zou dit velen malen meer tijd kosten.
 
 ## Conclusie
 TDD is een techniek die naar mijn menig iedere ontwikkelaar zou moeten beheersen. Omdat het denkproces net iets anders in elkaar steekt is het soms lastig om hiermee te starten. Maar als je deze techniek eenmaal beheerst kan het je veel voordelen opleveren en kun je de nodige valkuilen vermijden.
