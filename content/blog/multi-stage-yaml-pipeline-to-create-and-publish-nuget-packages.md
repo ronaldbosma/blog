@@ -39,7 +39,7 @@ Now that the preview feature is enabled we can start by creating a pipeline. So 
 
 ### Create NuGet packages
 
-Clear the yml file and add the following yaml. This will build any projects in your git repository using the .NET Core 2.2 SDK.
+Clear the yml file and add the following YAML. This will build any projects in your git repository using the .NET Core 2.2 SDK.
 
 ```yaml
 trigger:
@@ -145,6 +145,8 @@ The last step in the build stage is to publish the packages as an artifact of th
 
 ### Publish prerelease package to Azure DevOps Artifacts feed
 
+The build stage is now complete and we have created our NuGet packages. The next step is to publish the prerelease package. You can add the following YAML at the end of the yml file.
+
 ```yaml
 - stage: 'PublishPrereleaseNuGetPackage'
   displayName: 'Publish Prerelease NuGet Package'
@@ -169,6 +171,14 @@ The last step in the build stage is to publish the packages as an artifact of th
         nuGetFeedType: 'internal'
         publishVstsFeed: 'Test'
 ```
+
+I've decided to use a normal job instead of a deployment job. The reason is that you need an environment when using a deployment job (see next section about publishing the release package) and I don't have any need for it at this stage.
+
+This stage will start automatically after the build stage has succeeded. The first step `checkout: none` is to skip the checkout of the repository. We don't need any code here. Just the prerelease NuGet package which is available as an artifact.
+
+That's were the second step comes in. The [DownloadPipelineArtifact](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/download-pipeline-artifact?view=azure-devops) task will download any artifacts that were published in the pipeline in at an earlier stage. The will be available in the `$(Pipeline.Workspace)` folder.
+
+The [NuGetCommand](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/nuget?view=azure-devops) task will actually push the prerelease package to an internal Azure DevOps Artifacts feed called 'Test'.
 
 ### Publish release package to nuget.org
 
