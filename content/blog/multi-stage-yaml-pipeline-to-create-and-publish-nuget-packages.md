@@ -143,9 +143,11 @@ The last step in the build stage is to publish the packages as an artifact of th
         PathtoPublish: '$(Build.ArtifactStagingDirectory)/packages'
 ```
 
+The build stage is now complete and we have created our NuGet packages. The next step is to publish the prerelease package.
+
 ### Publish prerelease package to Azure DevOps Artifacts feed
 
-The build stage is now complete and we have created our NuGet packages. The next step is to publish the prerelease package. You can add the following YAML at the end of the yml file.
+You can add the following YAML at the end of the yml file to publish the prerelease package.
 
 ```yaml
 - stage: 'PublishPrereleaseNuGetPackage'
