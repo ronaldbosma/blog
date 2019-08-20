@@ -178,9 +178,55 @@ This stage will start automatically after the build stage has succeeded. The fir
 
 That's were the second step comes in. The [DownloadPipelineArtifact](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/download-pipeline-artifact?view=azure-devops) task will download any artifacts that were published in the pipeline in at an earlier stage. The will be available in the `$(Pipeline.Workspace)` folder.
 
-The [NuGetCommand](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/nuget?view=azure-devops) task will actually push the prerelease package to an internal Azure DevOps Artifacts feed called 'Test'.
+The [NuGetCommand](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/nuget?view=azure-devops) task will actually publish the prerelease package to an internal Azure DevOps Artifacts feed called 'Test'.
 
 ### Publish release package to nuget.org
+
+The last stage will publish the release version of the NuGet package to nuget.org. Before we can edit the YAML pipeline we'll need to make some preperations.
+
+#### Create new environment
+
+In the 'old' release pipelines approvals were configured on the stages. With the new multi-stage pipelines this has been moved to environments. So we'll have to create an environment first.
+
+- When you enabled the Multi-stage pipelines preview feature a new Environments menu item appeared under Pipelines. Click this menu item.
+- Choose New environment.
+- Specify a name like 'nuget-org' (. is not allowed) and an optional description.
+![New environment](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/new-environment.png)
+![New environment](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/new-environment.png)
+- Click Create.
+
+After the environment is created open the environment to configure users or groups to give their approval before the package is published to nuget.org.
+
+- Click on the button with three dots.
+- Choose Checks.
+![Environment add checks](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/environment-add-checks.png)
+![Environment add checks](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/environment-add-checks.png)
+- Click Create an the new screen.
+- Add users and groups and specify optional instructions for the approvers.
+![Create approvals](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/environment-add-checks-create-approvals.png)
+![Create approvals](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/environment-add-checks-create-approvals.png)
+- Click Create.
+
+The environment is now ready to deploy to.
+
+#### Configure nuget.org service connection
+
+To be able to push a package to nuget.org you'll need an account. Create an account I've you haven't already and log in. Then create an api key as described [here](https://docs.microsoft.com/en-us/nuget/nuget-org/scoped-api-keys).
+
+Using that api key we can create a [NuGet service connection](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints?view=azure-devops&tabs=yaml#sep-nuget) in Azure DevOps following these steps.
+- Go to Project settings.
+- Choose Service connections.
+- Add a new service connection of type 'NuGet'.
+- Give the connection a name like 'NuGet'.
+- Specify `https://api.nuget.org/v3/index.json` as the feed url.
+- Enter your api key.
+- Click OK.
+![NuGet sevice connection](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/nuget-service-connection.png)
+![NuGet sevice connection](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/nuget-service-connection.png)
+
+#### Publish NuGet package
+
+Now that we have our environment en NuGet service connection configure we can add the last stage to the YAML pipeline. For this add the following YAML to the end of the yml file.
 
 ```yaml
 - stage: 'PublishReleaseNuGetPackage'
@@ -204,3 +250,11 @@ The [NuGetCommand](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks
              nuGetFeedType: 'external'
              publishFeedCredentials: 'NuGet'
 ```
+
+You'll notice that this stage configuration looks a little different than the stage for the prerelease package. We're using a [deployment job](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#deployment-job) to publish the package and have configured the `nuget-org` environment to be used by the job. Making sure that we first need to approve before the package is published to nuget.org.
+
+Because of the deployment job we don't have to specify the `checkout: none` step. The repository will not be automatically checked out. The download pipeline artifact task is also unnecessary here because the artifacts will be automatically downloaded to the `$(Pipeline.Workspace)` folder.
+
+In the [NuGetCommand](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/nuget?view=azure-devops) task we need to specify that the feed to push to is external. The `publishFeedCredentials` input is set to the name of the service connection we've created earlier.
+
+And there you have it. A multi-stage pipeline that creates and publishes NuGet packages. You can find the full example [here]().
