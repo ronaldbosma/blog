@@ -222,9 +222,9 @@ Using that api key we can create a [NuGet service connection](https://docs.micro
 - Give the connection a name like 'NuGet'.
 - Specify `https://api.nuget.org/v3/index.json` as the feed url.
 - Enter your api key.
-- Click OK.
 ![NuGet sevice connection](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/nuget-service-connection.png)
 ![NuGet sevice connection](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/nuget-service-connection.png)
+- Click OK.
 
 #### Publish NuGet package
 
