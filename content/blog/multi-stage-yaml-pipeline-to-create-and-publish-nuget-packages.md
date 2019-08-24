@@ -31,7 +31,7 @@ First step is to enable the Multi-stage pipelines preview feature:
 - Enable the Multi-stage pipelines option.
 
 ![Multi-stage pipelines preview feature](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/preview-feature-multi-stage-pipelines.png)
-![Multi-stage pipelines preview feature](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/preview-feature-multi-stage-pipelines.png)
+<!-- ![Multi-stage pipelines preview feature](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/preview-feature-multi-stage-pipelines.png) -->
 
 Now that the preview feature is enabled we can start. So, create a new pipeline and connect it to one of the sources that supports YAML, like Azure Repositories or GitHub. You can choose any pipeline template, because we're going to clear it and start from scratch. The [Build, test, and deploy .NET Core apps](https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core) documentation is a good starting point if you haven't created a pipeline before.
 
@@ -195,7 +195,7 @@ In the 'old style' release pipelines, approvals were configured on stages itself
 - Choose New environment.
 - Specify a name like 'nuget-org' (. is not allowed) and an optional description.  
 ![New environment](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/new-environment.png)
-![New environment](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/new-environment.png)
+<!-- ![New environment](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/new-environment.png) -->
 - Click Create.
 
 After the environment is created open the environment to configure users or groups to give their approval before the package is published.
@@ -203,11 +203,11 @@ After the environment is created open the environment to configure users or grou
 - Click on the button with three dots.
 - Choose Checks.  
 ![Environment add checks](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/environment-add-checks.png)
-![Environment add checks](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/environment-add-checks.png)
+<!-- ![Environment add checks](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/environment-add-checks.png) -->
 - Click Create in the new screen.
 - Add users and groups and specify optional instructions for the approvers.  
 ![Create approvals](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/environment-add-checks-create-approvals.png)
-![Create approvals](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/environment-add-checks-create-approvals.png)
+<!-- ![Create approvals](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/environment-add-checks-create-approvals.png) -->
 - Click Create.
 
 The environment is now ready to deploy to.
@@ -225,7 +225,7 @@ Using that api key we can create a [NuGet service connection](https://docs.micro
 - Specify `https://api.nuget.org/v3/index.json` as the feed URL.
 - Enter your api key.  
 ![NuGet service connection](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/nuget-service-connection.png)
-![NuGet service connection](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/nuget-service-connection.png)
+<!-- ![NuGet service connection](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/nuget-service-connection.png) -->
 - Click OK.
 
 #### Publish NuGet package
