@@ -87,7 +87,7 @@ My package targets netstandard2.0 so we're installing the .NET Core SDK as the f
 
 Next we restore any NuGet packages we require and then build the solution.
 
-To keep the example simple. I've left out steps to analyse the solution using SonarQube and running unit tests. The full pipeline of my package including these steps can be found [here](https://github.com/ronaldbosma/FluentAssertions.ArgumentMatchers.Moq/blob/master/azure-pipelines.yml).
+To keep the example simple I've left out steps to analyse the solution using SonarQube and run unit tests. The full pipeline of my package including these steps can be found [here](https://github.com/ronaldbosma/FluentAssertions.ArgumentMatchers.Moq/blob/master/azure-pipelines.yml).
 
 Now that the solution has been build we can create our prerelease and release versions of the NuGet package.
 
@@ -259,4 +259,4 @@ Because of the deployment job we don't have to specify the `checkout: none` step
 
 In the [NuGetCommand](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/nuget?view=azure-devops) task we need to specify that the feed to push to is external. The `publishFeedCredentials` input is set to the name of the service connection we've created earlier.
 
-And there you have it. A multi-stage pipeline that creates and publishes NuGet packages. You can find the full example [here]().
+And there you have it. A multi-stage pipeline that creates and publishes NuGet packages. You can find the full example [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/MultiStageYAMLPipelineToCreateAndPublishNuGetPackages/azure-pipelines.yml).
