@@ -9,19 +9,17 @@ comments: false
 draft: true
 ---
 
-I've recently created a NuGet package that I published on nuget.org. To make this proces a smoothed and simple as possible I've created a pipeline in Azure DevOps to create and publish my package.
+I've recently created a NuGet package that I published on nuget.org. To make this process as smoothed and simple as possible I've created a pipeline in Azure DevOps to create and publish my package.
 
-Using the Multi-stage pipelines feature that's currently in preview I've created a single pipeline that:
+My preferred way of working with NuGet packages is to first create a prerelease version of a package and use it in my software. If I'm confident that it works properly I create a release version.
+
+To support this workflow, using the Multi-stage pipelines feature that's currently in preview, I've created a single pipeline that:
 
 - builds my solution
 - creates a prerelease version of my package
 - creates a release version of my package
 - automatically publishes the prerelease package to a private Azure DevOps Artifacts feed
-- publishes the release version of the package to nuget.org if I approve this
-
-
-???Why this pipeline???
-
+- publishes the release version of the package to nuget.org if I give an approval
 
 In this post I'll go into how the pipeline is set up.
 
