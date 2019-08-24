@@ -33,7 +33,7 @@ First step is to enable the Multi-stage pipelines preview feature:
 ![Multi-stage pipelines preview feature](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/preview-feature-multi-stage-pipelines.png)
 ![Multi-stage pipelines preview feature](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/preview-feature-multi-stage-pipelines.png)
 
-Now that the preview feature is enabled we can start. So create a new pipeline and connect it to one of the sources that supports YAML, like Azure Repositories or GitHub. You can choose any pipeline template, because we're going to clear it and start from scratch. The [Build, test, and deploy .NET Core apps](https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core) documentation is a good starting point if you haven't created a pipeline before.
+Now that the preview feature is enabled we can start. So, create a new pipeline and connect it to one of the sources that supports YAML, like Azure Repositories or GitHub. You can choose any pipeline template, because we're going to clear it and start from scratch. The [Build, test, and deploy .NET Core apps](https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core) documentation is a good starting point if you haven't created a pipeline before.
 
 ### Create NuGet packages
 
@@ -79,13 +79,13 @@ stages:
         arguments: '--configuration $(buildConfiguration)'
 ```
 
-There are a few things to note. First the pipeline will trigger on a push to master. Next we specify the `stages` keyword. Indicating that this is a multi-stage pipeline. In the first stage we'll build the solution and create the packages.
+There are a few things to note. First the pipeline will trigger on a push to master. Next, we specify the `stages` keyword. Indicating that this is a multi-stage pipeline. In the first stage we'll build the solution and create the packages.
 
 My package targets netstandard2.0 so we're installing the .NET Core SDK as the first step in the pipeline. We're using the [UseDotNet](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/tool/dotnet-core-tool-installer?view=azure-devops) task. It allows us to specify a wildcard for the version. Ensuring that we're always using the latest available version of the .NET Core SDK.
 
-Next we restore any NuGet packages we require and then build the solution.
+Then we restore any NuGet packages we require and then build the solution.
 
-To keep the example simple I've left out steps to e.g. analyse the solution using SonarQube and run unit tests. You can find the full pipeline of my package including these steps [here](https://github.com/ronaldbosma/FluentAssertions.ArgumentMatchers.Moq/blob/master/azure-pipelines.yml).
+To keep the example simple, I've left out steps to e.g. analyze the solution using SonarQube and run unit tests. You can find the full pipeline of my package including these steps [here](https://github.com/ronaldbosma/FluentAssertions.ArgumentMatchers.Moq/blob/master/azure-pipelines.yml).
 
 Now that the solution has been build we can create our prerelease and release versions of the NuGet package.
 
@@ -101,7 +101,7 @@ To be able to create a prerelease package the first thing we need to do is confi
 
 If you already have a `Version` tag specified than change this to `VersionPrefix`. This will make it possible to add a suffix to the version, making it a prerelease package.
 
-You might also have the `GeneratePackageOnBuild` property set to true. Altough it can't hurt. It's not necessary. So you can remove it if you want.
+You might also have the `GeneratePackageOnBuild` property set to true. Although it can't hurt. It's not necessary. You can remove it if you want.
 
 Now that we've prepared our project go back to the pipeline editor and add the following YAML at the end.
 
@@ -125,11 +125,11 @@ Now that we've prepared our project go back to the pipeline editor and add the f
 
 The first task will create the release version of the package. The generated nupkg file will be created in the folder `packages/releases` of the artifact staging directory. The `nobuild` input is set to `true`. Meaning this task will not build the solution again.
 
-The second task will create the prerelease version of the package. The output will be generated in the `packages\prereleases` folder. Allthough this task looks similar to the release version there are two differences.
+The second task will create the prerelease version of the package. The output will be generated in the `packages\prereleases` folder. Although this task looks similar to the release version there are two differences.
 
-First of all. Using the `buildProperties` input we're adding the build number to the version of the package. Anything specified in the version suffix will be added after the version prefix, seperated by a -. E.g. if the version prefix is `1.2.0` and the build number is `20190820.1`. Than the version of the package will be `1.2.0-20190820.1`.
+First of all. Using the `buildProperties` input we're adding the build number to the version of the package. Anything specified in the version suffix will be added after the version prefix, separated by a -. E.g. if the version prefix is `1.2.0` and the build number is `20190820.1`. Than the version of the package will be `1.2.0-20190820.1`.
 
-The second difference is that the `nobuild` input is not specified. To add the version suffix to the package a build is necessary. Because of this, the order of these two tasks is also important. If you create the prerelease version first and than the release version (and have `nobuild` set to `true`), the release version assemblies will have a product version containing the prerelease suffix. So the product version would be `1.2.0-20190820.1` instead of `1.2.0`.
+The second difference is that the `nobuild` input is not specified. To add the version suffix to the package a build is necessary. Because of this, the order of these two tasks is also important. If you create the prerelease version first and then the release version (and have `nobuild` set to `true`), the release version assemblies will have a product version containing the prerelease suffix. The product version would be `1.2.0-20190820.1` instead of `1.2.0`.
 
 The last step in the build stage is to publish the packages as an artifact of the pipeline. Making it possible to access them in subsequent stages. Add the following task to create a packages artifact in the pipeline.
 
@@ -184,11 +184,11 @@ That's everything you need to publish the prerelease package. You can give the p
 
 ### Publish release package to nuget.org
 
-The last stage will publish the release version of the NuGet package to nuget.org. But before we can edit the YAML pipeline we'll need to make some preperations.
+The last stage will publish the release version of the NuGet package to nuget.org. But before we can edit the YAML pipeline we'll need to make some preparations.
 
 #### Create new environment
 
-In the 'old style' release pipelines, approvals were configured on stages itself. With the new multi-stage pipelines this has been moved to environments. So we'll have to create an environment first.
+In the 'old style' release pipelines, approvals were configured on stages itself. With the new multi-stage pipelines this has been moved to environments. So, we'll have to create an environment first.
 
 - Click the Environments menu item in the Azure DevOps portal.  
   (When you enabled the Multi-stage pipelines preview feature this new menu item appeared in the Pipelines menu.)
@@ -222,15 +222,15 @@ Using that api key we can create a [NuGet service connection](https://docs.micro
 - Choose Service connections.
 - Add a new service connection of type 'NuGet'.
 - Give the connection a name like 'NuGet'.
-- Specify `https://api.nuget.org/v3/index.json` as the feed url.
+- Specify `https://api.nuget.org/v3/index.json` as the feed URL.
 - Enter your api key.  
-![NuGet sevice connection](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/nuget-service-connection.png)
-![NuGet sevice connection](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/nuget-service-connection.png)
+![NuGet service connection](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/nuget-service-connection.png)
+![NuGet service connection](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/nuget-service-connection.png)
 - Click OK.
 
 #### Publish NuGet package
 
-Now that we have our environment en NuGet service connection configured we can add the last stage to the YAML pipeline. For this add the following YAML to the end of the pipeline yml file.
+Now that we have our environment and NuGet service connection configured we can add the last stage to the YAML pipeline. For this add the following YAML to the end of the pipeline yml file.
 
 ```yaml
 - stage: 'PublishReleaseNuGetPackage'
