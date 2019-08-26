@@ -175,7 +175,7 @@ I've decided to use a [normal job](https://docs.microsoft.com/en-us/azure/devops
 
 This stage will start automatically after the _Build_ stage has succeeded. The first step `checkout: none` is to skip the checkout of the repository. We don't need any code checked out here. We only need the prerelease NuGet package which is available as an artifact.
 
-That's were the second step comes in. The [DownloadPipelineArtifact](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/download-pipeline-artifact?view=azure-devops) task will download any artifacts that were published in the pipeline at an earlier stage. They will be available in the `$(Pipeline.Workspace)` folder.
+That's where the second step comes in. The [DownloadPipelineArtifact](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/download-pipeline-artifact?view=azure-devops) task will download any artifacts that were published in the pipeline at an earlier stage. They will be available in the `$(Pipeline.Workspace)` folder.
 
 The [NuGetCommand](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/nuget?view=azure-devops) task will publish the prerelease package to an internal Azure DevOps Artifacts feed called 'Test'.
 
