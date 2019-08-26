@@ -11,9 +11,9 @@ draft: true
 
 I've recently created a NuGet package that I published on nuget.org. To make this process as smoothed and simple as possible I've created a pipeline in Azure DevOps to create and publish my package.
 
-My preferred way of working with NuGet packages is to first create a prerelease version of a package and use it in my software. If I'm confident that it works properly I create a release version.
+My preferred way of working with NuGet packages is to first create a prerelease version of a package and use it in my software. If I'm confident that it works I create a release version.
 
-To support this workflow, using the Multi-stage pipelines feature that's currently in preview, I've created a single pipeline that:
+I've created a single pipeline to support this workflow, using the Multi-stage pipelines feature that's currently in preview. The pipeline:
 
 - builds my solution
 - creates a prerelease version of my package
@@ -23,13 +23,12 @@ To support this workflow, using the Multi-stage pipelines feature that's current
 
 In this post I'll go into how the pipeline is set up.
 
-First step is to enable the Multi-stage pipelines preview feature:
+First step is to enable the _Multi-stage pipelines_ preview feature:
 
 - Login to your Azure DevOps environment.
 - Click on your avatar in the top right corner.
-- Choose Preview features.
-- Enable the Multi-stage pipelines option.
-
+- Choose _Preview features_.
+- Enable the _Multi-stage pipelines_ option.  
 ![Multi-stage pipelines preview feature](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/preview-feature-multi-stage-pipelines.png)
 <!-- ![Multi-stage pipelines preview feature](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/preview-feature-multi-stage-pipelines.png) -->
 
@@ -81,13 +80,13 @@ stages:
 
 There are a few things to note. First the pipeline will trigger on a push to master. Next, we specify the `stages` keyword. Indicating that this is a multi-stage pipeline. In the first stage we'll build the solution and create the packages.
 
-My package targets netstandard2.0 so we're installing the .NET Core SDK as the first step in the pipeline. We're using the [UseDotNet](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/tool/dotnet-core-tool-installer?view=azure-devops) task. It allows us to specify a wildcard for the version. Ensuring that we're always using the latest available version of the .NET Core SDK.
+My package targets _netstandard2.0_ so we're installing the .NET Core SDK as the first step in the stage. We're using the [UseDotNet](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/tool/dotnet-core-tool-installer?view=azure-devops) task. It allows us to specify a wildcard for the version. Ensuring that we're always using the latest available version of the .NET Core SDK.
 
 Then we restore any NuGet packages we require and build the solution.
 
 To keep the sample simple, I've left out additional steps to for example analyze the solution using SonarQube and run unit tests. You can find the full pipeline of my package including these steps [here](https://github.com/ronaldbosma/FluentAssertions.ArgumentMatchers.Moq/blob/master/azure-pipelines.yml).
 
-Now that the solution has been build we can create our prerelease and release versions of the NuGet package.
+Now that the solution can be build we can create our prerelease and release versions of the NuGet package.
 
 To be able to create a prerelease package the first thing we need to do is configure a version prefix in the csproj of our project. See the example below.
 
@@ -172,9 +171,9 @@ You can add the following YAML at the end of the pipeline yml file to publish th
         publishVstsFeed: 'Test'
 ```
 
-I've decided to use a [normal job](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#job) instead of a [deployment job](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#deployment-job). The reason is that you need an environment when using a deployment job (see next section about publishing the release package) and we don't have any need for it at this stage.
+I've decided to use a [normal job](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#job) instead of a [deployment job](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#deployment-job). The reason is that you need an environment when using a deployment job and we don't have any need for it at this stage. We will for the last stage though.
 
-This stage will start automatically after the build stage has succeeded. The first step `checkout: none` is to skip the checkout of the repository. We don't need any code checked out here. We only need the prerelease NuGet package which is available as an artifact.
+This stage will start automatically after the _Build_ stage has succeeded. The first step `checkout: none` is to skip the checkout of the repository. We don't need any code checked out here. We only need the prerelease NuGet package which is available as an artifact.
 
 That's were the second step comes in. The [DownloadPipelineArtifact](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/download-pipeline-artifact?view=azure-devops) task will download any artifacts that were published in the pipeline at an earlier stage. They will be available in the `$(Pipeline.Workspace)` folder.
 
@@ -184,15 +183,15 @@ That's everything you need to publish the prerelease package. You can give the p
 
 ### Publish release package to nuget.org
 
-The last stage will publish the release version of the NuGet package to nuget.org. But before we proceed we'll need to make some preparations.
+The last stage will publish the release version of the NuGet package to nuget.org. But before we proceed we'll need to make a few preparations.
 
 #### Create new environment
 
 In the 'old style' release pipelines, approvals were configured on stages itself. With the new multi-stage pipelines this has been moved to environments. So, we'll have to create an environment first.
 
-- Click the Environments menu item in the Azure DevOps portal.  
-  (When you enabled the Multi-stage pipelines preview feature this new menu item appeared in the Pipelines menu.)
-- Choose New environment.
+- Click the _Environments_ menu item in the Azure DevOps portal.  
+  (When you enabled the _Multi-stage pipelines_ preview feature this new menu item appeared in the _Pipelines_ menu.)
+- Choose _New environment_.
 - Specify a name like 'nuget-org' (a . is not allowed) and an optional description.  
 ![New environment](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/new-environment.png)
 <!-- ![New environment](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/new-environment.png) -->
@@ -201,14 +200,14 @@ In the 'old style' release pipelines, approvals were configured on stages itself
 After the environment is created, open it to configure users or groups to give their approval before the package is published.
 
 - Click on the button with three dots.
-- Choose Checks.  
+- Choose _Checks_.  
 ![Environment add checks](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/environment-add-checks.png)
 <!-- ![Environment add checks](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/environment-add-checks.png) -->
-- Click Create in the new screen.
+- Click _Create_ in the new screen.
 - Add users and groups and specify optional instructions for the approvers.  
 ![Create approvals](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/environment-add-checks-create-approvals.png)
 <!-- ![Create approvals](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/environment-add-checks-create-approvals.png) -->
-- Click Create.
+- Click _Create_.
 
 The environment is now ready to deploy to.
 
@@ -216,17 +215,17 @@ The environment is now ready to deploy to.
 
   To be able to push a package to nuget.org you'll need an account. Create an account on [nuget.org](https://www.nuget.org) if you haven't already and log in. Then create an api key as described [here](https://docs.microsoft.com/en-us/nuget/nuget-org/scoped-api-keys).
 
-Using that api key we can create a [NuGet service connection](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints?view=azure-devops&tabs=yaml#sep-nuget) in Azure DevOps following these steps.
+Using that api key we can create a [NuGet service connection](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints?view=azure-devops&tabs=yaml#sep-nuget) in Azure DevOps following these steps:
 
-- Go to Project settings.
-- Choose Service connections.
+- Go to _Project settings_.
+- Choose _Service connections_.
 - Add a new service connection of type 'NuGet'.
 - Give the connection a name like 'NuGet'.
 - Specify `https://api.nuget.org/v3/index.json` as the feed URL.
 - Enter your api key.  
 ![NuGet service connection](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/nuget-service-connection.png)
 <!-- ![NuGet service connection](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/nuget-service-connection.png) -->
-- Click OK.
+- Click _OK_.
 
 #### Publish NuGet package
 
@@ -255,7 +254,7 @@ Now that we have our environment and NuGet service connection configured we can 
              publishFeedCredentials: 'NuGet'
 ```
 
-You'll notice that this stage configuration looks a little different than the stage for the prerelease package. We're using a [deployment job](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#deployment-job) to publish the package and have configured the `nuget-org` environment to be used by the job. Making sure that we first need to approve before the package is published to nuget.org.
+You'll notice that this stage configuration looks a little different than the stage for the prerelease package. We're using a [deployment job](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#deployment-job) to publish the package and have configured the `nuget-org` environment to be used by the job. Making sure that we first need to give an approval before the package is published to nuget.org.
 
 Because of the deployment job we don't have to specify the `checkout: none` step. The repository will not be automatically checked out. The download pipeline artifact task is also not necessary here because the artifacts will be automatically downloaded to the `$(Pipeline.Workspace)` folder.
 
