@@ -1,8 +1,8 @@
 ---
 title: "Multi-stage YAML pipeline to create and publish NuGet packages"
-date: 2019-08-24T00:00:00+01:00
-publishdate: 2019-08-24T00:00:00+01:00
-lastmod: 2019-08-24T00:00:00+01:00
+date: 2019-08-26T00:00:00+01:00
+publishdate: 2019-08-26T00:00:00+01:00
+lastmod: 2019-08-26T00:00:00+01:00
 image: "images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages.jpg"
 tags: [ "Azure Pipelines", "Azure DevOps", "NuGet", "Continuous Integration", "YAML" ]
 comments: false
@@ -83,9 +83,9 @@ There are a few things to note. First the pipeline will trigger on a push to mas
 
 My package targets netstandard2.0 so we're installing the .NET Core SDK as the first step in the pipeline. We're using the [UseDotNet](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/tool/dotnet-core-tool-installer?view=azure-devops) task. It allows us to specify a wildcard for the version. Ensuring that we're always using the latest available version of the .NET Core SDK.
 
-Then we restore any NuGet packages we require and then build the solution.
+Then we restore any NuGet packages we require and build the solution.
 
-To keep the example simple, I've left out steps to e.g. analyze the solution using SonarQube and run unit tests. You can find the full pipeline of my package including these steps [here](https://github.com/ronaldbosma/FluentAssertions.ArgumentMatchers.Moq/blob/master/azure-pipelines.yml).
+To keep the sample simple, I've left out additional steps to for example analyze the solution using SonarQube and run unit tests. You can find the full pipeline of my package including these steps [here](https://github.com/ronaldbosma/FluentAssertions.ArgumentMatchers.Moq/blob/master/azure-pipelines.yml).
 
 Now that the solution has been build we can create our prerelease and release versions of the NuGet package.
 
@@ -99,11 +99,11 @@ To be able to create a prerelease package the first thing we need to do is confi
 </Project>
 ```
 
-If you already have a `Version` tag specified than change this to `VersionPrefix`. This will make it possible to add a suffix to the version, making it a prerelease package.
+If you already have a `Version` tag specified than change this to `VersionPrefix`. This will make it possible to add a suffix to the version. Making it a prerelease package.
 
 You might also have the `GeneratePackageOnBuild` property set to true. Although it can't hurt. It's not necessary. You can remove it if you want.
 
-Now that we've prepared our project go back to the pipeline editor and add the following YAML at the end.
+Now that we've prepared our project, go back to the pipeline editor and add the following YAML at the end.
 
 ```yaml
     - task: DotNetCoreCLI@2
@@ -125,13 +125,13 @@ Now that we've prepared our project go back to the pipeline editor and add the f
 
 The first task will create the release version of the package. The generated nupkg file will be created in the folder `packages/releases` of the artifact staging directory. The `nobuild` input is set to `true`. Meaning this task will not build the solution again.
 
-The second task will create the prerelease version of the package. The output will be generated in the `packages\prereleases` folder. Although this task looks similar to the release version there are two differences.
+The second task will create the prerelease version of the package. The output will be generated in the `packages\prereleases` folder. There are two differences with the release package task.
 
-First of all. Using the `buildProperties` input we're adding the build number to the version of the package. Anything specified in the version suffix will be added after the version prefix, separated by a -. E.g. if the version prefix is `1.2.0` and the build number is `20190820.1`. Than the version of the package will be `1.2.0-20190820.1`.
+First of all. Using the `buildProperties` input we're adding the build number to the version of the package. Anything specified in the version suffix will be added after the version prefix, separated by a -. If the version prefix is `1.2.0` and the build number is `20190820.1`. Than the version of the package will be `1.2.0-20190820.1`.
 
 The second difference is that the `nobuild` input is not specified. To add the version suffix to the package a build is necessary. Because of this, the order of these two tasks is also important. If you create the prerelease version first and then the release version (and have `nobuild` set to `true`), the release version assemblies will have a product version containing the prerelease suffix. The product version would be `1.2.0-20190820.1` instead of `1.2.0`.
 
-The last step in the build stage is to publish the packages as an artifact of the pipeline. Making it possible to access them in subsequent stages. Add the following task to create a packages artifact in the pipeline.
+The last step in the build stage is to publish the packages as an artifact of the pipeline. Making it possible to access them in subsequent stages. Add the following task to create a 'packages' artifact in the pipeline.
 
 ```yaml
     - task: PublishBuildArtifacts@1
@@ -141,7 +141,7 @@ The last step in the build stage is to publish the packages as an artifact of th
         PathtoPublish: '$(Build.ArtifactStagingDirectory)/packages'
 ```
 
-The build stage is now complete and we have created our NuGet packages. You can run it now to see if everything works. The next step is to publish the prerelease package.
+The build stage is now complete. You can run it to see if everything works. The next step is to publish the prerelease package.
 
 ### Publish prerelease package to Azure DevOps Artifacts feed
 
@@ -172,19 +172,19 @@ You can add the following YAML at the end of the pipeline yml file to publish th
         publishVstsFeed: 'Test'
 ```
 
-I've decided to use a [normal job](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#job) instead of a [deployment job](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#deployment-job) . The reason is that you need an environment when using a deployment job (see next section about publishing the release package) and we don't have any need for it at this stage.
+I've decided to use a [normal job](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#job) instead of a [deployment job](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#deployment-job). The reason is that you need an environment when using a deployment job (see next section about publishing the release package) and we don't have any need for it at this stage.
 
-This stage will start automatically after the build stage has succeeded. The first step `checkout: none` is to skip the checkout of the repository. We don't need any code here. Just the prerelease NuGet package which is available as an artifact.
+This stage will start automatically after the build stage has succeeded. The first step `checkout: none` is to skip the checkout of the repository. We don't need any code checked out here. We only need the prerelease NuGet package which is available as an artifact.
 
 That's were the second step comes in. The [DownloadPipelineArtifact](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/download-pipeline-artifact?view=azure-devops) task will download any artifacts that were published in the pipeline at an earlier stage. They will be available in the `$(Pipeline.Workspace)` folder.
 
-The [NuGetCommand](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/nuget?view=azure-devops) task will actually publish the prerelease package to an internal Azure DevOps Artifacts feed called 'Test'.
+The [NuGetCommand](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/nuget?view=azure-devops) task will publish the prerelease package to an internal Azure DevOps Artifacts feed called 'Test'.
 
 That's everything you need to publish the prerelease package. You can give the pipeline another run to see if it works.
 
 ### Publish release package to nuget.org
 
-The last stage will publish the release version of the NuGet package to nuget.org. But before we can edit the YAML pipeline we'll need to make some preparations.
+The last stage will publish the release version of the NuGet package to nuget.org. But before we proceed we'll need to make some preparations.
 
 #### Create new environment
 
@@ -193,12 +193,12 @@ In the 'old style' release pipelines, approvals were configured on stages itself
 - Click the Environments menu item in the Azure DevOps portal.  
   (When you enabled the Multi-stage pipelines preview feature this new menu item appeared in the Pipelines menu.)
 - Choose New environment.
-- Specify a name like 'nuget-org' (. is not allowed) and an optional description.  
+- Specify a name like 'nuget-org' (a . is not allowed) and an optional description.  
 ![New environment](../../static/images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/new-environment.png)
 <!-- ![New environment](../../../../../images/multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/new-environment.png) -->
 - Click Create.
 
-After the environment is created open the environment to configure users or groups to give their approval before the package is published.
+After the environment is created, open it to configure users or groups to give their approval before the package is published.
 
 - Click on the button with three dots.
 - Choose Checks.  
