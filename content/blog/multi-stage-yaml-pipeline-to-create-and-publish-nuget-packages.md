@@ -130,7 +130,7 @@ First of all. Using the `buildProperties` input we're adding the build number to
 
 The second difference is that the `nobuild` input is not specified. To add the version suffix to the package a build is necessary. Because of this, the order of these two tasks is also important. If you create the prerelease version first and then the release version (and have `nobuild` set to `true`), the release version assemblies will have a product version containing the prerelease suffix. The product version would be `1.2.0-20190820.1` instead of `1.2.0`.
 
-The last step in the build stage is to publish the packages as an artifact of the pipeline. Making it possible to access them in subsequent stages. Add the following task to create a 'packages' artifact in the pipeline.
+The last step in the _Build_ stage is to publish the packages as an artifact of the pipeline. Making it possible to access them in subsequent stages. Add the following task to create a 'packages' artifact in the pipeline.
 
 ```yaml
     - task: PublishBuildArtifacts@1
@@ -140,7 +140,7 @@ The last step in the build stage is to publish the packages as an artifact of th
         PathtoPublish: '$(Build.ArtifactStagingDirectory)/packages'
 ```
 
-The build stage is now complete. You can run it to see if everything works. The next step is to publish the prerelease package.
+The _Build_ stage is now complete. You can run it to see if everything works. The next step is to publish the prerelease package.
 
 ### Publish prerelease package to Azure DevOps Artifacts feed
 
