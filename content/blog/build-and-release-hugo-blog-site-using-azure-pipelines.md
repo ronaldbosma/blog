@@ -192,7 +192,7 @@ To configure the release pipeline:
   ![Continuous deployment trigger](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/release-continuous-deployment-trigger.png)
 - Open the Tasks tab for the 'GitHub Pages' stage.
 - Add the [Publish to GitHub Pages](https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish) task installed in the prerequisites and configure it:
-  - 'Documentation Source' should be `$(System.DefaultWorkingDirectory)/blog/*`. Where blog is the artifact alias you've configured.
+  - 'Documentation Source' should be `$(System.DefaultWorkingDirectory)/blog/hugo-site/*`. Where _blog_ is the artifact alias you've configured and _hugo-site_ the name of the artifact specified in the build pipeline.
   - Configure the 'GitHub Personal Access Token' as [a secret](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#secret-variables) using a variable.  
   - Set 'Branch Name' to master.  
   ![Publish to GitHub Pages configuration](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/release-publish-to-github-pages.png)
