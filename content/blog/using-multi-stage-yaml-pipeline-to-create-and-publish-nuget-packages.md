@@ -186,7 +186,9 @@ The last stage will publish the release version of the NuGet package to nuget.or
 
 #### Create new environment
 
-In the 'old style' release pipelines, approvals were configured on stages itself. With the new multi-stage pipelines this has been moved to environments. So, we'll have to create an environment first.
+In the 'old style' release pipelines, approvals were configured on stages itself. With the new multi-stage pipelines this has been moved to environments. It's not as comprehensive though. At the moment you can only configure one or more users/groups and all must approve. No further options can be specified as of this time.
+
+So, lets create an environment first.
 
 - Click the _Environments_ menu item in the Azure DevOps portal.  
   (When you enabled the _multi-stage pipelines_ preview feature this new menu item appeared in the _Pipelines_ menu.)
