@@ -17,9 +17,9 @@ I've created a single pipeline to support this workflow, using the multi-stage p
 
 The pipeline:
 
-- builds my solution
-- creates a prerelease version of my package
-- creates a release version of my package
+- builds the solution
+- creates a prerelease version of the NuGet package
+- creates a release version of the NuGet package
 - automatically publishes the prerelease package to a private Azure DevOps Artifacts feed
 - publishes the release version of the package to nuget.org if I give an approval
 
@@ -82,11 +82,11 @@ stages:
 
 There are a few things to note. First the pipeline will trigger on a push to master. Next, we specify the `stages` keyword. Indicating that this is a multi-stage pipeline. In the first stage we'll build the solution and create the packages.
 
-Since my package targets _netstandard2.0_, we're installing the .NET Core SDK as the first step in the stage using the [UseDotNet](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/tool/dotnet-core-tool-installer?view=azure-devops) task. It allows us to specify a wildcard for the version. Ensuring that we're always using the latest available version of the .NET Core SDK.
+Since my NuGet package targets _netstandard2.0_, we're installing the .NET Core SDK as the first step in the stage using the [UseDotNet](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/tool/dotnet-core-tool-installer?view=azure-devops) task. It allows us to specify a wildcard for the version. Ensuring that we're always using the latest available version of the .NET Core SDK.
 
 Then we restore any NuGet packages we require and build the solution.
 
-To keep the sample simple, I've left out additional steps to analyze the solution using SonarQube and run unit tests. You can find the full pipeline of my package including these steps [here](https://github.com/ronaldbosma/FluentAssertions.ArgumentMatchers.Moq/blob/master/azure-pipelines.yml).
+To keep the sample simple, I've left out additional steps to analyze the solution using SonarQube and run unit tests. You can find the full pipeline of my NuGet package including these steps [here](https://github.com/ronaldbosma/FluentAssertions.ArgumentMatchers.Moq/blob/master/azure-pipelines.yml).
 
 Now that the solution can be build we can create our prerelease and release versions of the NuGet package.
 
