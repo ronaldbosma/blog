@@ -53,4 +53,4 @@ stages:
         githubaccesstoken: '$(github-personal-access-token)'
         repositoryname: '$(repository)'
         branchname: 'master'
-        commitmessage: 'Automated Release $(Build.BuildNumber)'
+        commitmessage: 'Automated Pipeline $(Build.BuildNumber): $(Build.SourceVersionMessage)'
