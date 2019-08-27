@@ -5,7 +5,8 @@ trigger:
 
 stages:
 
-- stage: 'Generate Hugo Site'
+- stage: 'GenerateHugoSite'
+  displayName: 'Generate Hugo Site'
   jobs:
   - job:
     pool:
@@ -29,3 +30,30 @@ stages:
       inputs:
         artifactName: 'hugo-site'
         targetPath: '$(Build.ArtifactStagingDirectory)'
+
+
+- stage: 'PublishHugoSite'
+  displayName: 'Publish Hugo Site'
+  dependsOn: 'GenerateHugoSite'
+  # only publish site when generation succeeded and it's the master branch
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master')
+  jobs:
+  - job:
+    pool:
+      vmImage: 'vs2017-win2016'  # need a Windows host because the GitHubPagesPublish task uses PowerShell
+
+    steps:
+    - checkout: none  # no need to checkout any code because we only need the artifact
+
+    - download: current
+      artifact: 'hugo-site'
+
+    - task: GitHubPagesPublish@1
+      inputs:
+        docPath: '$(Pipeline.Workspace)/hugo-site/*'
+        githubusername: '$(github-username)'
+        githubemail: '$(github-email)'
+        githubaccesstoken: '$(github-personal-access-token)'
+        repositoryname: '$(repository)'
+        branchname: 'master'
+        commitmessage: 'Automated Release $(Build.BuildNumber)'
