@@ -82,7 +82,7 @@ stages:
 
 There are a few things to note. First the pipeline will trigger on a push to master. Next, we specify the `stages` keyword. Indicating that this is a multi-stage pipeline. In the first stage we'll build the solution and create the packages.
 
-My package targets _netstandard2.0_ so we're installing the .NET Core SDK as the first step in the stage. We're using the [UseDotNet](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/tool/dotnet-core-tool-installer?view=azure-devops) task. It allows us to specify a wildcard for the version. Ensuring that we're always using the latest available version of the .NET Core SDK.
+Since my package targets _netstandard2.0_, we're installing the .NET Core SDK as the first step in the stage using the [UseDotNet](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/tool/dotnet-core-tool-installer?view=azure-devops) task. It allows us to specify a wildcard for the version. Ensuring that we're always using the latest available version of the .NET Core SDK.
 
 Then we restore any NuGet packages we require and build the solution.
 
