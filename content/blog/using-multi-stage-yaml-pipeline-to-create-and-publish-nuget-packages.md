@@ -215,7 +215,7 @@ The environment is now ready to deploy to.
 
 #### Configure nuget.org service connection
 
-  To be able to push a package to nuget.org you'll need an account. Create an account on [nuget.org](https://www.nuget.org) if you haven't already and log in. Then create an api key as described [here](https://docs.microsoft.com/en-us/nuget/nuget-org/scoped-api-keys).
+To be able to push a package to nuget.org you'll need an account. Create an account on [nuget.org](https://www.nuget.org) if you haven't already and log in. Then create an api key as described [here](https://docs.microsoft.com/en-us/nuget/nuget-org/scoped-api-keys).
 
 Using that api key we can create a [NuGet service connection](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints?view=azure-devops&tabs=yaml#sep-nuget) in Azure DevOps following these steps:
 
