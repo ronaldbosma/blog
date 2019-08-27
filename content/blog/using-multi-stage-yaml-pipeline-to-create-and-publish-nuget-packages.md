@@ -100,7 +100,7 @@ To be able to create a prerelease package the first thing we need to do is confi
 </Project>
 ```
 
-If you already have a `Version` tag specified than change this to `VersionPrefix`. This will make it possible to add a suffix to the version. Making it a prerelease package.
+If you already have a `Version` tag specified, change this to `VersionPrefix`. This will make it possible to add a suffix to the version. Making it a prerelease package.
 
 You might also have the `GeneratePackageOnBuild` property set to true. Although it can't hurt. It's not necessary. You can remove it if you want.
 
