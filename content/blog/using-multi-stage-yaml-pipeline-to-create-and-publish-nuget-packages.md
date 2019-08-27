@@ -13,7 +13,9 @@ I've recently created [a new NuGet package](https://www.nuget.org/packages/Fluen
 
 My preferred way of working with NuGet packages is to first create a prerelease version of a package and use it in my software. If I'm confident that it works I create a release version.
 
-I've created a single pipeline to support this workflow, using the multi-stage pipelines feature that's currently in preview. The pipeline:
+I've created a single pipeline to support this workflow, using the multi-stage pipelines feature that's currently in preview. This way a separate build & release pipeline is not necessary anymore and you can have your entire pipeline in YAML stored with your code.
+
+The pipeline:
 
 - builds my solution
 - creates a prerelease version of my package
