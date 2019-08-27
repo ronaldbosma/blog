@@ -13,7 +13,7 @@ I've recently created [a new NuGet package](https://www.nuget.org/packages/Fluen
 
 My preferred way of working with NuGet packages is to first create a prerelease version of a package and use it in my software. If I'm confident that it works I create a release version.
 
-I've created a single pipeline to support this workflow, using the Multi-stage pipelines feature that's currently in preview. The pipeline:
+I've created a single pipeline to support this workflow, using the multi-stage pipelines feature that's currently in preview. The pipeline:
 
 - builds my solution
 - creates a prerelease version of my package
@@ -23,7 +23,7 @@ I've created a single pipeline to support this workflow, using the Multi-stage p
 
 In this post I'll go into how the pipeline is set up.
 
-First step is to enable the _Multi-stage pipelines_ preview feature:
+First step is to enable the _multi-stage pipelines_ preview feature:
 
 - Login to your Azure DevOps environment.
 - Click on your avatar in the top right corner.
@@ -190,7 +190,7 @@ The last stage will publish the release version of the NuGet package to nuget.or
 In the 'old style' release pipelines, approvals were configured on stages itself. With the new multi-stage pipelines this has been moved to environments. So, we'll have to create an environment first.
 
 - Click the _Environments_ menu item in the Azure DevOps portal.  
-  (When you enabled the _Multi-stage pipelines_ preview feature this new menu item appeared in the _Pipelines_ menu.)
+  (When you enabled the _multi-stage pipelines_ preview feature this new menu item appeared in the _Pipelines_ menu.)
 - Choose _New environment_.
 - Specify a name like 'nuget-org' (a . is not allowed) and an optional description.  
 ![New environment](../../static/images/using-multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/new-environment.png)
