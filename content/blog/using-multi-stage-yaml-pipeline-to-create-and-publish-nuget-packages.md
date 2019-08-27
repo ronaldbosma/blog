@@ -9,7 +9,7 @@ comments: false
 draft: true
 ---
 
-I've recently created a NuGet package that I published on nuget.org. To make this process as smoothed and simple as possible I've created a multi-stage yaml pipeline in Azure DevOps to create and publish my package.
+I've recently created [a new NuGet package](https://www.nuget.org/packages/FluentAssertions.ArgumentMatchers.Moq/) that I published on nuget.org. In order to make the process of creating and publishing this package as smooth and simple as possible, I've created a multi-stage YAML pipeline in Azure DevOps.
 
 My preferred way of working with NuGet packages is to first create a prerelease version of a package and use it in my software. If I'm confident that it works I create a release version.
 
