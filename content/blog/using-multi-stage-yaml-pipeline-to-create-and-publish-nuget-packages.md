@@ -262,4 +262,9 @@ Because of the deployment job we don't have to specify the `checkout: none` step
 
 In the [NuGetCommand](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/nuget?view=azure-devops) task we need to specify that the feed to push to is external. The `publishFeedCredentials` input is set to the name of the service connection we've created earlier.
 
-And there you have it. A multi-stage pipeline that creates and publishes NuGet packages. You can find the full example [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/MultiStageYAMLPipelineToCreateAndPublishNuGetPackages/azure-pipelines.yml).
+And there you have it. A multi-stage pipeline that creates and publishes NuGet packages. If all stages pass you should have something like this.
+
+![Successful pipeline](../../static/images/using-multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/successful-pipeline.png)
+<!-- ![NuGet service connection](../../../../../images/using-multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/successful-pipeline.png) -->
+
+You can find the full example [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/MultiStageYAMLPipelineToCreateAndPublishNuGetPackages/azure-pipelines.yml).
