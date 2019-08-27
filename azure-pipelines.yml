@@ -1,23 +1,31 @@
-# Pipeline to generate Hugo site
+# Pipeline to generate and publish Hugo site
 
 trigger:
 - master
 
-pool:
-  vmImage: 'vs2017-win2016'  # need a Windows host because the Hugo task uses PowerShell
+stages:
 
-steps:
-- checkout: self
-  displayName: 'Checkout repository including submodules'
-  submodules: true  # true so Hugo theme submodule is checked out
+- stage: 'Generate Hugo Site'
+  jobs:
+  - job:
+    pool:
+      vmImage: 'vs2017-win2016'  # need a Windows host because the Hugo task uses PowerShell
 
-- task: HugoTask@1
-  displayName: 'Generate Hugo site'
-  inputs:
-    destination: '$(Build.ArtifactStagingDirectory)'
+    workspace:
+      clean: all
 
-- task: PublishPipelineArtifact@0
-  displayName: 'Publish Hugo site as artifact'
-  inputs:
-    artifactName: 'hugo-site'
-    targetPath: '$(Build.ArtifactStagingDirectory)'
+    steps:
+    - checkout: self
+      displayName: 'Checkout repository including submodules'
+      submodules: true  # true so Hugo theme submodule is checked out
+
+    - task: HugoTask@1
+      displayName: 'Generate Hugo site'
+      inputs:
+        destination: '$(Build.ArtifactStagingDirectory)'
+
+    - task: PublishPipelineArtifact@0
+      displayName: 'Publish Hugo site as artifact'
+      inputs:
+        artifactName: 'hugo-site'
+        targetPath: '$(Build.ArtifactStagingDirectory)'
