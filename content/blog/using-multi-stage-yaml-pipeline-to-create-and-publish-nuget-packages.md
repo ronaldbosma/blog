@@ -86,7 +86,7 @@ Since my package targets _netstandard2.0_, we're installing the .NET Core SDK as
 
 Then we restore any NuGet packages we require and build the solution.
 
-To keep the sample simple, I've left out additional steps to for example analyze the solution using SonarQube and run unit tests. You can find the full pipeline of my package including these steps [here](https://github.com/ronaldbosma/FluentAssertions.ArgumentMatchers.Moq/blob/master/azure-pipelines.yml).
+To keep the sample simple, I've left out additional steps to analyze the solution using SonarQube and run unit tests. You can find the full pipeline of my package including these steps [here](https://github.com/ronaldbosma/FluentAssertions.ArgumentMatchers.Moq/blob/master/azure-pipelines.yml).
 
 Now that the solution can be build we can create our prerelease and release versions of the NuGet package.
 
