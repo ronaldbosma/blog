@@ -25,11 +25,8 @@ stages:
       inputs:
         destination: '$(Build.ArtifactStagingDirectory)'
 
-    - task: PublishPipelineArtifact@0
-      displayName: 'Publish Hugo site as artifact'
-      inputs:
-        artifactName: 'hugo-site'
-        targetPath: '$(Build.ArtifactStagingDirectory)'
+    - publish: '$(Build.ArtifactStagingDirectory)'
+      artifact: 'hugo-site'
 
 
 - stage: 'PublishHugoSite'
