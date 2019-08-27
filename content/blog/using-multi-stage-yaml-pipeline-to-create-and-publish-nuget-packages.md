@@ -264,4 +264,4 @@ And there you have it. A multi-stage pipeline that creates and publishes NuGet p
 ![Successful pipeline](../../static/images/using-multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/successful-pipeline.png)
 <!-- ![NuGet service connection](../../../../../images/using-multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/successful-pipeline.png) -->
 
-You can find the full example [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/MultiStageYAMLPipelineToCreateAndPublishNuGetPackages/azure-pipelines.yml).
+You can find the full example [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/UsingMultiStageYAMLPipelineToCreateAndPublishNuGetPackages/azure-pipelines.yml).
