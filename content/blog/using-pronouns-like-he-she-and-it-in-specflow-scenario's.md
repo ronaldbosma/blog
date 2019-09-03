@@ -1,6 +1,6 @@
 ---
 title: "Using Pronouns Like He She and It in Specflow Scenario's"
-date: 2019-05-21T19:40:08+02:00
+date: 2019-09-03T00:00:00+01:00
 image: "images/using-pronouns-like-he-she-and-it-in-specflow-scenarios.jpg"
 tags: [ "Gherkin", "SpecFlow", ".NET", "Cleaner Code", "Test Automation" ]
 comments: true
@@ -120,7 +120,7 @@ Then her address is '221B Baker Street, London'
     And his address is '221B Baker Street, London'
 ```
 
-If listed the signature of the step definitions I used in the first code example below. You might notice that we're receiving a name in every method. The first step of every step definition method is to convert this name into a `Person` before executing the code that's actually relevant. SpecFlow just happens to have a solution for this in the form of [Step Argument Transformations](https://specflow.org/documentation/Step-Argument-Transformations/).
+I've listed the signature of the step definitions I used in the first code example below. You might notice that we're receiving a name in every method. The first step of every step definition method is to convert this name into a `Person` before executing the code that's actually relevant. SpecFlow just happens to have a solution for this in the form of [Step Argument Transformations](https://specflow.org/documentation/Step-Argument-Transformations/).
 
 ```c#
 void GivenAPersonCalled(Gender gender, string name)
