@@ -6,7 +6,7 @@ lastmod: 2019-09-03T00:00:00+01:00
 image: "images/using-multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/using-multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages.jpg"
 tags: [ "Azure Pipelines", "Azure DevOps", "NuGet", "Continuous Integration", "YAML" ]
 comments: false
-draft: true
+draft: false
 ---
 
 I've recently created [a new NuGet package](https://www.nuget.org/packages/FluentAssertions.ArgumentMatchers.Moq/) that I published on nuget.org. In order to make the process of creating and publishing this package as smooth and simple as possible, I've created a multi-stage YAML pipeline in Azure DevOps.
