@@ -5,7 +5,6 @@ publishdate: 2019-09-03T00:00:00+01:00
 lastmod: 2019-09-03T00:00:00+01:00
 image: "images/using-multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/using-multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages.jpg"
 tags: [ "Azure Pipelines", "Azure DevOps", "NuGet", "Continuous Integration", "YAML" ]
-comments: false
 draft: false
 ---
 
