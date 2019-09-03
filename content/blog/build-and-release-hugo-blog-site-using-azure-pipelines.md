@@ -2,7 +2,7 @@
 title: "Build And Release Hugo Site Using Azure Pipelines"
 date: 2019-03-24T00:00:00+01:00
 publishdate: 2019-04-15T00:00:00+01:00
-lastmod: 2019-04-15T00:00:00+01:00
+lastmod: 2019-08-26T00:00:00+01:00
 image: "images/build-and-release-hugo-site-using-azure-pipelines/post.jpg"
 tags: [ "Azure Pipelines", "Azure DevOps", "Hugo", "Continuous Integration" ]
 comments: true
@@ -11,6 +11,8 @@ summary: "In this post I'll give a step-by-step explanation on how I build and p
 ---
 
 I'm using [Hugo](https://gohugo.io) to create my blog site. It lets me create my posts in markdown and, with a simple command, generate a static website. This website is hosted on my personal [GitHub Pages](https://pages.github.com/) site. GitHub Pages allows me to turn content in a git repository into a website and host it online.
+
+**UPDATE 2019-09-03**: I've merged the build and release pipeline into a single multi-stage pipeline. You can find an example [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/BuildAndReleaseHugoSiteUsingAzurePipelines/azure-pipelines-multi-stage-example.yml).
 
 My goal was to publish changes to my blog whenever I push a change to the master branch of my blog repository. Before I go into the details of how I did this, let’s first have a look at what I started with. 
 
@@ -192,7 +194,7 @@ To configure the release pipeline:
   ![Continuous deployment trigger](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/release-continuous-deployment-trigger.png)
 - Open the Tasks tab for the 'GitHub Pages' stage.
 - Add the [Publish to GitHub Pages](https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish) task installed in the prerequisites and configure it:
-  - 'Documentation Source' should be `$(System.DefaultWorkingDirectory)/blog/*`. Where blog is the artifact alias you've configured.
+  - 'Documentation Source' should be `$(System.DefaultWorkingDirectory)/blog/hugo-site/*`. Where _blog_ is the artifact alias you've configured and _hugo-site_ the name of the artifact specified in the build pipeline.
   - Configure the 'GitHub Personal Access Token' as [a secret](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#secret-variables) using a variable.  
   - Set 'Branch Name' to master.  
   ![Publish to GitHub Pages configuration](../../../../../images/build-and-release-hugo-site-using-azure-pipelines/release-publish-to-github-pages.png)
