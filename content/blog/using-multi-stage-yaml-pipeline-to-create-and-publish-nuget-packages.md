@@ -8,7 +8,7 @@ tags: [ "Azure Pipelines", "Azure DevOps", "NuGet", "Continuous Integration", "Y
 draft: false
 ---
 
-I've recently created [a new NuGet package](https://www.nuget.org/packages/FluentAssertions.ArgumentMatchers.Moq/) that I published on nuget.org. In order to make the process of creating and publishing this package as smooth and simple as possible, I've created a multi-stage YAML pipeline in Azure DevOps.
+I've recently created a new NuGet package called [FluentAssertions.ArgumentMatchers.Moq](https://www.nuget.org/packages/FluentAssertions.ArgumentMatchers.Moq/) that I published on nuget.org. In order to make the process of creating and publishing this package as smooth and simple as possible, I've created a multi-stage YAML pipeline in Azure DevOps.
 
 My preferred way of working with NuGet packages is to first create a prerelease version of a package and use it in my software. If I'm confident that it works I create a release version.
 
@@ -126,7 +126,7 @@ The first task will create the release version of the package. The generated nup
 
 The second task will create the prerelease version of the package. The output will be generated in the `packages\prereleases` folder. There are two differences with the release package task.
 
-First of all. Using the `buildProperties` input we're adding the build number to the version of the package. Anything specified in the version suffix will be added after the version prefix, separated by a -. If the version prefix is `1.2.0` and the build number is `20190903.1`. Than the version of the package will be `1.2.0-20190903.1`.
+First of all. Using the `buildProperties` input we're adding the build number to the version of the package. Anything specified in the version suffix will be added after the version prefix, separated by a -. If the version prefix is `1.2.0` and the build number is `20190903.1`. Then the version of the package will be `1.2.0-20190903.1`.
 
 The second difference is that the `nobuild` input is not specified. To add the version suffix to the package a build is necessary. Because of this, the order of these two tasks is also important. If you create the prerelease version first and then the release version (and have `nobuild` set to `true`), the release version assemblies will have a product version containing the prerelease suffix. The product version would be `1.2.0-20190903.1` instead of `1.2.0`.
 
