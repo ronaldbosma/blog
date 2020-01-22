@@ -14,6 +14,7 @@ Where new versions and patches of .NET Framework are installed through Windows U
 In the rest of this post I'll give an example of how you can use this task in an Azure Pipeline to automate the installation of .NET Core on a Windows Server.
 
 ### Install the Install .NET Core Runtime & Hosting Bundle extension
+
 Step 1 is to install the extension in your Azure DevOps organization. For this, go to the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) and click on the 'Get it free' button. 
 
 ![Visual Studio Marketplace](../../../../../images/howto-install-net-core-on-windows-server/visual-studio-marketplace.png)
@@ -23,3 +24,16 @@ You'll need to log in to Azure DevOps if you haven't already. Select the correct
 ![Install in organization](../../../../../images/howto-install-net-core-on-windows-server/install-in-azure-devops-organization.png)
 
 > NOTE: Depending in your permissions, an administrator might have to approve the intallation before you can proceed.
+
+### Create a deployment group
+
+Before creating the release pipeline we need a deployment group. This will enable us to add several servers to a group and install .NET Core on multiple machines at once. At my current client we have a deployment group for every environment (Dev, Test, Acceptance and Production).
+
+So go to Pipelines > Deployment groups and choose New. Enter a name and choose Create. After creation you'll get a PowerShell script that you'll need to execute on the machines you want to add to the deployment group. When executing the script, follow the instructions and give the machine a tag like 'net-core'.
+
+The end result might look something like this:
+![Install in organization](../../../../../images/howto-install-net-core-on-windows-server/deployment-group.png)
+
+For more information on Deployment Groups and adding servers to a group see [Provision deployment groups](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups) and [Provision agents for deployment groups](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/howto-provision-deployment-group-agents).
+
+
