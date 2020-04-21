@@ -7,7 +7,7 @@ summary: "In this post I'll show you how I install and update the .NET Core Runt
 draft: true
 ---
 
-At my current client we're transitioning from .NET Framework (WCF services) to .NET Core. We only have a few .NET Core web application at the moment and the preferred hosting model is to host these in IIS. This means we need to install the .NET Core Runtime & Hosting Bundle on every Windows Sever where a .NET Core web application is deployed. This bundle includes the .NET Core Runtime and IIS support for .NET Core.
+At my current client we're transitioning from .NET Framework (WCF services) to .NET Core. We only have a few .NET Core web applications at the moment and the preferred hosting model is to host these in IIS. This means we need to install the .NET Core Runtime & Hosting Bundle on every Windows Sever where a .NET Core web application is deployed. This bundle includes the .NET Core Runtime and IIS support for .NET Core.
 
 Where new versions and patches of .NET Framework are installed through Windows Update, .NET Core does not provide a similar solution. Which means that for every .NET Core update we manually need to download the installer and execute it on every server in every environment. To make this process a little smoother I've created an Azure DevOps extension called [Install .NET Core Runtime & Hosting Bundle](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) that automates this task. You can find the extension in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting).
 
