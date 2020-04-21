@@ -13,7 +13,7 @@ Where new versions and patches of .NET Framework are installed through Windows U
 
 In the rest of this post I'll give an example of how you can use this task in an Azure Pipeline to automate the installation of .NET Core on a Windows Server.
 
-### Install the Install .NET Core Runtime & Hosting Bundle extension
+### Install the 'Install .NET Core Runtime & Hosting Bundle' extension
 
 Step 1 is to install the extension in your Azure DevOps organization. For this, go to the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) and click on the 'Get it free' button. 
 
