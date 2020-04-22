@@ -25,6 +25,18 @@ You'll need to log in to Azure DevOps if you haven't already. Select the correct
 
 > NOTE: Depending on your permissions, an administrator might have to approve the intallation before you can proceed.
 
+### Enable Multi-stage pipelines preview feature
+
+In this example we'll be using a [YAML pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema). You'll need to enable the Multi-stage pipelines preview feature for this to work.
+
+Open the User settings menu in the top right corner and choose Preview features.
+
+![User settings menu - Preview features](../../../../../images/howto-install-net-core-on-windows-server/user-settings-menu-preview-features.png)
+
+Enable the Multi-stage pipelines preview feature.
+
+![User settings menu - Preview features](../../../../../images/howto-install-net-core-on-windows-server/multi-stage-pipelines-preview-feature.png)
+
 ### Create an Environment
 
 Before creating the pipeline we need an [Environment](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments?view=azure-devops). This will enable us to add several servers to one environment and install .NET Core on multiple machines at once. Example environments are Dev, Test, Acceptance and Production.
