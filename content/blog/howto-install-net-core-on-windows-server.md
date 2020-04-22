@@ -9,11 +9,11 @@ draft: true
 
 At my current client we're transitioning from .NET Framework to .NET Core. We only have a few .NET Core web applications at the moment and the preferred hosting model is to host these in IIS. This means we need to install the .NET Core Runtime & Hosting Bundle on every Windows Sever where a .NET Core web application is deployed. This bundle includes the .NET Core Runtime and IIS support for .NET Core.
 
-Where new versions and patches of .NET Framework are installed through Windows Update, .NET Core does not provide a similar solution. Which means that for every .NET Core update we manually need to download the installer and execute it on every server in every environment. To make this process a little smoother I've created an Azure DevOps extension called [Install .NET Core Runtime & Hosting Bundle](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) that automates this task. You can find the extension in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting).
+Where new versions and patches of the .NET Framework are installed through Windows Update, .NET Core does not provide a similar solution. Which means that for every .NET Core update we manually need to download the installer and execute it on every server in every environment. To make this process a little smoother I've created an Azure DevOps extension called [Install .NET Core Runtime & Hosting Bundle](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) that automates this task. You can find the extension in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting).
 
-In the rest of this post I'll give an example of how you can use this task in an Azure Pipeline to automate the installation of .NET Core on a Windows Server.
+In the rest of this post I'll give an example of how you can use this task in Azure DevOps with a [YAML pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema) to automate the installation of .NET Core on a Windows Server.
 
-> NOTE: in the following example we'll be using a YAML pipeline in combination with an Environment. If you have an older version of Azure DevOps you can create a Deployment Group instead of an Environment. See [Provision deployment groups
+> NOTE: if you have an older version of Azure DevOps, that doesn't support YAML pipelines in combination with Environments, you can create a Deployment Group instead of an Environment. See [Provision deployment groups
 ](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/?view=azure-devops). In that case you can use a Release pipeline instead of a YAML pipeline to execute the 'Install .NET Core Runtime & Hosting' task.
 
 ### Install the 'Install .NET Core Runtime & Hosting Bundle' extension
@@ -30,7 +30,7 @@ You'll need to log in to Azure DevOps if you haven't already. Select the correct
 
 ### Enable Multi-stage pipelines preview feature
 
-In this example we'll be using a [YAML pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema). You'll need to enable the Multi-stage pipelines preview feature for this to work.
+To use a YAML Pipeline that can deploy to an Environment, you'll need to enable the Multi-stage pipelines preview feature.
 
 Open the User settings menu in the top right corner and choose Preview features.
 
@@ -58,7 +58,7 @@ Go the the machine on which you want to install .NET Core and add the machine to
 
 ### The YAML Pipeline
 
-To create the pipeline you can follow the steps below or have a look at [create your first pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/get-started-yaml?view=azure-devops) for a detailed description.
+Now that we have an environment, we can create the YAML pipeline using the following steps _(see [create your first pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/get-started-yaml?view=azure-devops) for a more detailed description)_:
 
 - In the left menu of Azure DevOps choose Pipelines > Pipelines.
 - Click the 'New pipeline' button.
