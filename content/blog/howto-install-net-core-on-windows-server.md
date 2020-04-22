@@ -13,6 +13,9 @@ Where new versions and patches of .NET Framework are installed through Windows U
 
 In the rest of this post I'll give an example of how you can use this task in an Azure Pipeline to automate the installation of .NET Core on a Windows Server.
 
+> NOTE: in the following example we'll be using a YAML pipeline in combination with an Environment. If you have an older version of Azure DevOps you can create a Deployment Group instead of an Environment. See [Provision deployment groups
+](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/?view=azure-devops). In that case you can use a Release pipeline instead of a YAML pipeline to execute the 'Install .NET Core Runtime & Hosting' task.
+
 ### Install the 'Install .NET Core Runtime & Hosting Bundle' extension
 
 Step 1 is to install the extension in your Azure DevOps organization. For this, go to the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) and click on the 'Get it free' button. 
@@ -87,11 +90,8 @@ stages:
               iisReset: true
 ```
 
-The pipeline above will install the .NET Core 3.1 Runtime and Hosting bundle on every machine in the environment 'net-core-test' that has the tag 'net-core'. 
+The pipeline above will install the .NET Core 3.1 Runtime and Hosting bundle on every machine in the environment 'net-core-test' that has the tag 'net-core'. After installation it will perform an IIS reset. _(See the description in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) for more details about the inputs that you can provide to the task.)_
 
-Choose 'Save and run' to save the pipeline in your repository and execute the pipeline.
+Choose 'Save and run' to save the pipeline in your repository and execute the pipeline. After executing the pipeline the result should look something like this were the .NET Core Runtime and Hosting bundle has been installed on the machines 'win-2016-01' and 'win-10'.
 
-See the description in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) for more details about the inputs that you can provide to the task.
-
-> NOTE: if you have an older version of Azure DevOps you can create a deployment group instead of an Environment. See [Provision deployment groups
-](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/?view=azure-devops). In that case you can use a release pipeline instead of a yaml pipeline to execute the 'Install .NET Core Runtime & Hosting' task.
+![Pipeline Summary](../../../../../images/howto-install-net-core-on-windows-server/pipeline-summary.png)
