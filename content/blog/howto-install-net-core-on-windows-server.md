@@ -45,11 +45,51 @@ So go to Pipelines > Environments and choose New environment. Enter a Name and D
 
 ![New Environment](../../../../../images/howto-install-net-core-on-windows-server/new-environment.png)
 
-Choose Next. You'll get a screen where can configure the Virtual machine resource. Copy the Registration script command to the clipboard.
+Choose Next.
+
+You'll get a screen where can configure the Virtual machine resource. Copy the Registration script command to the clipboard.
 
 ![New Environment - Configure Virtual machine resource](../../../../../images/howto-install-net-core-on-windows-server/new-environment-virtual-machine-rescource.png)
 
 Go the the machine on which you want to install .NET Core and add the machine to the environment using the registration script you've just copied. See [Environment - virtual machine resource](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments-virtual-machines?view=azure-devops) for more information.
 
+### The YAML Pipeline
+
+To create the pipeline you can follow the steps below or have a look at [create your first pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/get-started-yaml?view=azure-devops) for a detailed description.
+
+- In the left menu choose Pipelines > Pipelines.
+- Click the 'New pipeline' button.
+- Select the source where you want to store your YAML Pipeline. E.g. 'GitHub'.
+- Select the repository that will contain your YAML Pipeline.
+- Select the pipeline template you want to start from. In our case the 'Starter pipeline' will do.
+- An editor is opened where you can configure your pipeline using YAML. Replace all content with the following.
+
+```yaml
+trigger: none
+
+stages:
+- stage: 'InstallNetCore'
+  jobs:
+  - deployment: 'InstallNetCore'
+    environment:
+      name: 'net-core-test'
+      resourceType: 'VirtualMachine'
+      tags: 'net-core'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: InstallNetCoreRuntimeAndHosting@0
+            inputs:
+              version: '3.1'
+              useProxy: false
+              norestart: false
+              iisReset: true
+```
+
+The pipeline above will install .NET Core 3.1 Runtime and Hosting bundle on every machine in the environment 'net-core-test' that has the tag 'net-core'. Choose Save and run to save the pipeline in your repository and execute the pipeline.
+
+See the description in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) for more details about the inputs that you can provide to the task.
+
 > NOTE: if you have an older version of Azure DevOps you can create a deployment group instead of an Environment. See [Provision deployment groups
-](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/?view=azure-devops). In that case you can use a release pipeline instead of a yaml pipeline to execute the 'Install .NET Core Runtime & Hosting Bundle' task.
+](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/?view=azure-devops). In that case you can use a release pipeline instead of a yaml pipeline to execute the 'Install .NET Core Runtime & Hosting' task.
