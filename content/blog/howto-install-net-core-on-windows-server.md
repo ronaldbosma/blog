@@ -57,7 +57,7 @@ Go the the machine on which you want to install .NET Core and add the machine to
 
 To create the pipeline you can follow the steps below or have a look at [create your first pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/get-started-yaml?view=azure-devops) for a detailed description.
 
-- In the left menu choose Pipelines > Pipelines.
+- In the left menu of Azure DevOps choose Pipelines > Pipelines.
 - Click the 'New pipeline' button.
 - Select the source where you want to store your YAML Pipeline. E.g. 'GitHub'.
 - Select the repository that will contain your YAML Pipeline.
@@ -87,7 +87,9 @@ stages:
               iisReset: true
 ```
 
-The pipeline above will install .NET Core 3.1 Runtime and Hosting bundle on every machine in the environment 'net-core-test' that has the tag 'net-core'. Choose Save and run to save the pipeline in your repository and execute the pipeline.
+The pipeline above will install the .NET Core 3.1 Runtime and Hosting bundle on every machine in the environment 'net-core-test' that has the tag 'net-core'. 
+
+Choose 'Save and run' to save the pipeline in your repository and execute the pipeline.
 
 See the description in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) for more details about the inputs that you can provide to the task.
 
