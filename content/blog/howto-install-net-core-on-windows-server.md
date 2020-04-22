@@ -25,16 +25,19 @@ You'll need to log in to Azure DevOps if you haven't already. Select the correct
 
 > NOTE: Depending on your permissions, an administrator might have to approve the intallation before you can proceed.
 
-### Create a deployment group
+### Create an Environment
 
-Before creating the release pipeline we need a deployment group. This will enable us to add several servers to a group and install .NET Core on multiple machines at once. At my current client we have a deployment group for every environment (Dev, Test, Acceptance and Production).
+Before creating the pipeline we need an [Environment](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments?view=azure-devops). This will enable us to add several servers to one environment and install .NET Core on multiple machines at once. Example environments are Dev, Test, Acceptance and Production.
 
-So go to Pipelines > Deployment groups and choose New. Enter a name and choose Create. After creation you'll get a PowerShell script that you'll need to execute on the machines you want to add to the deployment group. When executing the script, follow the instructions and give the machine a tag like 'net-core'.
+So go to Pipelines > Environments and choose New environment. Enter a Name and Description and select Virtual machines as the resource.
 
-The end result might look something like this:
-![Install in organization](../../../../../images/howto-install-net-core-on-windows-server/deployment-group.png)
+![New Environment](../../../../../images/howto-install-net-core-on-windows-server/new-environment.png)
 
-For more information on Deployment Groups and adding servers to a group see [Provision deployment groups](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups) and [Provision agents for deployment groups](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/howto-provision-deployment-group-agents).
+Choose Next. You'll get a screen where can configure the Virtual machine resource. Copy the Registration script command to the clipboard.
 
-### Setting up the release pipeline
+![New Environment - Configure Virtual machine resource](../../../../../images/howto-install-net-core-on-windows-server/new-environment-virtual-machine-rescource.png)
 
+Go the the machine on which you want to install .NET Core and add the machine to the environment using the registration script you've just copied. See [Environment - virtual machine resource](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments-virtual-machines?view=azure-devops) for more information.
+
+> NOTE: if you have an older version of Azure DevOps you can create a deployment group instead of an Environment. See [Provision deployment groups
+](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/?view=azure-devops). In that case you can use a release pipeline instead of a yaml pipeline to execute the 'Install .NET Core Runtime & Hosting Bundle' task.
