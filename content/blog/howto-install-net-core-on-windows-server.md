@@ -41,7 +41,7 @@ Enable the 'Multi-stage pipelines' preview feature.
 
 ### Create an Environment
 
-We need an [Environment](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments?view=azure-devops) before we can create the YAML pipeline. This will enable us to add several servers to an environment and install the .NET Core Runtime & Hosting Bundle on multiple machines at once. Example environments are Dev, Test, Acceptance and Production.
+We need an [Environment](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments?view=azure-devops) before we can create the YAML pipeline. This will enable us to add several servers to an environment and install the .NET Core Runtime & Hosting Bundle on multiple machines at once.
 
 So, go to Pipelines > Environments and choose 'New environment'. Enter a Name and Description and select 'Virtual machines' as the resource.
 
