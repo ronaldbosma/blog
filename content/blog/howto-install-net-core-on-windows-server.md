@@ -54,7 +54,7 @@ So, go to Pipelines > Environments and choose 'New environment'. Enter a Name an
 
 Choose Next.
 
-You'll get a screen where can configure the Virtual machine resource. Copy the Registration script command to the clipboard.
+You'll get a screen where you can configure the Virtual machine resource. Copy the Registration script command to the clipboard.
 
 <!-- ![New Environment - Configure Virtual machine resource](../../../../../images/howto-install-net-core-on-windows-server/new-environment-virtual-machine-rescource.png) -->
 ![New Environment - Configure Virtual machine resource](../../static/images/howto-install-net-core-on-windows-server/new-environment-virtual-machine-rescource.png)
@@ -70,7 +70,7 @@ Now that we have an environment, we can create the YAML pipeline using the follo
 - Select the source where you want to store your YAML pipeline.
 - Select the repository where you want to store your YAML pipeline.
 - Select the pipeline template you want to start from. In our case the 'Starter pipeline' will do.
-- An editor is opened where you can configure your pipeline using YAML. Replace all content with the following.
+- An editor is opened where you can configure your pipeline using YAML. Replace all content with the following:
 
 ```yaml
 trigger: none
@@ -95,9 +95,9 @@ stages:
               iisReset: true
 ```
 
-The pipeline above will install the .NET Core 3.1 Runtime & Hosting Bundle on every machine in the environment 'net-core-test' that has the tag 'net-core'. After installation it will perform an IIS reset. _(See the description in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) for more details about the inputs that you can provide to the task.)_
+The pipeline above will install the .NET Core 3.1 Runtime & Hosting Bundle on every machine with the tag 'net-core' in the environment 'net-core-test'. See the description in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) for more details about the inputs that you can provide to the task.
 
-Choose 'Save and run' to save the pipeline in your repository and execute the pipeline. After executing the pipeline, the result should look something like the image below were the .NET Core Runtime & Hosting Bundle has been installed on 'win-2016-01' and 'win-10'.
+Choose 'Save and run' to save the pipeline in your repository and execute the pipeline. After executing the pipeline, the result should look like the image below were the .NET Core Runtime & Hosting Bundle has been installed on the servers 'win-2016-01' and 'win-10'.
 
 <!-- ![Pipeline Summary](../../../../../images/howto-install-net-core-on-windows-server/pipeline-summary.png) -->
 ![Pipeline Summary](../../static/images/howto-install-net-core-on-windows-server/pipeline-summary.png)
