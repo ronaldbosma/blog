@@ -29,13 +29,13 @@ You'll need to log into Azure DevOps if you haven't already. Select the correct 
 
 ### Enable Multi-stage pipelines preview feature
 
-To use a YAML Pipeline that can deploy to an Environment, you'll need to enable the Multi-stage pipelines preview feature.
+To use a YAML Pipeline that can deploy to an Environment, you'll need to enable the 'Multi-stage pipelines' preview feature.
 
-Open the User settings menu in the top right corner and choose Preview features.
+Open the 'User settings' menu in the top right corner and choose 'Preview features'.
 
 ![User settings menu - Preview features](../../../../../images/howto-install-net-core-on-windows-server/user-settings-menu-preview-features.png)
 
-Enable the Multi-stage pipelines preview feature.
+Enable the 'Multi-stage pipelines' preview feature.
 
 ![User settings menu - Preview features](../../../../../images/howto-install-net-core-on-windows-server/multi-stage-pipelines-preview-feature.png)
 
