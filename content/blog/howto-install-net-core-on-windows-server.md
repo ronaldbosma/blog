@@ -21,11 +21,11 @@ Step 1 is to install the extension in your Azure DevOps organization. For this, 
 
 ![Visual Studio Marketplace](../../../../../images/howto-install-net-core-on-windows-server/visual-studio-marketplace.png)
 
-You'll need to log in to Azure DevOps if you haven't already. Select the correct organization and click Install. After installation you can proceed to your Azure DevOps organization.
+You'll need to log into Azure DevOps if you haven't already. Select the correct organization and click Install. After installation you can proceed to your Azure DevOps organization.
 
 ![Install in organization](../../../../../images/howto-install-net-core-on-windows-server/install-in-azure-devops-organization.png)
 
-> NOTE: Depending on your permissions, an administrator might have to approve the intallation before you can proceed.
+> NOTE: depending on your permissions, an administrator might have to approve the intallation before you can proceed.
 
 ### Enable Multi-stage pipelines preview feature
 
