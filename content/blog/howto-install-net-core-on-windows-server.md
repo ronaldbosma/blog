@@ -13,7 +13,7 @@ Where new versions and patches of the .NET Framework are installed through Windo
 
 In the rest of this post I'll give an example of how you can use this task in Azure DevOps with a [YAML pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema) to automate the installation of the .NET Core Runtime & Hosting Bundle on a Windows Server.
 
-> NOTE: if you have an older version of Azure DevOps, that doesn't support YAML pipelines in combination with Environments, you can create a [Deployment Group](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/?view=azure-devops) instead of an Environment. In that case you can use a [Release pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/?view=azure-devops) instead of a YAML pipeline to execute the 'Install .NET Core Runtime & Hosting' task.
+> NOTE: if you have an older version of Azure DevOps, that doesn't support YAML pipelines in combination with Environments, you can create a [Deployment Group](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/?view=azure-devops) instead of an [Environment](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments?view=azure-devops). In that case you can use a [Release pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/?view=azure-devops) instead of a YAML pipeline to execute the 'Install .NET Core Runtime & Hosting' task.
 
 ### Install the 'Install .NET Core Runtime & Hosting Bundle' extension
 
@@ -41,9 +41,9 @@ Enable the 'Multi-stage pipelines' preview feature.
 
 ### Create an Environment
 
-Before creating the pipeline we need an [Environment](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments?view=azure-devops). This will enable us to add several servers to one environment and install .NET Core on multiple machines at once. Example environments are Dev, Test, Acceptance and Production.
+Before creating the pipeline we need an [Environment](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments?view=azure-devops). This will enable us to add several servers to an environment and install the .NET Core Runtime & Hosting Bundle on multiple machines at once. Example environments are Dev, Test, Acceptance and Production.
 
-So go to Pipelines > Environments and choose New environment. Enter a Name and Description and select Virtual machines as the resource.
+So go to Pipelines > Environments and choose 'New environment'. Enter a Name and Description and select 'Virtual machines' as the resource.
 
 ![New Environment](../../../../../images/howto-install-net-core-on-windows-server/new-environment.png)
 
@@ -53,7 +53,7 @@ You'll get a screen where can configure the Virtual machine resource. Copy the R
 
 ![New Environment - Configure Virtual machine resource](../../../../../images/howto-install-net-core-on-windows-server/new-environment-virtual-machine-rescource.png)
 
-Go the the machine on which you want to install .NET Core and add the machine to the environment using the registration script you've just copied. See [Environment - virtual machine resource](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments-virtual-machines?view=azure-devops) for more information.
+Go to the machine on which you want to install the .NET Core Runtime & Hosting Bundle and add the machine to the environment using the registration script you've just copied. See [Environment - virtual machine resource](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments-virtual-machines?view=azure-devops) for more information.
 
 ### The YAML Pipeline
 
