@@ -91,6 +91,6 @@ stages:
 
 The pipeline above will install the .NET Core 3.1 Runtime & Hosting Bundle on every machine in the environment 'net-core-test' that has the tag 'net-core'. After installation it will perform an IIS reset. _(See the description in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) for more details about the inputs that you can provide to the task.)_
 
-Choose 'Save and run' to save the pipeline in your repository and execute the pipeline. After executing the pipeline the result should look something like this were the .NET Core Runtime & Hosting Bundle has been installed on the machines 'win-2016-01' and 'win-10'.
+Choose 'Save and run' to save the pipeline in your repository and execute the pipeline. After executing the pipeline the result should look something like this were the .NET Core Runtime & Hosting Bundle has been installed on 'win-2016-01' and 'win-10'.
 
 ![Pipeline Summary](../../../../../images/howto-install-net-core-on-windows-server/pipeline-summary.png)
