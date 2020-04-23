@@ -29,7 +29,7 @@ You'll need to log into Azure DevOps if you haven't already. Select the correct 
 
 ### Enable Multi-stage pipelines preview feature
 
-To use a YAML Pipeline that can deploy to an Environment, you'll need to enable the 'Multi-stage pipelines' preview feature.
+To use a YAML pipeline that can deploy to an Environment, you'll need to enable the 'Multi-stage pipelines' preview feature.
 
 Open the 'User settings' menu in the top right corner and choose 'Preview features'.
 
@@ -41,7 +41,7 @@ Enable the 'Multi-stage pipelines' preview feature.
 
 ### Create an Environment
 
-Before creating the pipeline we need an [Environment](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments?view=azure-devops). This will enable us to add several servers to an environment and install the .NET Core Runtime & Hosting Bundle on multiple machines at once. Example environments are Dev, Test, Acceptance and Production.
+We need an [Environment](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments?view=azure-devops) before we can create the YAML pipeline. This will enable us to add several servers to an environment and install the .NET Core Runtime & Hosting Bundle on multiple machines at once. Example environments are Dev, Test, Acceptance and Production.
 
 So go to Pipelines > Environments and choose 'New environment'. Enter a Name and Description and select 'Virtual machines' as the resource.
 
@@ -55,14 +55,14 @@ You'll get a screen where can configure the Virtual machine resource. Copy the R
 
 Go to the machine on which you want to install the .NET Core Runtime & Hosting Bundle and add the machine to the environment using the registration script you've just copied. See [Environment - virtual machine resource](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments-virtual-machines?view=azure-devops) for more information.
 
-### The YAML Pipeline
+### The YAML pipeline
 
 Now that we have an environment, we can create the YAML pipeline using the following steps _(see [create your first pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/get-started-yaml?view=azure-devops) for a more detailed description)_:
 
 - In the left menu of Azure DevOps choose Pipelines > Pipelines.
 - Click the 'New pipeline' button.
-- Select the source where you want to store your YAML Pipeline. E.g. 'GitHub'.
-- Select the repository that will contain your YAML Pipeline.
+- Select the source where you want to store your YAML pipeline. E.g. 'GitHub'.
+- Select the repository that will contain your YAML pipeline.
 - Select the pipeline template you want to start from. In our case the 'Starter pipeline' will do.
 - An editor is opened where you can configure your pipeline using YAML. Replace all content with the following.
 
