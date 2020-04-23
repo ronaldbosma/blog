@@ -61,8 +61,8 @@ Now that we have an environment, we can create the YAML pipeline using the follo
 
 - In the left menu of Azure DevOps choose Pipelines > Pipelines.
 - Click the 'New pipeline' button.
-- Select the source where you want to store your YAML pipeline. E.g. 'GitHub'.
-- Select the repository that will contain your YAML pipeline.
+- Select the source where you want to store your YAML pipeline.
+- Select the repository where you want to store your YAML pipeline.
 - Select the pipeline template you want to start from. In our case the 'Starter pipeline' will do.
 - An editor is opened where you can configure your pipeline using YAML. Replace all content with the following.
 
@@ -91,6 +91,6 @@ stages:
 
 The pipeline above will install the .NET Core 3.1 Runtime & Hosting Bundle on every machine in the environment 'net-core-test' that has the tag 'net-core'. After installation it will perform an IIS reset. _(See the description in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) for more details about the inputs that you can provide to the task.)_
 
-Choose 'Save and run' to save the pipeline in your repository and execute the pipeline. After executing the pipeline, the result should look something like this were the .NET Core Runtime & Hosting Bundle has been installed on 'win-2016-01' and 'win-10'.
+Choose 'Save and run' to save the pipeline in your repository and execute the pipeline. After executing the pipeline, the result should look something like the image below were the .NET Core Runtime & Hosting Bundle has been installed on 'win-2016-01' and 'win-10'.
 
 ![Pipeline Summary](../../../../../images/howto-install-net-core-on-windows-server/pipeline-summary.png)
