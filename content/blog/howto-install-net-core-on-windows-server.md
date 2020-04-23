@@ -25,7 +25,7 @@ You'll need to log into Azure DevOps if you haven't already. Select the correct 
 
 ![Install in organization](../../../../../images/howto-install-net-core-on-windows-server/install-in-azure-devops-organization.png)
 
-> NOTE: depending on your permissions, an administrator might have to approve the intallation before you can proceed.
+> NOTE: depending on your permissions, an administrator might have to approve the installation before you can proceed.
 
 ### Enable Multi-stage pipelines preview feature
 
@@ -43,7 +43,7 @@ Enable the 'Multi-stage pipelines' preview feature.
 
 We need an [Environment](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments?view=azure-devops) before we can create the YAML pipeline. This will enable us to add several servers to an environment and install the .NET Core Runtime & Hosting Bundle on multiple machines at once. Example environments are Dev, Test, Acceptance and Production.
 
-So go to Pipelines > Environments and choose 'New environment'. Enter a Name and Description and select 'Virtual machines' as the resource.
+So, go to Pipelines > Environments and choose 'New environment'. Enter a Name and Description and select 'Virtual machines' as the resource.
 
 ![New Environment](../../../../../images/howto-install-net-core-on-windows-server/new-environment.png)
 
@@ -91,6 +91,6 @@ stages:
 
 The pipeline above will install the .NET Core 3.1 Runtime & Hosting Bundle on every machine in the environment 'net-core-test' that has the tag 'net-core'. After installation it will perform an IIS reset. _(See the description in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) for more details about the inputs that you can provide to the task.)_
 
-Choose 'Save and run' to save the pipeline in your repository and execute the pipeline. After executing the pipeline the result should look something like this were the .NET Core Runtime & Hosting Bundle has been installed on 'win-2016-01' and 'win-10'.
+Choose 'Save and run' to save the pipeline in your repository and execute the pipeline. After executing the pipeline, the result should look something like this were the .NET Core Runtime & Hosting Bundle has been installed on 'win-2016-01' and 'win-10'.
 
 ![Pipeline Summary](../../../../../images/howto-install-net-core-on-windows-server/pipeline-summary.png)
