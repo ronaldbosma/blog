@@ -47,7 +47,7 @@ So, go to Pipelines > Environments and choose 'New environment'. Enter a Name an
 
 ![New Environment](../../../../../images/howto-install-net-core-on-windows-server/new-environment.png)
 
-You'll get a screen where you can configure the virtual machine resource. Copy the registration script command to the clipboard.
+You'll get a screen where you can configure the virtual machine resource. Copy the registration script command to the clipboard using the copy button.
 
 ![New Environment - Configure Virtual machine resource](../../../../../images/howto-install-net-core-on-windows-server/new-environment-virtual-machine-rescource.png)
 
