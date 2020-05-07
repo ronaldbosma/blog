@@ -57,7 +57,7 @@ Go to the machine on which you want to install the .NET Core Runtime & Hosting B
 
 Now that we have an environment, we can create the YAML pipeline using the following steps _(see [create your first pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/get-started-yaml?view=azure-devops) for a more detailed description)_:
 
-- In the left menu of Azure DevOps choose Pipelines > Pipelines.
+- In the menu of Azure DevOps choose Pipelines > Pipelines.
 - Click the 'New pipeline' button.
 - Select the source where you want to store your YAML pipeline.
 - Select the repository where you want to store your YAML pipeline.
@@ -89,6 +89,8 @@ stages:
 
 The pipeline above will install the .NET Core 3.1 Runtime & Hosting Bundle on every machine with the tag 'net-core' in the environment 'net-core-test'. (See the description in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) for more details about the inputs that you can provide to the task.)
 
-Choose 'Save and run' to save the pipeline in your repository and execute the pipeline. After executing the pipeline, the result should look like the image below were the .NET Core Runtime & Hosting Bundle has been installed on the servers 'win-2016-01' and 'win-10'.
+Choose 'Save and run' to save the pipeline in your repository and execute the pipeline. After the pipeline has finished, the result should look like the image below were the .NET Core Runtime & Hosting Bundle has been installed on the servers 'win-2016-01' and 'win-10'.
 
 ![Pipeline Summary](../../../../../images/howto-install-net-core-on-windows-server/pipeline-summary.png)
+
+That's everything you need to do to update the .NET Core Runtime & Hosting Bundle on a Windows server using Azure DevOps.
