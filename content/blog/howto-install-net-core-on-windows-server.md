@@ -19,15 +19,13 @@ In the rest of this post I'll give an example of how you can use this task in Az
 
 Step 1 is to install the extension in your Azure DevOps organization. For this, go to the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) and click on the 'Get it free' button.
 
-<!-- ![Visual Studio Marketplace](../../../../../images/howto-install-net-core-on-windows-server/visual-studio-marketplace.png) -->
-![Visual Studio Marketplace](../../static/images/howto-install-net-core-on-windows-server/visual-studio-marketplace.png)
+![Visual Studio Marketplace](../../../../../images/howto-install-net-core-on-windows-server/visual-studio-marketplace.png)
 
 You'll need to log into Azure DevOps if you haven't already. Next, select the correct organization and click Install. After installation, proceed to your Azure DevOps organization.
 
 > NOTE: depending on your permissions, an administrator might have to approve the installation before you can proceed.
 
-<!-- ![Install in organization](../../../../../images/howto-install-net-core-on-windows-server/install-in-azure-devops-organization.png) -->
-![Install in organization](../../static/images/howto-install-net-core-on-windows-server/install-in-azure-devops-organization.png)
+![Install in organization](../../../../../images/howto-install-net-core-on-windows-server/install-in-azure-devops-organization.png)
 
 ### Enable Multi-stage pipelines preview feature
 
@@ -35,13 +33,11 @@ To use a YAML pipeline that can deploy to an environment, you'll need to enable 
 
 Open the 'User settings' menu in the top right corner and choose 'Preview features'.
 
-<!-- ![User settings menu - Preview features](../../../../../images/howto-install-net-core-on-windows-server/user-settings-menu-preview-features.png) -->
-![User settings menu - Preview features](../../static/images/howto-install-net-core-on-windows-server/user-settings-menu-preview-features.png)
+![User settings menu - Preview features](../../../../../images/howto-install-net-core-on-windows-server/user-settings-menu-preview-features.png)
 
 Enable the 'Multi-stage pipelines' preview feature.
 
-<!-- ![User settings menu - Preview features](../../../../../images/howto-install-net-core-on-windows-server/multi-stage-pipelines-preview-feature.png) -->
-![User settings menu - Preview features](../../static/images/howto-install-net-core-on-windows-server/multi-stage-pipelines-preview-feature.png)
+![User settings menu - Preview features](../../../../../images/howto-install-net-core-on-windows-server/multi-stage-pipelines-preview-feature.png)
 
 ### Create an Environment
 
@@ -49,13 +45,11 @@ We need an [environment](https://docs.microsoft.com/en-us/azure/devops/pipelines
 
 So, go to Pipelines > Environments and choose 'New environment'. Enter a Name and Description, select 'Virtual machines' as the resource and choose Next.
 
-<!-- ![New Environment](../../../../../images/howto-install-net-core-on-windows-server/new-environment.png) -->
-![New Environment](../../static/images/howto-install-net-core-on-windows-server/new-environment.png)
+![New Environment](../../../../../images/howto-install-net-core-on-windows-server/new-environment.png)
 
 You'll get a screen where you can configure the virtual machine resource. Copy the registration script command to the clipboard.
 
-<!-- ![New Environment - Configure Virtual machine resource](../../../../../images/howto-install-net-core-on-windows-server/new-environment-virtual-machine-rescource.png) -->
-![New Environment - Configure Virtual machine resource](../../static/images/howto-install-net-core-on-windows-server/new-environment-virtual-machine-rescource.png)
+![New Environment - Configure Virtual machine resource](../../../../../images/howto-install-net-core-on-windows-server/new-environment-virtual-machine-rescource.png)
 
 Go to the machine on which you want to install the .NET Core Runtime & Hosting Bundle, for example using Remote Desktop. Add the machine to the environment using the registration script you've just copied. See [Environment - virtual machine resource](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments-virtual-machines?view=azure-devops) for more information.
 
@@ -97,5 +91,4 @@ The pipeline above will install the .NET Core 3.1 Runtime & Hosting Bundle on ev
 
 Choose 'Save and run' to save the pipeline in your repository and execute the pipeline. After executing the pipeline, the result should look like the image below were the .NET Core Runtime & Hosting Bundle has been installed on the servers 'win-2016-01' and 'win-10'.
 
-<!-- ![Pipeline Summary](../../../../../images/howto-install-net-core-on-windows-server/pipeline-summary.png) -->
-![Pipeline Summary](../../static/images/howto-install-net-core-on-windows-server/pipeline-summary.png)
+![Pipeline Summary](../../../../../images/howto-install-net-core-on-windows-server/pipeline-summary.png)
