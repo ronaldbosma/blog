@@ -6,7 +6,7 @@ lastmod: 2020-05-07T00:00:00+02:00
 image: "images/howto-install-net-core-on-windows-server/howto-install-net-core-on-windows-server.jpg"
 tags: [ "Azure Pipelines", "Azure DevOps", ".NET Core", "IIS", "Windows server" ]
 summary: "In this post I show how I install and update the .NET Core Runtime & Hosting Bundle on Windows servers using Azure Pipelines. Making patching .NET Core a trivial matter."
-draft: true
+draft: false
 ---
 
 At my current client we're transitioning from .NET Framework to .NET Core. We only have a few .NET Core web applications at the moment and the preferred hosting model is to host these in IIS. This means we need to install the .NET Core Runtime & Hosting Bundle on every Windows server where a .NET Core web application is deployed. This bundle includes the .NET Core Runtime and IIS support for .NET Core.
