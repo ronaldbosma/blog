@@ -117,5 +117,18 @@ Given the following people
 When 'Peter Griffin' moves to '742 Evergreen Terrace, Springfield, US'
 Then the new address of 'Peter Griffin' is '742 Evergreen Terrace, Springfield, US'
 ```
+
 > Note that the functional id that you've chosen does not have to be a field that is unique within your system or database. Multiple people might have the same name in our system. However, as long as the name is unique within our scenario's, there is no problem.
 
+This scenario looks a lot more readable to me and is aligned more with our business. The only problem is that our code expects a technical id. So we need to convert our functional id in the glue code to the technical id expected by our software.
+
+C# already has a method that can convert a `string` into a _unique enough_ `integer`, which is `GetHashCode`. So everywhere that we receive the name of a person and need the id, we simply call `GetHashCode` and use the result is the persons id. See the following example for the `When` step of our scenario.
+
+```csharp
+[When(@"'(.*)' moves to '(.*)'")]
+public void WhenMovesTo(string name, string newAddress)
+{
+    int personId = name.GetHashCode();
+    _movingService.MovePerson(personId, newAddress);
+}
+```
