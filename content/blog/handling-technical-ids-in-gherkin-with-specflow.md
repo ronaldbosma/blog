@@ -86,3 +86,36 @@ class InitialScenarioSteps
 }
 ```
 
+## Refactoring our scenario
+
+If we look at the scenario again you can see an technical integer is used as an id to identify a person.
+
+```Gherkin
+Given the following people
+    | Id | Address                           |
+    | 1  | 221B Baker Street, London, UK     |
+    | 2  | 1630 Revello Drive, Sunnydale, US |
+    | 3  | 31 Spooner Street, Quahog, US     |
+    | 4  | 12 Grimmauld Place, London, UK    |
+When person 3 moves to '742 Evergreen Terrace, Springfield, US'
+Then the new address of person 3 is '742 Evergreen Terrace, Springfield, US'
+```
+
+For our test automation code the id is super helpful because we can just pass it into to the `MovingService.MovePerson` method. For business people, requirements engineers, etc., who might be less technical, this scenario is probably more difficult to read. Especially if the technical id is something like a `GUID` intead of an number.
+
+It's better to look for a functional id to identify our person in this example. Preferably one that is commonly used by the business. Usually one or a combination of properties of an object can be use to uniquely identify that object. 
+
+The name of a person is ideal for our specific scenario because it's often used in real life to identify a person. So we replace the technical id with the name of the person in our scenario.
+
+```Gherkin
+Given the following people
+    | Name            | Address                           |
+    | Sherlock Holmes | 221B Baker Street, London, UK     |
+    | Buffy Summers   | 1630 Revello Drive, Sunnydale, US |
+    | Peter Griffin   | 31 Spooner Street, Quahog, US     |
+    | Sirius Black    | 12 Grimmauld Place, London, UK    |
+When 'Peter Griffin' moves to '742 Evergreen Terrace, Springfield, US'
+Then the new address of 'Peter Griffin' is '742 Evergreen Terrace, Springfield, US'
+```
+> Note that the functional id that you've chosen does not have to be a field that is unique within your system or database. Multiple people might have the same name in our system. However, as long as the name is unique within our scenario's, there is no problem.
+
