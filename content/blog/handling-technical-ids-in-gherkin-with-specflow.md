@@ -151,4 +151,4 @@ public void WhenMovesTo(string name, string newAddress)
 
 With this little trick we have scenario's that are easy to read for all parties involved and we can still automate our scenario's too.
 
-You can find a working code example [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/HandlingTechnicalIdsInGherkinWithSpecFlow).
+You can find a working code example [here](https://github.com/ronaldbosma/blog-code-examples/tree/posts/handling-technical-ids-in-gherkin-with-specflow/HandlingTechnicalIdsInGherkinWithSpecFlow)<!--[here](https://github.com/ronaldbosma/blog-code-examples/tree/master/HandlingTechnicalIdsInGherkinWithSpecFlow)-->.
