@@ -3,7 +3,7 @@ title: "Handling technical id's in Gherkin with SpecFlow"
 date: 2020-06-27T00:00:00+02:00
 image: "images/handling-technical-ids-in-gherkin-with-specflow.jpg"
 tags: [ "Gherkin", "SpecFlow", "Specification by Example", "ATDD", "BDD", "Test Automation", "Cleaner Code" ]
-summary: "In this post I'll show a simple trick on how to handle technical id's in Gherkin using SpecFlow."
+summary: "Gherkin scenario's in Specification by Example are used to describe the functional requirements of your software. They should be readable for the team and also for the business people that use the software. Technical id's don't have a place here. So what to do when your code requires a technical id?"
 draft: true
 ---
 
