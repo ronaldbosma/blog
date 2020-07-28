@@ -3,13 +3,13 @@ title: "Handling technical id's in Gherkin with SpecFlow"
 date: 2020-06-27T00:00:00+02:00
 image: "images/handling-technical-ids-in-gherkin-with-specflow.jpg"
 tags: [ "Gherkin", "SpecFlow", "Specification by Example", "ATDD", "BDD", "Test Automation", "Cleaner Code" ]
-summary: "Gherkin scenarios in Specification by Example are used to describe the functional requirements of your software. They should be readable for the team and also for the business that uses the software. Technical id's don't have a place here. So what to do when your code requires a technical id?"
+summary: "Gherkin scenarios in Specification by Example are used to describe the functional requirements of your software. They should be readable for the team and also for the business that uses the software. Technical id's don't have a place here. They're usually included in scenarios for test automation purposes but make the them harder to read. So what to do when your code requires a technical id?"
 draft: true
 ---
 
 When you use Specification by Example with the Gherkin syntax and automate your scenarios with SpecFlow, you're bound to encounter situations where you'll need a technical id. For example to stub data that's retrieved from a repository or external service.
 
-Gherkin scenarios are used to describe the functional requirements of your software. They should be readable for the team and also for the business that uses the software. Technical id's don't have a place in these scenarios. They're usually included in scenarios for test automation purposes but make the scenarios harder to read. So what to do when your code requires a technical id?
+Gherkin scenarios are used to describe the functional requirements of your software. They should be readable for the team and also for the business that uses the software. Technical id's don't have a place here. They're usually included in scenarios for test automation purposes but make them harder to read. So what to do when your code requires a technical id?
 
 Let start with an example scenario:
 
