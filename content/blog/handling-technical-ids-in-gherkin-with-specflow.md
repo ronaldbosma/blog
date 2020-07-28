@@ -3,13 +3,13 @@ title: "Handling technical id's in Gherkin with SpecFlow"
 date: 2020-06-27T00:00:00+02:00
 image: "images/handling-technical-ids-in-gherkin-with-specflow.jpg"
 tags: [ "Gherkin", "SpecFlow", "Specification by Example", "ATDD", "BDD", "Test Automation", "Cleaner Code" ]
-summary: "Gherkin scenarios in Specification by Example are used to describe the functional requirements of your software. They should be readable for the team and also for the business people that use the software. Technical id's don't have a place here. So what to do when your code requires a technical id?"
+summary: "Gherkin scenarios in Specification by Example are used to describe the functional requirements of your software. They should be readable for the team and also for the business that uses the software. Technical id's don't have a place here. So what to do when your code requires a technical id?"
 draft: true
 ---
 
 When you use Specification by Example with the Gherkin syntax and automate your scenarios with SpecFlow, you're bound to encounter situations where you'll need a technical id. For example to stub data that's retrieved from a repository or external service.
 
-Gherkin scenarios are used to describe the functional requirements of your software. They should be readable for the team and also for the business people that use the software. Technical id's don't have a place in these scenarios. So what to do when your code requires a technical id?
+Gherkin scenarios are used to describe the functional requirements of your software. They should be readable for the team and also for the business that uses the software. Technical id's don't have a place in these scenarios. They're usually included in scenarios for test automation purposes but make the scenarios harder to read. So what to do when your code requires a technical id?
 
 Let start with an example scenario:
 
@@ -24,7 +24,7 @@ When person '0545383F-28E7-4968-9525-11829915ED89' moves to '742 Evergreen Terra
 Then the new address of person '0545383F-28E7-4968-9525-11829915ED89' is '742 Evergreen Terrace, Springfield, US'
 ```
 
-This scenario describes functionality for moving a person from one address to another.
+This scenario describes functionality for moving a person from one address to another. The technical id is used to identify the specific person that is moving.
 
 The `MovingService` class that implements the functionality has a simple `MovePerson` method that retrieves a person by its id from a repository and sets the new address.
 
@@ -101,7 +101,9 @@ When person '0545383F-28E7-4968-9525-11829915ED89' moves to '742 Evergreen Terra
 Then the new address of person '0545383F-28E7-4968-9525-11829915ED89' is '742 Evergreen Terrace, Springfield, US'
 ```
 
-For our test automation code the id is super helpful because we can just pass it into to the `MovingService.MovePerson` method. For business people, requirements engineers, and others who might be less technical, this scenario is probably more difficult to read.
+For our test automation code the id is super helpful because we can just pass it into to the `MovingService.MovePerson` method. For the business, requirements engineers, and others who might be less technical, this scenario is probably more difficult to read.
+
+Also, the user interface that would implement this feature would most likely not show this id to the user at all. Making it even harder for users to understand what to expect.
 
 It's better to look for a functional id to identify our person in this example. Preferably one that is commonly used by the business. Usually one property or a combination of properties of an object can be use to uniquely identify that object. 
 
