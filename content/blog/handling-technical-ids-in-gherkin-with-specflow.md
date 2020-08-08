@@ -107,7 +107,7 @@ Also, the user interface that would implement this feature would most likely not
 
 It's better to look for a functional id to identify our person in this example. Preferably one that is commonly used by the business. Usually one property or a combination of properties of an object can be used to uniquely identify that object. 
 
-The name of a person is ideal for our specific scenario because it's often used in real life to identify a person. So, we replace the technical id with the name of the person in our scenario.
+The name of a person is ideal for our specific scenario because it's often used in real life to identify a person. We can replace the technical id with the name of the person in our scenario.
 
 ```Gherkin
 Given the following people
@@ -122,7 +122,7 @@ Then the new address of 'Peter Griffin' is '742 Evergreen Terrace, Springfield, 
 
 > Note that the functional id that you've chosen does not have to be a field that is unique within your system or database. Multiple people might have the same name in our system. However, as long as the name is unique within our scenarios, there is no problem.
 
-This scenario looks a lot more readable to me and is more aligned with our business in terms of language. The only problem is that our code expects a technical id. So, we need to convert our functional id in the glue code to the technical id expected by our software.
+This scenario looks a lot more readable to me and is more aligned with our business in terms of language. The only problem is that our code expects a technical id. We need to convert our functional id in the glue code to the technical id expected by our software.
 
 I've created a simple helper method to convert a person's name to an id. It takes a `string` as parameter and returns a `Guid`. See the code snippet below.
 
