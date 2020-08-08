@@ -2,3 +2,4 @@ jumbotron.jpg                                                                   
 cleaning-up-your-test-data-creation.jpg                                     Photo by Hal Gatewood on Unsplash   https://images.unsplash.com/photo-1513610159045-34cb398dc033?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1354&q=80
 using-multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages.jpg    Photo by Leone Venter on Unsplash   https://images.unsplash.com/photo-1512418490979-92798cec1380?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1950&q=80
 howto-install-net-core-on-windows-server.jpg								Photo by Luis Villasmil on Unsplash https://unsplash.com/photos/jPpHpgWNCKs
+handling-technical-ids-in-gherkin-with-specflow.jpg							Photo by AbsolutVision on Unsplash	https://images.unsplash.com/photo-1512314889357-e157c22f938d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1351&q=80
