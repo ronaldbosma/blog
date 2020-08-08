@@ -11,7 +11,7 @@ When you use Specification by Example with the Gherkin syntax and automate your 
 
 Gherkin scenarios are used to describe the functional requirements of your software. They should be readable for the team and also for the business that uses the software. Technical ids don't have a place here. They're usually included in scenarios for test automation purposes but make them harder to read. So, what to do when your code requires a technical id?
 
-Let start with an example scenario:
+Let's start with an example scenario:
 
 ```Gherkin
 Given the following people
@@ -103,7 +103,7 @@ Then the new address of person '0545383F-28E7-4968-9525-11829915ED89' is '742 Ev
 
 For our test automation code, the id is super helpful because we can just pass it into to the `MovingService.MovePerson` method. For the business, requirements engineers, and others who might be less technical, this scenario is probably more difficult to read.
 
-Also, the user interface that would implement this feature would most likely not show this id to the user at all. Making it even harder for users to understand what to expect.
+Also, the user interface that would implement this feature would most likely not show the technical id to the user at all. Making it even harder for users to understand what to expect.
 
 It's better to look for a functional id to identify our person in this example. Preferably one that is commonly used by the business. Usually one property or a combination of properties of an object can be used to uniquely identify that object. 
 
@@ -120,25 +120,25 @@ When 'Peter Griffin' moves to '742 Evergreen Terrace, Springfield, US'
 Then the new address of 'Peter Griffin' is '742 Evergreen Terrace, Springfield, US'
 ```
 
-> Note that the functional id that you've chosen does not have to be a field that is unique within your system or database. Multiple people might have the same name in our system. However, as long as the name is unique within our scenarios, there is no problem.
+> Note that the functional id that you've chosen does not have to be a property that is unique within your system or database. Multiple people might have the same name in your system. However, as long as the name is unique within our scenarios, there is no problem.
 
 This scenario looks a lot more readable to me and is more aligned with our business in terms of language. The only problem is that our code expects a technical id. We need to convert our functional id in the glue code to the technical id expected by our software.
 
-I've created a simple helper method to convert a person's name to an id. It takes a `string` as parameter and returns a `Guid`. See the code snippet below.
+I've created a helper method to convert a person's name to an id. It takes a `string` as parameter and returns a `Guid`. See the code snippet below.
 
 ```Gherkin
 private static Guid NameToId(string name)
 {
     // Convert the name to an integer value and make sure it's always a positive number
     int personId = Math.Abs(name.GetHashCode());
-    // Convert the integer personId to a string of 32 numbers so we can create a valid Guid
+    // Convert the integer personId to a string of 32 digits so we can create a valid Guid
     string personIdGuid = personId.ToString().PadLeft(32, '0');
     
     return Guid.ParseExact(personIdGuid, "N");
 }
 ```
 
-> Since a `Guid` must be 32 characters long and is limited to numbers and the letters 'A' through 'F', I'm converting the name to a number first with `GetHashCode`. This will result in a number with a maximum length of 10. The number is then padded with zeros to create a 32-character long string of numbers that can be converted to a valid `Guid`.
+> Since a `Guid` must be 32 characters long and is limited to numbers and the letters 'A' through 'F', I'm converting the name to a number first with `GetHashCode`. This will result in a number with a maximum length of 10. The number is then padded with zeros to create a 32-character long string of digits that can be converted to a valid `Guid`.
 
 If we need the id of a person, but only have the name, we simply call `NameToId` and use the result as the person's id. See the following example for the `When` step of our scenario.
 
