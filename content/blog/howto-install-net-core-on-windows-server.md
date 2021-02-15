@@ -2,7 +2,7 @@
 title: "How to install .NET Core on a Windows server"
 date: 2020-05-07T00:00:00+02:00
 publishdate: 2020-05-07T00:00:00+02:00
-lastmod: 2020-05-07T00:00:00+02:00
+lastmod: 2021-02-15T00:00:00+02:00
 image: "images/howto-install-net-core-on-windows-server/howto-install-net-core-on-windows-server.jpg"
 tags: [ "Azure Pipelines", "Azure DevOps", ".NET Core", "IIS", "Windows server" ]
 summary: "In this post I show how I install and update the .NET Core Runtime & Hosting Bundle on Windows servers using Azure Pipelines. Making patching .NET Core a trivial matter."
@@ -13,7 +13,9 @@ At my current client we're transitioning from .NET Framework to .NET Core. We on
 
 Where new versions and patches of the .NET Framework are installed through Windows Update, .NET Core does not provide a similar solution. Which means that for every .NET Core update we manually need to download the installer and execute it on every server in every environment. To make this process simpler and faster I've created an Azure DevOps extension called [Install .NET Core Runtime & Hosting Bundle](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting) that automates this task. You can find the extension in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=rbosma.InstallNetCoreRuntimeAndHosting).
 
-In the rest of this post I'll give an example of how you can use this task in Azure DevOps with a [YAML pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema) to automate the installation of the .NET Core Runtime & Hosting Bundle on a Windows server.
+**UPDATE:** starting in December 2020 .NET Core has been added to Microsoft Update. Before you proceed and use my custom extension, have a look at [.NET Core coming to Microsoft Update](https://devblogs.microsoft.com/dotnet/net-core-updates-coming-to-microsoft-update/).
+
+In the rest of this post I'll give an example of how you can use the custom task in Azure DevOps with a [YAML pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema) to automate the installation of the .NET Core Runtime & Hosting Bundle on a Windows server.
 
 > NOTE: if you have an older version of Azure DevOps that doesn't support YAML pipelines in combination with environments, you can create a [deployment group](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/?view=azure-devops) instead of an [environment](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/environments?view=azure-devops). In that case you can use a [release pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/?view=azure-devops) instead of a YAML pipeline to execute the 'Install .NET Core Runtime & Hosting' task.
 
