@@ -127,7 +127,7 @@ This scenario looks a lot more readable to me and is more aligned with our busin
 
 I've created a helper method to convert a person's name to an id. It takes a `string` as parameter and returns a `Guid`. See the code snippet below.
 
-```Gherkin
+```csharp
 private static Guid NameToId(string name)
 {
     // Convert the name to an integer value and make sure it's always a positive number
