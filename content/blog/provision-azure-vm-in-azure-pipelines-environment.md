@@ -130,6 +130,10 @@ The name of the virtual machine will be `ProvisionedVM`. The max length of the n
 
 The admin password is a required parameter. Notice I haven't provided a name for the admin user. If you don't provide the username the admin username will match the name of the user running the Azure CLI command. Which in this case will be `vsts`.
 
+The result is an Azure resource group with virtual machine and all the resources it needs.
+![Azure Virtual Machine](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/azure-vm.png)
+<!-- ![Azure Virtual Machine](../../static/images/provision-azure-vm-in-azure-pipelines-environment/azure-vm.png) -->
+
 #### Register the virtual machine in the environment
 
 The last step is to register the newly created virtual machine in our Azure Pipelines environment. You might think _"Don't we need to create the Azure Pipelines environment first?"_. The answer is no. If you use a deployment job in a YAML pipeline and bind it to a non-existing environment Azure DevOps will create the environment for you.
@@ -181,7 +185,10 @@ az vm extension set `
   --settings $customScriptSettings;
 ```
 
-With these steps the first stage is done and the pipeline can provision a virtual machine in Azure and register it in an Azure Pipelines environment.
+With these steps the first stage is done and the pipeline can provision a virtual machine in Azure and register it in an Azure Pipelines environment as shown below.
+
+![Environment with Virtual Machine](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/environment-with-vm.png)
+<!-- ![Environment with Virtual Machine](../../static/images/provision-azure-vm-in-azure-pipelines-environment/environment-with-vm.png) -->
 
 If you have a pipeline with only this stage and you run it, the registration will fail because the environment will not be automatically created by Azure DevOps. So you'll need to created it manually or add a stage with a deployment job. Which is we'll do next.
 
