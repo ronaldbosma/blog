@@ -20,6 +20,14 @@ As you can see, a lot of manual steps were involved. So I automated this. I've c
 
 In the rest of this post I'll explain how [this pipeline](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/provision-vm-in-environment-azure-pipeline.yml) works.
 
+- [Prerequisites](#prerequisites)
+  - [Create Personal Access Token](#create-personal-access-token)
+  - [Create Azure Resource Manager service connection](#create-azure-resource-manager-service-connection)
+- [Pipeline variables](#pipeline-variables)
+- [Provision Azure virtual machine in environment](#provision-azure-virtual-machine-in-environment)
+  - [Provision the Azure virtual machine](#provision-the-azure-virtual-machine)
+  - [Register the virtual machine in the environment](#register-the-virtual-machine-in-the-environment)
+
 ### Prerequisites
 
 To make the pipeline work you'll need to create a Personal Access Token and an Azure Resource Manager service connection to connect to your Azure subscription.
