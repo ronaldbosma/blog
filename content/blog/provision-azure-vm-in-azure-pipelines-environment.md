@@ -20,12 +20,12 @@ As you can see, a lot of manual steps were involved. So I automated this. I've c
 
 ### Prerequisites
 
-To make the pipeline work you'll need to create a Personal Access Token and a service connection to connect to your Azure subscription.
+To make the pipeline work you'll need to create a Personal Access Token and an Azure Resource Manager service connection to connect to your Azure subscription.
 
 #### Create Personal Access Token
 
-To create a Personal Access Token:
-1. Log in to you Azure DevOps organization.
+Follow these steps to create a Personal Access Token (see [create a PAT](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page#create-a-pat) for more info):
+1. Log in to you Azure DevOps organization and open your team project.
 1. Open the user settings menu in the top right corner en choose 'Personal access tokens'.
 1. Choose New Token.
 1. Click the show all scopes link.
@@ -36,3 +36,18 @@ To create a Personal Access Token:
 1. Copy the token so you can use it later on.
 
 To 'Environment (Read & manage)' scope is required to register the virtual machine in the environment. The 'Tokens (read & manage)' scope is required to delete the environment at the end of the pipeline, which doesn't really seemed logical to me. But we're using the `az devops invoke` Azure CLI command which fails without this scope.
+
+### Create Azure Resource Manager service connection
+
+We're going to use the `AzureCLI` task in our pipeline which requires an Azure Resource Manager service connection. Follow these steps to create the service connection (see [Connect to Microsoft Azure](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/connect-to-azure?view=azure-devops) for more info):
+
+1. Log in to you Azure DevOps organization and open your team project.
+1. Open the Project setting in the left bottom corner.
+1. Under Service connections choose New service connection.
+1. Select Azure Resource Manager as the type.
+1. Choose Service principal (automatic) as the authentication method.
+1. In my case it automatically found my subscription connected to my Azure DevOps account.
+1. Leave the resource group empty (we're going to create a new one).
+1. Give it a name like MyAzureServiceConnection and choose Save.
+  ![Create Azure service connection](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png)
+  <!-- ![User settings menu](../../static/images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png) -->
