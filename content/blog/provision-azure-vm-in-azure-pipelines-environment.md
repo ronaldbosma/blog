@@ -20,6 +20,8 @@ As you can see, a lot of manual steps were involved. So I automated this. I've c
 
 In the rest of this post I'll explain how [this pipeline](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/provision-vm-in-environment-azure-pipeline.yml) works.
 
+### Table of contents
+
 - [Prerequisites](#prerequisites)
   - [Create Personal Access Token](#create-personal-access-token)
   - [Create Azure Resource Manager service connection](#create-azure-resource-manager-service-connection)
@@ -30,6 +32,7 @@ In the rest of this post I'll explain how [this pipeline](https://github.com/ron
 - [Run task on provisioned virtual machine](#run-task-on-provisioned-virtual-machine)
 - [Cleanup](#cleanup)
   - [Delete the Azure Pipelines environment](#delete-the-azure-pipelines-environment)
+  - [Delete the Azure virtual machine](#delete-the-azure-virtual-machine)
 
 ### Prerequisites
 
@@ -260,3 +263,14 @@ az devops logout
 ```
 
 The script first logins in to Azure DevOps with the token created during the prerequisites step. It then queries the id of the environment and deletes it. Lastly we log out of Azure DevOps.
+
+### Delete the Azure virtual machine
+
+After deleting the Azure Pipelines environment we can delete the Azure virtual machine. Because we've create a new resource group that only contains the Azure virtual machine, we can simply delete the entire resource group with the following code.
+
+```powershell
+az group delete --name $(environmentName) --no-wait --yes
+```
+
+The `--no-wait` flag causes our pipeline to proceed without waiting for the resource group to be deleted. The `--yes` flag makes sure we're not prompted for a confirmation.
+
