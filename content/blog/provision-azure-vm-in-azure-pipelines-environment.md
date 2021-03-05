@@ -69,7 +69,7 @@ I tried adding the `Build.BuildNumber` variable as the postfix for the environme
 
 > If you want to know which variables are available are available during pipeline initialization. Go to the [Use predefined variables](https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml) page. Every variable with a Yes in the 'Available in templates?' column can be used this way.
 
-### Provision Azure virtual machine
+### Provision Azure virtual machine in environment
 
 The first stage in the pipeline will provision the Azure virtual machine and register the VM in the environment. The start of this stage looks as follows:
 
@@ -112,3 +112,56 @@ The name of the virtual machine will be `ProvisionedVM`. The max length of the n
 The admin password is a required parameter. For demo purposes I've hardcoded the password in the pipeline but you should ofcourse use something like a secret variable.
 
 Notice I haven't provided a name for the admin user. If you don't provide the user name the admin username will match the name of the user running the Azure CLI command. Which in this case will be `vsts`.
+
+#### Register the virtual machine in the environment
+
+The last step is to register the newly created virtual machine in our Azure Pipelines environment. You might think _"Don't we need to create the Azure Pipelines environment first?"_. The answer is no. If you use a deployment job in a YAML pipeline and bind it to a non-existing environment Azure DevOps will create the environment for you.
+
+To manually register a virtual machine in an environment, you would go to the environment in Azure DevOps, choose to add a new Virtual Machine resource, copy a PowerShell script (see image below) and execute the script on the virtual machine.
+
+![Add VM resource to environment](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/add-vm-resource-to-environment.png)
+<!-- ![Add VM resource to environment](../../static/images/provision-azure-vm-in-azure-pipelines-environment/add-vm-resource-to-environment.png) -->
+
+To automate these steps we need that PowerShell script. So I copied it from the Azure DevOps portal and saved it on GitHub in a file called [register-server-in-environment.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1). To be able to call it from our pipeline I've maded the following changes:
+
+- Add parameters to the script to specify the Azure DevOps organization, team project, environment, personal access token and optional tags to use.
+- Download the latest .zip file with the agent to install.  
+  The copied PowerShell script downloads a .zip file with the agent from a url with a hardcoded version. I've added some code to always download the latest version.
+- Add the `--unattendend` flag when calling the `.\config.cmd` script.
+- Add the agent number to the agent name, so you can install multiple agents on 1 virtual machine if you want.
+- Raise an exception if registration of the agent in the environment fails.
+
+To run this script on the Azure virtual machine we can use a custom script extension as described on [Custom Script Extension for Windows](https://docs.microsoft.com/nl-nl/azure/virtual-machines/extensions/custom-script-windows).
+
+> If you want to add an Azure virtual machine to a deployment group instead of an environment you use the existing Azure Pipelines Agent extension instead of using a custom PowerShell script. Have a look at [Provision deployment group agents](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/howto-provision-deployment-group-agents?view=azure-devops) for more information.
+
+We can use the `az vm extension set` CLI command to execute the script on the virtual machine. The script either already needs to be on the server or accessible on the internet for download. The Azure CLI command takes a settings json that should look like this:
+
+```json
+{
+    "fileUris": [
+        "https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1"
+    ],
+    "commandToExecute": "powershell.exe ./register-server-in-environment.ps1 -OrganizationUrl '$(System.CollectionUri)' -TeamProject '$(System.TeamProject)' -Environment '$(environmentName)' -Token '$(token)'"
+}
+```
+
+In the JSON you specify the uris to any files you want to download and the command you want to execute. As you can see we're calling the [register-server-in-environment.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1) passing in the organization, team project, environment and token (tags are optional).
+
+To call the `az vm extension set` CLI command from our pipeline we can add the following code to our inline script.
+
+```powershell
+$customScriptUri = "https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1";
+$customScriptSettings="{`\`"fileUris`\`":[`\`"$customScriptUri`\`"], `\`"commandToExecute`\`":`\`"powershell.exe ./register-server-in-environment.ps1 -OrganizationUrl '$(System.CollectionUri)' -TeamProject '$(System.TeamProject)' -Environment '$(environmentName)' -Token '$(token)'`\`"}";
+
+az vm extension set `
+  --name CustomScriptExtension `
+  --publisher Microsoft.Compute `
+  --vm-name ProvisionedVM `
+  --resource-group $(environmentName) `
+  --settings $customScriptSettings;
+```
+
+With these steps the first stage is done and the pipeline can provision a virtual machine in Azure and register it in an Azure Pipelines environment.
+
+If you have a pipeline with only this stage and you run it, the registration will fail because the environment will not be automatically created by Azure DevOps. So you'll need to created it manually or add a stage with a deployment job. Which is we'll do next.
