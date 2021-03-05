@@ -53,3 +53,19 @@ We're going to use the `AzureCLI` task in our pipeline which requires an Azure R
 1. Give it a name like MyAzureServiceConnection and choose Save.  
   ![Create Azure service connection](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png)
   <!-- ![User settings menu](../../static/images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png) -->
+
+### Dynamic environment name
+
+After setting up the prerequisites we can start with the YAML pipeline. The pipeline starts with the variables section.
+
+I want to give the Azure Pipelines environment a random name so I can run multiple instances of the pipeline in parallel without them interfering with eachother. I introduced the following `environmentName` variable for this purpose.
+
+```yaml
+variables:
+  environmentName: "provision-vm-example-${{ variables['Build.SourceVersion'] }}"        
+```
+
+I tried adding the `Build.BuildNumber` variable as the postfix for the environment name to make it unique but it didn't work. The environment name that you use in deployment jobs needs to be available during pipeline intialization. And runtime variables like `Build.BuildNumber` can't be used here. So I settled for the `Build.SourceVersion` variable which contains the latest Git commit ID.
+
+> If you want to know which variables are available are available during pipeline initialization. Go to the [Use predefined variables](https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml) page. Every variable with a Yes in the 'Available in templates?' column can be used this way.
+
