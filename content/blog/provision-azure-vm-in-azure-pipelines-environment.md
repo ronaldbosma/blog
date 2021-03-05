@@ -12,6 +12,7 @@ draft: true
 In the past I've written the post [How to install .NET Core on a Windows server](https://ronaldbosma.github.io/blog/2020/05/07/how-to-install-.net-core-on-a-windows-server/) where I talked about a custom Azure Pipelines task that I've build. To test this task in an actual pipeline I used an Azure virtual machine that I created manually and kept around for this specific purpose. Everytime I wanted to test something I had to start the machine, test my task, log on to the server and check if .NET Core was installed successfully. If I wanted to test a clean install I had to uninstall .NET Core first. Which meant uninstalling 3 different pieces of software for each supported .NET Core version.
 
 As you can see, a lot of manual steps were involved. So I automated the process in a YAML pipeline with 3 simple stages:
+
 ![Pipeline](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/pipeline.png)
 <!-- ![Pipeline](../../static/images/provision-azure-vm-in-azure-pipelines-environment/pipeline.png) -->
 
