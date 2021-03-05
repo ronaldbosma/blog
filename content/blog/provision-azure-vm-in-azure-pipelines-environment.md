@@ -54,20 +54,24 @@ We're going to use the `AzureCLI` task in our pipeline which requires an Azure R
   ![Create Azure service connection](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png)
   <!-- ![Create Azure service connection](../../static/images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png) -->
 
-### Dynamic environment name
+### Pipeline variables
 
 After setting up the prerequisites we can start with the YAML pipeline. The pipeline starts with the variables section.
 
-I want to give the Azure Pipelines environment a random name so I can run multiple instances of the pipeline in parallel without them interfering with eachother. I introduced the following `environmentName` variable for this purpose.
+I wanted to give the Azure Pipelines environment a random name so I can run multiple instances of the pipeline in parallel without them interfering with eachother. I introduced the `environmentName` variable for this purpose.
 
 ```yaml
 variables:
-  environmentName: "provision-vm-example-${{ variables['Build.SourceVersion'] }}"        
+  environmentName: "provision-vm-example-${{ variables['Build.SourceVersion'] }}"
+  adminPassword: "Password12345!"
+  token: "my-token"
 ```
 
-I tried adding the `Build.BuildNumber` variable as the postfix for the environment name to make it unique but it didn't work. The environment name that you use in deployment jobs needs to be available during pipeline intialization. And runtime variables like `Build.BuildNumber` can't be used here. So I settled for the `Build.SourceVersion` variable which contains the latest Git commit ID.
+I tried adding the `Build.BuildNumber` variable as the postfix for the environment name to make it unique but it didn't work. The environment name that you use in deployment jobs (which we'll use in the second stage) needs to be available during pipeline intialization. And runtime variables like `Build.BuildNumber` can't be used during this time. So I settled for the `Build.SourceVersion` variable which contains the latest Git commit ID.
 
-> If you want to know which variables are available are available during pipeline initialization. Go to the [Use predefined variables](https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml) page. Every variable with a Yes in the 'Available in templates?' column can be used this way.
+> If you want to know which variables are available during pipeline initialization. Go to the [Use predefined variables](https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml) page. Every variable with a Yes in the 'Available in templates?' column can be used this way.
+
+The `adminPassword` is used for the Administrator password of the virtual machine we'll create. The `token` variable should be set with the value of the token you created in the prerequisites. For demo purposes I hardcoded these in the example but you should ofcourse add these as secret variables to your pipeline or use some kind of secrets store.
 
 ### Provision Azure virtual machine in environment
 
@@ -104,14 +108,12 @@ Next we create the virtual machine. With this command a Windows Server 2019 VM w
 az vm create `
   --name ProvisionedVM `
   --image Win2019Datacenter `
-  --admin-password Password12345!`
+  --admin-password "$(adminPassword)"`
   --resource-group $(environmentName);
 ```
 The name of the virtual machine will be `ProvisionedVM`. The max length of the name is 15 characters.
 
-The admin password is a required parameter. For demo purposes I've hardcoded the password in the pipeline but you should ofcourse use something like a secret variable.
-
-Notice I haven't provided a name for the admin user. If you don't provide the user name the admin username will match the name of the user running the Azure CLI command. Which in this case will be `vsts`.
+The admin password is a required parameter. Notice I haven't provided a name for the admin user. If you don't provide the username the admin username will match the name of the user running the Azure CLI command. Which in this case will be `vsts`.
 
 #### Register the virtual machine in the environment
 
@@ -142,17 +144,17 @@ We can use the `az vm extension set` CLI command to execute the script on the vi
     "fileUris": [
         "https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1"
     ],
-    "commandToExecute": "powershell.exe ./register-server-in-environment.ps1 -OrganizationUrl '$(System.CollectionUri)' -TeamProject '$(System.TeamProject)' -Environment '$(environmentName)' -Token 'abcxyz'"
+    "commandToExecute": "powershell.exe ./register-server-in-environment.ps1 -OrganizationUrl '$(System.CollectionUri)' -TeamProject '$(System.TeamProject)' -Environment '$(environmentName)' -Token '$(token)'"
 }
 ```
 
-In the JSON you specify the uris to any files you want to download and the command you want to execute. As you can see we're calling the [register-server-in-environment.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1) passing in the organization, team project, environment and token (tags are optional). Just as with the admin password I used a hardcoded (fake) token. You can use another secret variable for this value.
+In the JSON you specify the uris to any files you want to download and the command you want to execute. As you can see we're calling the [register-server-in-environment.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1) passing in the organization, team project, environment and token (tags are optional).
 
 To call the `az vm extension set` CLI command from our pipeline we can add the following code to our inline script.
 
 ```powershell
 $customScriptUri = "https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1";
-$customScriptSettings="{`\`"fileUris`\`":[`\`"$customScriptUri`\`"], `\`"commandToExecute`\`":`\`"powershell.exe ./register-server-in-environment.ps1 -OrganizationUrl '$(System.CollectionUri)' -TeamProject '$(System.TeamProject)' -Environment '$(environmentName)' -Token 'abcxyz'`\`"}";
+$customScriptSettings="{`\`"fileUris`\`":[`\`"$customScriptUri`\`"], `\`"commandToExecute`\`":`\`"powershell.exe ./register-server-in-environment.ps1 -OrganizationUrl '$(System.CollectionUri)' -TeamProject '$(System.TeamProject)' -Environment '$(environmentName)' -Token '$(token)'`\`"}";
 
 az vm extension set `
   --name CustomScriptExtension `
