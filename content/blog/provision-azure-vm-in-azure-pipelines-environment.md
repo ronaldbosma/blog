@@ -13,8 +13,8 @@ In the past I've written the post [How to install .NET Core on a Windows server]
 
 As you can see, a lot of manual steps were involved. So I automated the process in a YAML pipeline with 3 simple stages:
 
-![Pipeline](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/pipeline.png)
-<!-- ![Pipeline](../../static/images/provision-azure-vm-in-azure-pipelines-environment/pipeline.png) -->
+<!-- ![Pipeline](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/pipeline.png) -->
+![Pipeline](../../static/images/provision-azure-vm-in-azure-pipelines-environment/pipeline.png)
 
 - Provision
   - Creates an Azure Pipelines environment in Azure DevOps.
@@ -55,8 +55,8 @@ Follow these steps to create a Personal Access Token (see [create a PAT](https:/
 1. Choose New Token.
 1. Click the show all scopes link.
 1. Give the token access to the scopes 'Environment (Read & manage)' and 'Tokens (read & manage)'.  
-  ![User settings menu](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/pat-scopes.png)
-  <!-- ![User settings menu](../../static/images/provision-azure-vm-in-azure-pipelines-environment/pat-scopes.png) -->
+  <!-- ![User settings menu](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/pat-scopes.png) -->
+  ![User settings menu](../../static/images/provision-azure-vm-in-azure-pipelines-environment/pat-scopes.png)
 1. Click on Create.
 1. Copy the token so you can use it later on.
 
@@ -74,8 +74,8 @@ We're going to use the Azure CLI task in our pipeline which requires an Azure Re
 1. In my case it automatically found my subscription connected to my Azure DevOps account.
 1. Leave the resource group empty (we're going to create a new one).
 1. Give it a name like MyAzureServiceConnection and choose Save.  
-  ![Create Azure service connection](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png)
-  <!-- ![Create Azure service connection](../../static/images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png) -->
+  <!-- ![Create Azure service connection](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png) -->
+  ![Create Azure service connection](../../static/images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png)
 
 ### Pipeline variables
 
@@ -139,8 +139,8 @@ The name of the virtual machine will be `ProvisionedVM`. The max length of the n
 The admin password is a required parameter. Notice I haven't provided a name for the admin user. If you don't provide the username the admin username will match the name of the user running the Azure CLI command. Which in this case will be `vsts`.
 
 The result is an Azure resource group with virtual machine and all the resources it needs.
-![Azure Virtual Machine](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/azure-vm.png)
-<!-- ![Azure Virtual Machine](../../static/images/provision-azure-vm-in-azure-pipelines-environment/azure-vm.png) -->
+<!-- ![Azure Virtual Machine](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/azure-vm.png) -->
+![Azure Virtual Machine](../../static/images/provision-azure-vm-in-azure-pipelines-environment/azure-vm.png)
 
 #### Register the virtual machine in the environment
 
@@ -148,8 +148,8 @@ The last step is to register the newly created virtual machine in our Azure Pipe
 
 To manually register a virtual machine in an environment, you would go to the environment in Azure DevOps, choose to add a new Virtual Machine resource, copy a PowerShell script (see image below) and execute the script on the virtual machine.
 
-![Add VM resource to environment](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/add-vm-resource-to-environment.png)
-<!-- ![Add VM resource to environment](../../static/images/provision-azure-vm-in-azure-pipelines-environment/add-vm-resource-to-environment.png) -->
+<!-- ![Add VM resource to environment](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/add-vm-resource-to-environment.png) -->
+![Add VM resource to environment](../../static/images/provision-azure-vm-in-azure-pipelines-environment/add-vm-resource-to-environment.png)
 
 To automate these steps we need that PowerShell script. So I copied it from the Azure DevOps portal and saved it on GitHub in a file called [register-server-in-environment.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1). To be able to call it from our pipeline I've maded the following changes:
 
@@ -195,8 +195,8 @@ az vm extension set `
 
 With these steps the first stage is done and the pipeline can provision a virtual machine in Azure and register it in an Azure Pipelines environment as shown below.
 
-![Environment with Virtual Machine](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/environment-with-vm.png)
-<!-- ![Environment with Virtual Machine](../../static/images/provision-azure-vm-in-azure-pipelines-environment/environment-with-vm.png) -->
+<!-- ![Environment with Virtual Machine](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/environment-with-vm.png) -->
+![Environment with Virtual Machine](../../static/images/provision-azure-vm-in-azure-pipelines-environment/environment-with-vm.png)
 
 If you have a pipeline with only this stage and you run it, the registration will fail because the environment will not be automatically created by Azure DevOps. So you'll need to created it manually or add a stage with a deployment job. Which is we'll do next.
 
@@ -245,7 +245,7 @@ After the test stage the Azure virtual machine and Azure Pipelines environment a
         scriptType: pscore
         scriptLocation: inlineScript
         inlineScript: |
-        
+
 ```
 
 It's similar to the start of the `Provision` stage. It only has another name and depends on the `Test` stage to succeed before executing.
