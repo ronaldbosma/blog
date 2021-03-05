@@ -137,7 +137,7 @@ To run this script on the Azure virtual machine we can use a custom script exten
 
 > If you want to add an Azure virtual machine to a deployment group instead of an environment you use the existing Azure Pipelines Agent extension instead of using a custom PowerShell script. Have a look at [Provision deployment group agents](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/howto-provision-deployment-group-agents?view=azure-devops) for more information.
 
-We can use the `az vm extension set` CLI command to execute the script on the virtual machine. The script either already needs to be on the server or accessible on the internet for download. The Azure CLI command takes a settings json that should look like this:
+We can use the `az vm extension set` CLI command to execute the custom script extension. The script either already needs to be on the server or accessible on the internet for download. The command takes a settings JSON that should look like this:
 
 ```json
 {
@@ -150,7 +150,9 @@ We can use the `az vm extension set` CLI command to execute the script on the vi
 
 In the JSON you specify the uris to any files you want to download and the command you want to execute. As you can see we're calling the [register-server-in-environment.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1) passing in the organization, team project, environment and token (tags are optional).
 
-To call the `az vm extension set` CLI command from our pipeline we can add the following code to our inline script.
+I advice you to make a copy of the [register-server-in-environment.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1) script and host it on your own GitHub. Use the 'raw' url to the script in the settings JSON or you'll be downloading an HTML page from GitHub. Which won't work, trust me...
+
+To register the Azure virtual machine in our Azure pipelines environment we can add the following code to our inline script.
 
 ```powershell
 $customScriptUri = "https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1";
