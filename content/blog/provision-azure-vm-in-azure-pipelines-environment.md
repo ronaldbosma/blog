@@ -33,6 +33,7 @@ In the rest of this post I'll explain how [this pipeline](https://github.com/ron
 - [Cleanup](#cleanup)
   - [Delete the Azure Pipelines environment](#delete-the-azure-pipelines-environment)
   - [Delete the Azure virtual machine](#delete-the-azure-virtual-machine)
+- [Conclusion](#conclusion)
 
 ### Prerequisites
 
