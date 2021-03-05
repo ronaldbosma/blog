@@ -8,7 +8,7 @@ summary: "To test a custom Azure Pipelines task of mine I created a YAML pipelin
 draft: true
 ---
 
-In the past I've written the post [How to install .NET Core on a Windows server](https://ronaldbosma.github.io/blog/2020/05/07/how-to-install-.net-core-on-a-windows-server/) where I talked about a custom Azure Pipelines task that I've build. To test this task in an actual pipeline I used an Azure virtual machine that I created manually and kept around for this specific purpose. Everytime I wanted to test something I had to start the machine, test my task, log on to the server and check if .NET Core was installed successfully. And if I wanted to test a clean install I had to uninstall .NET Core first.
+In the past I've written the post [How to install .NET Core on a Windows server](https://ronaldbosma.github.io/blog/2020/05/07/how-to-install-.net-core-on-a-windows-server/) where I talked about a custom Azure Pipelines task that I've build. To test this task in an actual pipeline I used an Azure virtual machine that I created manually and kept around for this specific purpose. Everytime I wanted to test something I had to start the machine, test my task, log on to the server and check if .NET Core was installed successfully. If I wanted to test a clean install I had to uninstall .NET Core first. Which meant installing 3 different pieces of software for each supported .NET Core version.
 
 As you can see, a lot of manual steps were involved. So I automated this. I've created [a pipeline](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/provision-vm-in-environment-azure-pipeline.yml) that:
 1. Creates an Azure Pipelines environment in Azure DevOps.
@@ -48,6 +48,6 @@ We're going to use the `AzureCLI` task in our pipeline which requires an Azure R
 1. Choose Service principal (automatic) as the authentication method.
 1. In my case it automatically found my subscription connected to my Azure DevOps account.
 1. Leave the resource group empty (we're going to create a new one).
-1. Give it a name like MyAzureServiceConnection and choose Save.
+1. Give it a name like MyAzureServiceConnection and choose Save.  
   ![Create Azure service connection](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png)
   <!-- ![User settings menu](../../static/images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png) -->
