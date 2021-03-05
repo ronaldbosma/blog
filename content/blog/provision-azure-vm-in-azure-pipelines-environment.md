@@ -245,6 +245,7 @@ After the test stage the Azure virtual machine and Azure Pipelines environment a
         scriptType: pscore
         scriptLocation: inlineScript
         inlineScript: |
+        
 ```
 
 It's similar to the start of the `Provision` stage. It only has another name and depends on the `Test` stage to succeed before executing.
