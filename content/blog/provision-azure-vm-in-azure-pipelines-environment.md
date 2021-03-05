@@ -27,6 +27,7 @@ In the rest of this post I'll explain how [this pipeline](https://github.com/ron
 - [Provision Azure virtual machine in environment](#provision-azure-virtual-machine-in-environment)
   - [Provision the Azure virtual machine](#provision-the-azure-virtual-machine)
   - [Register the virtual machine in the environment](#register-the-virtual-machine-in-the-environment)
+- [Run task on provisioned virtual machine](#run-task-on-provisioned-virtual-machine)
 
 ### Prerequisites
 
@@ -177,3 +178,31 @@ az vm extension set `
 With these steps the first stage is done and the pipeline can provision a virtual machine in Azure and register it in an Azure Pipelines environment.
 
 If you have a pipeline with only this stage and you run it, the registration will fail because the environment will not be automatically created by Azure DevOps. So you'll need to created it manually or add a stage with a deployment job. Which is we'll do next.
+
+### Run task on provisioned virtual machine
+
+In the second stage we're going to use the environment with the newly provisioned Azure virtual machine. It's fairly straightforward if you already have experience with deployment jobs. Here's the YAML snippet:
+
+```yaml
+- stage: Test
+  dependsOn: Provision
+  condition: succeeded()
+  jobs:
+  - deployment: TestCustomTask
+    environment:
+      name: '$(environmentName)'
+      resourceType: VirtualMachine
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: InstallNetCoreRuntimeAndHosting@1
+            inputs:
+              version: '6.0'
+              iisReset: false
+              norestart: true
+```
+
+The stage depends on the `Provision` stage to succeed before executing. It's bound to the environment with the provisioned Azure virtual machine through the `$(environmentName)` variable.
+
+In this example my custom task `InstallNetCoreRuntimeAndHosting` is executed on the virtual machine. It will install the latest .NET Runtime & Hosting bundle for .NET 6.0. Which currently is in preview. You can ofcourse execute whatever tasks or jobs you want.
