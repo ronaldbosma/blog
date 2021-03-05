@@ -3,6 +3,7 @@ title: "Provision an Azure VM in an Azure Pipelines Environment"
 date: 2021-03-05T00:00:00+01:00
 publishdate: 2021-03-05T00:00:00+01:00
 lastmod: 2021-03-05T00:00:00+01:00
+image: "images/provision-azure-vm-in-azure-pipelines-environment/provision-azure-vm-in-azure-pipelines-environment.png"
 tags: [ "Azure", "Azure CLI", "Azure DevOps", "Azure Pipelines", "Continuous Integration", "YAML" ]
 summary: "To test a custom Azure Pipelines task of mine I created a YAML pipeline in Azure DevOps that automatically provisions an Azure virtual machine and registers the VM in an Azure Pipelines environment. In this blog post I'll show you how it works."
 draft: true
