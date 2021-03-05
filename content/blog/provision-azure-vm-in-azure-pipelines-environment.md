@@ -55,7 +55,7 @@ To 'Environment (Read & manage)' scope is required to register the virtual machi
 
 ### Create Azure Resource Manager service connection
 
-We're going to use the `AzureCLI` task in our pipeline which requires an Azure Resource Manager service connection. Follow these steps to create the service connection (see [Connect to Microsoft Azure](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/connect-to-azure?view=azure-devops) for more info):
+We're going to use the Azure CLI task in our pipeline which requires an Azure Resource Manager service connection. Follow these steps to create the service connection (see [Connect to Microsoft Azure](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/connect-to-azure?view=azure-devops) for more info):
 
 1. Log in to you Azure DevOps organization and open your team project.
 1. Open the Project setting in the left bottom corner.
@@ -106,7 +106,7 @@ stages:
         
 ```
 
-We're using the `AzureCLI` task with an inline PowerShell script to create the various resources in Azure through the MyAzureSubscription service connection we created earlier. I've chosen Azure CLI for its simplicity and because it has an extension which allows me to also interact Azure DevOps.
+We're using the [Azure CLI task](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/deploy/azure-cli?view=azure-devops) with an inline PowerShell script to create the various resources in Azure through the MyAzureSubscription service connection we created earlier. I've chosen Azure CLI for its simplicity and because it has an extension which allows me to also interact Azure DevOps.
 
 #### Provision the Azure virtual machine
 
@@ -214,7 +214,7 @@ In this example my custom task `InstallNetCoreRuntimeAndHosting` is executed on 
 
 ### Cleanup
 
-After the test stage the Azure virtual machine and Azure Pipelines environment are no longer needed so we can remove them. We're using the `AzureCLI` task again. Here's the start of the third stage.
+After the test stage the Azure virtual machine and Azure Pipelines environment are no longer needed so we can remove them. We're using the [Azure CLI task](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/deploy/azure-cli?view=azure-devops) again. Here's the start of the third stage.
 
 ```yaml
 - stage: Cleanup
@@ -279,3 +279,15 @@ The `--no-wait` flag causes our pipeline to proceed without waiting for the reso
 And with that our pipeline is done. We can now automatically provision an Azure virtual machine and register it in an Azure Pipelines environment, use the virtual machine in our pipeline and cleanup everything after we're done.
 
 A full example of the pipeline can be found [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/provision-vm-in-environment-azure-pipeline.yml).
+
+#### Related links
+
+- [How to install .NET Core on a Windows server](https://ronaldbosma.github.io/blog/2020/05/07/how-to-install-.net-core-on-a-windows-server/)
+- [Create a PAT](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page#create-a-pat)
+- [Connect to Microsoft Azure](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/connect-to-azure?view=azure-devops)
+- [Use predefined variables](https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml)
+- [AzureCLI task](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/deploy/azure-cli?view=azure-devops)
+- [Custom Script Extension for Windows](https://docs.microsoft.com/nl-nl/azure/virtual-machines/extensions/custom-script-windows)
+- [Provision deployment group agents](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/howto-provision-deployment-group-agents?view=azure-devops)
+- [Azure DevOps extension for Azure CLI](https://docs.microsoft.com/en-us/azure/devops/cli/?view=azure-devops)
+- [az devops cli like a boss](https://www.colinsalmcorner.com/az-devops-like-a-boss/#example-8-creating-and-deleting-yml-environments-using-invoke)
