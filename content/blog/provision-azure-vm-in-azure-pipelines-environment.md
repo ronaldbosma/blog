@@ -28,6 +28,8 @@ In the rest of this post I'll explain how [this pipeline](https://github.com/ron
   - [Provision the Azure virtual machine](#provision-the-azure-virtual-machine)
   - [Register the virtual machine in the environment](#register-the-virtual-machine-in-the-environment)
 - [Run task on provisioned virtual machine](#run-task-on-provisioned-virtual-machine)
+- [Cleanup](#cleanup)
+  - [Delete the Azure Pipelines environment](#delete-the-azure-pipelines-environment)
 
 ### Prerequisites
 
@@ -206,3 +208,55 @@ In the second stage we're going to use the environment with the newly provisione
 The stage depends on the `Provision` stage to succeed before executing. It's bound to the environment with the provisioned Azure virtual machine through the `$(environmentName)` variable.
 
 In this example my custom task `InstallNetCoreRuntimeAndHosting` is executed on the virtual machine. It will install the latest .NET Runtime & Hosting bundle for .NET 6.0. Which currently is in preview. You can ofcourse execute whatever tasks or jobs you want.
+
+### Cleanup
+
+After the test stage the Azure virtual machine and Azure Pipelines environment are no longer needed so we can remove them. We're using the `AzureCLI` task again. Here's the start of the third stage.
+
+```yaml
+- stage: Cleanup
+  dependsOn: Test
+  condition: succeeded()
+  jobs:
+  - job:
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'MyAzureSubscription'
+        scriptType: pscore
+        scriptLocation: inlineScript
+        inlineScript: |
+```
+
+It's similar to the start of the `Provision` stage. It only has another name and depends on the `Test` stage to succeed before executing.
+
+#### Delete the Azure Pipelines environment
+
+The first step in the PowerShell script is to delete the Azure Pipelines environment. There are no Azure Pipeline tasks at the moment to do this. Since we've already been using the `AzureCLI` task we're going to use the [Azure DevOps extension for Azure CLI](https://docs.microsoft.com/en-us/azure/devops/cli/?view=azure-devops). To my suprise it's already pre-installed when using the `AzureCLI` task.
+
+Here's the code to remove an environment from Azure DevOps. Credits go to Colin Dembovsky for his excellent post [az devops cli like a boss](https://www.colinsalmcorner.com/az-devops-like-a-boss/#example-8-creating-and-deleting-yml-environments-using-invoke).
+
+```powershell
+"$(token)" | az devops login --organization "$(System.CollectionUri)"
+
+$environmentId = az devops invoke `
+  --area distributedtask `
+  --resource environments `
+  --route-parameters project="$(System.TeamProject)" `
+  --org "$(System.CollectionUri)" `
+  --api-version "6.0-preview" `
+  --query "value[?name=='$(environmentName)'].id" `
+  --output tsv
+
+az devops invoke `
+  --area distributedtask `
+  --resource environments `
+  --route-parameters project="$(System.TeamProject)" environmentId=$environmentId `
+  --org "$(System.CollectionUri)" `
+  --http-method DELETE `
+  --api-version "6.0-preview"
+
+az devops logout
+```
+
+The script first logins in to Azure DevOps with the token created during the prerequisites step. It then queries the id of the environment and deletes it. Lastly we log out of Azure DevOps.
