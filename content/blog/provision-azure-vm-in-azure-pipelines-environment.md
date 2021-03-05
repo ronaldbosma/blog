@@ -274,3 +274,8 @@ az group delete --name $(environmentName) --no-wait --yes
 
 The `--no-wait` flag causes our pipeline to proceed without waiting for the resource group to be deleted. The `--yes` flag makes sure we're not prompted for a confirmation.
 
+### Conclusion
+
+And with that our pipeline is done. We can now automatically provision an Azure virtual machine and register it in an Azure Pipelines environment, use the virtual machine in our pipeline and cleanup everything after we're done.
+
+A full example of the pipeline can be found [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/provision-vm-in-environment-azure-pipeline.yml).
