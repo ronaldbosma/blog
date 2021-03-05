@@ -52,7 +52,7 @@ We're going to use the `AzureCLI` task in our pipeline which requires an Azure R
 1. Leave the resource group empty (we're going to create a new one).
 1. Give it a name like MyAzureServiceConnection and choose Save.  
   ![Create Azure service connection](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png)
-  <!-- ![User settings menu](../../static/images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png) -->
+  <!-- ![Create Azure service connection](../../static/images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png) -->
 
 ### Dynamic environment name
 
@@ -69,3 +69,46 @@ I tried adding the `Build.BuildNumber` variable as the postfix for the environme
 
 > If you want to know which variables are available are available during pipeline initialization. Go to the [Use predefined variables](https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml) page. Every variable with a Yes in the 'Available in templates?' column can be used this way.
 
+### Provision Azure virtual machine
+
+The first stage in the pipeline will provision the Azure virtual machine and register the VM in the environment. The start of this stage looks as follows:
+
+```yaml
+stages:
+- stage: Provision
+  jobs:
+  - job:
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'MyAzureSubscription'
+        scriptType: pscore
+        scriptLocation: inlineScript
+        inlineScript: |
+        
+```
+
+We're using the `AzureCLI` task with an inline PowerShell script to create the various resources in Azure through the MyAzureSubscription service connection we created earlier. I've chosen Azure CLI for its simplicity and because it has an extension which allows me to also interact Azure DevOps.
+
+#### Provision the Azure virtual machine
+
+The first command of the Azure CLI script is to create a resource group. I'm using the same name as the environment so we can easily match the two.
+
+```powershell
+az group create --name $(environmentName) --location westeurope;
+```
+
+Next we create the virtual machine. With this command a Windows Server 2019 VM will be created in the resource group.
+
+```powershell
+az vm create `
+  --name ProvisionedVM `
+  --image Win2019Datacenter `
+  --admin-password Password12345!`
+  --resource-group $(environmentName);
+```
+The name of the virtual machine will be `ProvisionedVM`. The max length of the name is 15 characters.
+
+The admin password is a required parameter. For demo purposes I've hardcoded the password in the pipeline but you should ofcourse use something like a secret variable.
+
+Notice I haven't provided a name for the admin user. If you don't provide the user name the admin username will match the name of the user running the Azure CLI command. Which in this case will be `vsts`.
