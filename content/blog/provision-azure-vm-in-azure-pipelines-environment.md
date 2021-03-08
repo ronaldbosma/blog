@@ -193,6 +193,8 @@ az vm extension set `
   --settings $customScriptSettings;
 ```
 
+If the registration of the virtual machine fails there are two folders you can look at for logging. In the `C:\azagent\A1\_diag` folder you'll find logging of the actual registration of the server. In the folder `C:\Packages\Plugins\Microsoft.Compute.CustomScriptExtension\1.10.9\Status` you can find logging of the custom script extension. (You might have to change the extension version in the path.)
+
 With these steps the first stage is done and the pipeline can provision a virtual machine in Azure and register it in an Azure Pipelines environment as shown below.
 
 <!-- ![Environment with Virtual Machine](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/environment-with-vm.png) -->
