@@ -50,29 +50,29 @@ To make the pipeline work you'll need to create a Personal Access Token and an A
 #### Create Personal Access Token
 
 Follow these steps to create a Personal Access Token (see [create a PAT](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page#create-a-pat) for more info):
-1. Log in to you Azure DevOps organization and open your team project.
-1. Open the user settings menu in the top right corner en choose 'Personal access tokens'.
+1. Log in to your Azure DevOps organization and open your team project.
+1. Open the user settings menu in the top right corner en choose Personal access tokens.
 1. Choose New Token.
 1. Click the show all scopes link.
 1. Give the token access to the scopes 'Environment (Read & manage)' and 'Tokens (read & manage)'.  
-  <!-- ![User settings menu](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/pat-scopes.png) -->
+  <!--![User settings menu](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/pat-scopes.png)-->
   ![User settings menu](../../static/images/provision-azure-vm-in-azure-pipelines-environment/pat-scopes.png)
 1. Click on Create.
 1. Copy the token so you can use it later on.
 
-To 'Environment (Read & manage)' scope is required to register the virtual machine in the environment. The 'Tokens (read & manage)' scope is required to delete the environment at the end of the pipeline, which doesn't really seemed logical to me. But we're using the `az devops invoke` Azure CLI command which fails without this scope.
+The 'Environment (Read & manage)' scope is required to register the virtual machine in the environment. The 'Tokens (read & manage)' scope is required to delete the environment at the end of the pipeline during cleanup. This doesn't really seemed logical to me. But the `az devops invoke` command we're using fails without this scope.
 
 ### Create Azure Resource Manager service connection
 
 We're going to use the Azure CLI task in our pipeline which requires an Azure Resource Manager service connection. Follow these steps to create the service connection (see [Connect to Microsoft Azure](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/connect-to-azure?view=azure-devops) for more info):
 
-1. Log in to you Azure DevOps organization and open your team project.
-1. Open the Project setting in the left bottom corner.
+1. Log in to your Azure DevOps organization and open your team project.
+1. Open the Project settings in the left bottom corner.
 1. Under Service connections choose New service connection.
 1. Select Azure Resource Manager as the type.
 1. Choose Service principal (automatic) as the authentication method.
 1. In my case it automatically found my subscription connected to my Azure DevOps account.
-1. Leave the resource group empty (we're going to create a new one).
+1. Leave the resource group empty. We're going to create a new one.
 1. Give it a name like MyAzureServiceConnection and choose Save.  
   <!-- ![Create Azure service connection](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png) -->
   ![Create Azure service connection](../../static/images/provision-azure-vm-in-azure-pipelines-environment/create-azure-service-connection.png)
@@ -92,13 +92,13 @@ variables:
 
 I tried adding the `Build.BuildNumber` variable as the postfix for the environment name to make it unique but it didn't work. The environment name that you use in deployment jobs (which we'll use in the second stage) needs to be available during pipeline intialization. And runtime variables like `Build.BuildNumber` can't be used during this time. So I settled for the `Build.SourceVersion` variable which contains the latest Git commit ID.
 
-> If you want to know which variables are available during pipeline initialization. Go to the [Use predefined variables](https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml) page. Every variable with a Yes in the 'Available in templates?' column can be used this way.
+> If you want to know which variables are available during pipeline initialization. Go to the [Use predefined variables](https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml) page. Every variable with a Yes in the 'Available in templates?' column is available during pipeline initialization.
 
-The `adminPassword` is used for the Administrator password of the virtual machine we'll create. The `token` variable should be set with the value of the token you created in the prerequisites. For demo purposes I hardcoded these in the example but you should ofcourse add these as secret variables to your pipeline or use some kind of secrets store.
+The `adminPassword` is used for the Administrator password of the virtual machine we'll create. The `token` variable should be set with the value of the token you created in the prerequisites. For demo purposes I hardcoded these in the example but you should ofcourse add these as secret variables to your pipeline or use a secrets store.
 
 ### Provision Azure virtual machine in environment
 
-The first stage in the pipeline will provision the Azure virtual machine and register the VM in the environment. The start of this stage looks as follows:
+The first stage in the pipeline will provision the Azure virtual machine and register the virtual machine in the environment. The start of this stage looks as follows:
 
 ```yaml
 stages:
@@ -115,11 +115,11 @@ stages:
         
 ```
 
-We're using the [Azure CLI task](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/deploy/azure-cli?view=azure-devops) with an inline PowerShell script to create the various resources in Azure through the MyAzureSubscription service connection we created earlier. I've chosen Azure CLI for its simplicity and because it has an extension which allows me to also interact Azure DevOps.
+We're using the [Azure CLI task](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/deploy/azure-cli?view=azure-devops) with an inline PowerShell script to create the various resources in Azure through the MyAzureSubscription service connection we created earlier. I've chosen Azure CLI over for example ARM templates because of its simplicity and because it has an extension which allows me to also interact Azure DevOps.
 
 #### Provision the Azure virtual machine
 
-The first command of the Azure CLI script is to create a resource group. I'm using the same name as the environment so we can easily match the two.
+The first command of the Azure CLI script is to create a resource group. It's the same name as the environment so we can easily match the two.
 
 ```powershell
 az group create --name $(environmentName) --location westeurope;
@@ -134,7 +134,7 @@ az vm create `
   --admin-password "$(adminPassword)"`
   --resource-group $(environmentName);
 ```
-The name of the virtual machine will be `ProvisionedVM`. The max length of the name is 15 characters.
+The name of the virtual machine will be `ProvisionedVM`. Keep in mind that the max length of the name is 15 characters.
 
 The admin password is a required parameter. Notice I haven't provided a name for the admin user. If you don't provide the username the admin username will match the name of the user running the Azure CLI command. Which in this case will be `vsts`.
 
@@ -151,20 +151,20 @@ To manually register a virtual machine in an environment, you would go to the en
 <!-- ![Add VM resource to environment](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/add-vm-resource-to-environment.png) -->
 ![Add VM resource to environment](../../static/images/provision-azure-vm-in-azure-pipelines-environment/add-vm-resource-to-environment.png)
 
-To automate these steps we need that PowerShell script. So I copied it from the Azure DevOps portal and saved it on GitHub in a file called [register-server-in-environment.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1). To be able to call it from our pipeline I've maded the following changes:
+To automate these steps we need that PowerShell script. So I copied it from the Azure DevOps portal and saved it on GitHub in a file called [register-server-in-environment.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1). To be able to call it from our pipeline I've made the following changes:
 
-- Add parameters to the script to specify the Azure DevOps organization, team project, environment, personal access token and optional tags to use.
+- Add parameters to the script to specify the Azure DevOps organization, team project, environment, personal access token and optional tags.
 - Download the latest .zip file with the agent to install.  
   The copied PowerShell script downloads a .zip file with the agent from a url with a hardcoded version. I've added some code to always download the latest version.
-- Add the `--unattendend` flag when calling the `.\config.cmd` script.
+- Add the `--unattendend` flag when registering the agent.
 - Add the agent number to the agent name, so you can install multiple agents on 1 virtual machine if you want.
 - Raise an exception if registration of the agent in the environment fails.
 
 To run this script on the Azure virtual machine we can use a custom script extension as described on [Custom Script Extension for Windows](https://docs.microsoft.com/nl-nl/azure/virtual-machines/extensions/custom-script-windows).
 
-> If you want to add an Azure virtual machine to a deployment group instead of an environment you use the existing Azure Pipelines Agent extension instead of using a custom PowerShell script. Have a look at [Provision deployment group agents](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/howto-provision-deployment-group-agents?view=azure-devops) for more information.
+> If you want to add an Azure virtual machine to a deployment group instead of an environment you can use the existing Azure Pipelines Agent extension instead of using a custom PowerShell script. Have a look at [Provision deployment group agents](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/howto-provision-deployment-group-agents?view=azure-devops) for more information.
 
-We can use the `az vm extension set` CLI command to execute the custom script extension. The script either already needs to be on the server or accessible on the internet for download. The command takes a settings JSON that should look like this:
+We can use the `az vm extension set` CLI command to execute the custom script extension. The custom script either already needs to be on the server or accessible on the internet for download. The CLI command takes a settings JSON that should look like this:
 
 ```json
 {
@@ -177,9 +177,9 @@ We can use the `az vm extension set` CLI command to execute the custom script ex
 
 In the JSON you specify the uris to any files you want to download and the command you want to execute. As you can see we're calling the [register-server-in-environment.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1) passing in the organization, team project, environment and token (tags are optional).
 
-I advice you to make a copy of the [register-server-in-environment.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1) script and host it on your own GitHub. Use the 'raw' url to the script in the settings JSON or you'll be downloading an HTML page from GitHub. Which won't work, trust me...
+I advice you to make a copy of the [register-server-in-environment.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1) script and host it yourself. If you're hosting it on GitHub, use the 'raw' url to the script in the settings JSON or you'll be downloading an HTML page from GitHub. Which won't work, trust me...
 
-To register the Azure virtual machine in our Azure pipelines environment we can add the following code to our inline script.
+To register the Azure virtual machine in our Azure Pipelines environment we can add the following code to the Azure CLI task's inline script.
 
 ```powershell
 $customScriptUri = "https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1";
@@ -198,7 +198,7 @@ With these steps the first stage is done and the pipeline can provision a virtua
 <!-- ![Environment with Virtual Machine](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/environment-with-vm.png) -->
 ![Environment with Virtual Machine](../../static/images/provision-azure-vm-in-azure-pipelines-environment/environment-with-vm.png)
 
-If you have a pipeline with only this stage and you run it, the registration will fail because the environment will not be automatically created by Azure DevOps. So you'll need to created it manually or add a stage with a deployment job. Which is we'll do next.
+If you have a pipeline with only this stage and you run it, the registration will fail because the environment will not be automatically created by Azure DevOps. So you'll need to created it manually or add a stage with a deployment job to your pipeline. Which is what we'll do next.
 
 ### Run task on provisioned virtual machine
 
@@ -224,13 +224,13 @@ In the second stage we're going to use the environment with the newly provisione
               norestart: true
 ```
 
-The stage depends on the `Provision` stage to succeed before executing. It's bound to the environment with the provisioned Azure virtual machine through the `$(environmentName)` variable.
+This stage depends on the `Provision` stage to succeed before executing. It's bound to the environment with the provisioned Azure virtual machine through the `$(environmentName)` variable.
 
-In this example my custom task `InstallNetCoreRuntimeAndHosting` is executed on the virtual machine. It will install the latest .NET Runtime & Hosting bundle for .NET 6.0. Which currently is in preview. You can ofcourse execute whatever tasks or jobs you want.
+In this example my custom task `InstallNetCoreRuntimeAndHosting` is executed on the virtual machine. It will install the latest .NET Runtime & Hosting bundle for .NET 6.0. You can ofcourse execute whatever tasks or jobs you want.
 
 ### Cleanup
 
-After the test stage the Azure virtual machine and Azure Pipelines environment are no longer needed so we can remove them. We're using the [Azure CLI task](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/deploy/azure-cli?view=azure-devops) again. Here's the start of the third stage.
+After the test stage the Azure virtual machine and Azure Pipelines environment are no longer needed. So we can remove them. We're using the [Azure CLI task](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/deploy/azure-cli?view=azure-devops) again. Here's the start of the third stage.
 
 ```yaml
 - stage: Cleanup
@@ -252,9 +252,9 @@ It's similar to the start of the `Provision` stage. It only has another name and
 
 #### Delete the Azure Pipelines environment
 
-The first step in the PowerShell script is to delete the Azure Pipelines environment. There are no Azure Pipeline tasks at the moment to do this. Since we've already been using the `AzureCLI` task we're going to use the [Azure DevOps extension for Azure CLI](https://docs.microsoft.com/en-us/azure/devops/cli/?view=azure-devops). To my suprise it's already pre-installed when using the `AzureCLI` task.
+The first step in the PowerShell script is to delete the Azure Pipelines environment. There are no Azure Pipeline tasks at the moment to do this. Since we've already been using the `AzureCLI` task we're going to use the [Azure DevOps extension for Azure CLI](https://docs.microsoft.com/en-us/azure/devops/cli/?view=azure-devops). To my suprise it was already pre-installed when using the `AzureCLI` task.
 
-Here's the code to remove an environment from Azure DevOps. Credits go to Colin Dembovsky for his excellent post [az devops cli like a boss](https://www.colinsalmcorner.com/az-devops-like-a-boss/#example-8-creating-and-deleting-yml-environments-using-invoke).
+Here's the code to remove an environment from Azure DevOps. Credits go to Colin Dembovsky for his post [az devops cli like a boss](https://www.colinsalmcorner.com/az-devops-like-a-boss/#example-8-creating-and-deleting-yml-environments-using-invoke).
 
 ```powershell
 "$(token)" | az devops login --organization "$(System.CollectionUri)"
