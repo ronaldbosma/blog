@@ -81,14 +81,14 @@ We're going to use the Azure CLI task in our pipeline which requires an Azure Re
 
 After setting up the prerequisites we can start with the YAML pipeline. The pipeline starts with the variables section.
 
-I wanted to give the Azure Pipelines environment a random name so I can run multiple instances of the pipeline in parallel without them interfering with each other. I introduced the `environmentName` variable for this purpose.
-
 ```yaml
 variables:
   environmentName: "provision-vm-example-${{ variables['Build.SourceVersion'] }}"
   adminPassword: "Password12345!"
   token: "my-token"
 ```
+
+I wanted to give the Azure Pipelines environment a random name so I can run multiple instances of the pipeline in parallel without them interfering with each other. I introduced the `environmentName` variable for this purpose.
 
 I tried adding the `Build.BuildNumber` variable as the postfix for the environment name to make it unique but it didn't work. The environment name that you use in deployment jobs (which we'll use in the second stage) needs to be available during pipeline initialization. And runtime variables like `Build.BuildNumber` can't be used during this time. So, I settled for the `Build.SourceVersion` variable which contains the latest Git commit ID.
 
@@ -125,7 +125,7 @@ The first command of the Azure CLI script is to create a resource group. It's th
 az group create --name $(environmentName) --location westeurope;
 ```
 
-Next, we create the virtual machine. With this command a Windows Server 2019 VM will be created in the resource group.
+Next, we create the virtual machine. With the following command a Windows Server 2019 VM will be created in the resource group.
 
 ```powershell
 az vm create `
@@ -136,7 +136,7 @@ az vm create `
 ```
 The name of the virtual machine will be `ProvisionedVM`. Keep in mind that the max length of the name is 15 characters.
 
-The admin password is a required parameter. Notice I haven't provided a name for the admin user. If you don't provide the username the admin username will match the name of the user running the Azure CLI command. Which in this case will be `vsts`.
+The admin password is a required parameter that we need to provide. Notice I haven't provided a name for the admin user. If you don't provide the username the admin username will match the name of the user running the Azure CLI command. Which in this case will be `vsts`.
 
 The result is an Azure resource group with virtual machine and all the resources it needs.
 <!-- ![Azure Virtual Machine](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/azure-vm.png) -->
@@ -164,7 +164,7 @@ To run this script on the Azure virtual machine we can use a custom script exten
 
 > If you want to add an Azure virtual machine to a deployment group instead of an environment you can use the existing Azure Pipelines Agent extension instead of using a custom PowerShell script. Have a look at [Provision deployment group agents](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deployment-groups/howto-provision-deployment-group-agents?view=azure-devops) for more information.
 
-We can use the `az vm extension set` CLI command to execute the custom script extension. The custom script either already needs to be on the server or accessible on the internet for download. The CLI command takes a settings JSON that should look like this:
+We can use the `az vm extension set` CLI command to execute the custom script extension. The custom script either already needs to be on the virtual machine or accessible on the internet for download. The CLI command takes a settings JSON that should look like this:
 
 ```json
 {
@@ -175,7 +175,7 @@ We can use the `az vm extension set` CLI command to execute the custom script ex
 }
 ```
 
-In the JSON you specify the Uris to any files you want to download and the command you want to execute. As you can see we're calling the [register-server-in-environment.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1) passing in the organization, team project, environment and token (tags are optional).
+In the JSON you specify the Uris to any files you want to download and the command you want to execute. As you can see we're calling the [register-server-in-environment.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1) passing in the organization, team project, environment and token.
 
 I advise you to make a copy of the [register-server-in-environment.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/register-server-in-environment.ps1) script and host it yourself. If you're hosting it on GitHub, use the 'raw' URL to the script in the settings JSON or you'll be downloading an HTML page from GitHub. Which won't work, trust me...
 
@@ -254,7 +254,7 @@ It's similar to the start of the `Provision` stage. It only has another name and
 
 #### Delete the Azure Pipelines environment
 
-The first step in the PowerShell script is to delete the Azure Pipelines environment. There are no Azure Pipeline tasks at the moment to do this. Since we've already been using the `AzureCLI` task we're going to use the [Azure DevOps extension for Azure CLI](https://docs.microsoft.com/en-us/azure/devops/cli/?view=azure-devops). To my surprise it was already pre-installed when using the `AzureCLI` task.
+The first step in the PowerShell script is to delete the Azure Pipelines environment. There are no Azure Pipelines tasks at the moment to do this. Since we've already been using the `AzureCLI` task we're going to use the [Azure DevOps extension for Azure CLI](https://docs.microsoft.com/en-us/azure/devops/cli/?view=azure-devops). To my surprise it was already pre-installed when using the `AzureCLI` task.
 
 Here's the code to remove an environment from Azure DevOps. Credits go to Colin Dembovsky for his post [az devops cli like a boss](https://www.colinsalmcorner.com/az-devops-like-a-boss/#example-8-creating-and-deleting-yml-environments-using-invoke).
 
