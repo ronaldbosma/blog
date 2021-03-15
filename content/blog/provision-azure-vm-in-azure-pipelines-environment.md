@@ -60,7 +60,7 @@ Follow these steps to create a Personal Access Token (see [create a PAT](https:/
 1. Click on Create.
 1. Copy the token so you can use it later on.
 
-The 'Environment (Read & manage)' scope is required to register the virtual machine in the environment. The 'Tokens (read & manage)' scope is required to delete the environment at the end of the pipeline during cleanup. This doesn't really seem logical to me. But the `az devops invoke` command we're using fails without this scope.
+The 'Environment (Read & manage)' scope is required to register the virtual machine in the environment. The 'Tokens (read & manage)' scope is required to delete the environment at the end of the pipeline during cleanup. This doesn't really seem logical to me. But the `az devops invoke` command we're using to delete the environment fails without this scope.
 
 ### Create Azure Resource Manager service connection
 
@@ -115,7 +115,7 @@ stages:
         
 ```
 
-We're using the [Azure CLI task](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/deploy/azure-cli?view=azure-devops) with an inline PowerShell script to create the various resources in Azure through the MyAzureSubscription service connection we created earlier. I've chosen Azure CLI over for example ARM templates because of its simplicity and because it has an extension which allows me to also interact Azure DevOps.
+We're using the [Azure CLI task](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/deploy/azure-cli?view=azure-devops) with an inline PowerShell Core script to create the various resources in Azure through the MyAzureSubscription service connection we created earlier. I've chosen Azure CLI over for example ARM templates because of its simplicity and because it has an extension which allows me to also interact with Azure DevOps.
 
 #### Provision the Azure virtual machine
 
@@ -193,12 +193,12 @@ az vm extension set `
   --settings $customScriptSettings;
 ```
 
-If the registration of the virtual machine fails there are two folders you can look at for logging. In the `C:\azagent\A1\_diag` folder you'll find logging of the actual registration of the server. In the folder `C:\Packages\Plugins\Microsoft.Compute.CustomScriptExtension\1.10.9\Status` you can find logging of the custom script extension. (You might have to change the extension version in the path.)
-
 With these steps the first stage is done and the pipeline can provision a virtual machine in Azure and register it in an Azure Pipelines environment as shown below.
 
 <!-- ![Environment with Virtual Machine](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/environment-with-vm.png) -->
 ![Environment with Virtual Machine](../../static/images/provision-azure-vm-in-azure-pipelines-environment/environment-with-vm.png)
+
+If the registration of the virtual machine fails there are two folders you can look at for logging. In the `C:\azagent\A1\_diag` folder you'll find logging of the actual registration of the server. In the folder `C:\Packages\Plugins\Microsoft.Compute.CustomScriptExtension\1.10.9\Status` you can find logging of the custom script extension. (You might have to change the extension version in the path.)
 
 If you have a pipeline with only this stage and you run it, the registration will fail because the environment will not be automatically created by Azure DevOps. You'll need to created it manually or add a stage with a deployment job to your pipeline. Which is what we'll do next.
 
