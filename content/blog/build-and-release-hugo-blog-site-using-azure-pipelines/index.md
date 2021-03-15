@@ -3,7 +3,6 @@ title: "Build And Release Hugo Site Using Azure Pipelines"
 date: 2019-03-24T00:00:00+01:00
 publishdate: 2019-04-15T00:00:00+01:00
 lastmod: 2019-09-10T00:00:00+01:00
-image: "images/build-and-release-hugo-site-using-azure-pipelines/post.jpg"
 tags: [ "Azure Pipelines", "Azure DevOps", "Hugo", "Continuous Integration", "YAML" ]
 comments: true
 draft: false
