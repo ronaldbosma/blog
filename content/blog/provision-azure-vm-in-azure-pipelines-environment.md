@@ -283,7 +283,7 @@ az devops logout
 
 The script first logins in to Azure DevOps with the token created during the prerequisites step. It then queries the id of the environment and deletes it. Lastly, we log out of Azure DevOps.
 
-### Delete the Azure virtual machine
+#### Delete the Azure virtual machine
 
 After deleting the Azure Pipelines environment, we can delete the Azure virtual machine. Because we've created a new resource group that only contains the Azure virtual machine, we can simply delete the entire resource group with the following code.
 
