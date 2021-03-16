@@ -8,7 +8,7 @@ summary: "In the past I've created a custom Azure Pipelines task to install .NET
 draft: true
 ---
 
-In the past I've written the post [How to install .NET Core on a Windows server](https://ronaldbosma.github.io/blog/2020/05/07/how-to-install-.net-core-on-a-windows-server/) where I talked about a custom Azure Pipelines task that I've build. To test this task in an actual pipeline I used an Azure virtual machine that I created manually and kept around for this specific purpose. Every time I wanted to test something I had to start the machine, test my task, log on to the server and check if .NET Core was installed successfully. If I wanted to test a clean install I had to uninstall .NET Core first. Which meant uninstalling 3 different pieces of software for each supported .NET Core version.
+In the past I've written the post [How to install .NET Core on a Windows server](https://ronaldbosma.github.io/blog/2020/05/07/how-to-install-.net-core-on-a-windows-server/) where I talked about a custom Azure Pipelines task I build. To test this task in an actual pipeline I used an Azure virtual machine that I created manually and kept around for this specific purpose. Every time I wanted to test something I had to start the machine, test my task, log on to the server and check if .NET Core was installed successfully. If I wanted to test a clean install I had to uninstall .NET Core first. Which meant uninstalling 3 different pieces of software for each supported .NET Core version.
 
 As you can see, a lot of manual steps were involved. So, I automated the process in a YAML pipeline with 3 simple stages:
 
@@ -48,10 +48,10 @@ To make the pipeline work you'll need to create a Personal Access Token and an A
 #### Create Personal Access Token
 
 Follow these steps to create a Personal Access Token (see [create a PAT](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page#create-a-pat) for more info):
-1. Log in to your Azure DevOps organization and open your team project.
+1. Log in to your Azure DevOps organization.
 1. Open the user settings menu in the top right corner and choose Personal access tokens.
 1. Choose New Token.
-1. Click the show all scopes link.
+1. Click the Show all scopes link.
 1. Give the token access to the scopes 'Environment (Read & manage)' and 'Tokens (read & manage)'.  
   ![Personal Access Token Scopes](../../../../../images/provision-azure-vm-in-azure-pipelines-environment/pat-scopes.png)
 1. Click on Create.
@@ -139,7 +139,7 @@ The result is an Azure resource group with virtual machine and all the resources
 
 #### Register the virtual machine in the environment
 
-The last step is to register the newly created virtual machine in our Azure Pipelines environment. You might think _"Don't we need to create the Azure Pipelines environment first?"_. The answer is no. If you use a deployment job in a YAML pipeline and bind it to a non-existing environment Azure DevOps will create the environment for you.
+The last step in this stage is to register the newly created virtual machine in our Azure Pipelines environment. You might think _"Don't we need to create the Azure Pipelines environment first?"_. The answer is no. If you use a deployment job in a YAML pipeline and bind it to a non-existing environment Azure DevOps will create the environment for you.
 
 To manually register a virtual machine in an environment, you would go to the environment in Azure DevOps, choose to add a new Virtual Machine resource, copy a PowerShell script (see image below) and execute the script on the virtual machine.
 
@@ -274,7 +274,7 @@ az devops invoke `
 az devops logout
 ```
 
-The script first logins in to Azure DevOps with the token created during the prerequisites step. It then queries the id of the environment and deletes it. Lastly, we log out of Azure DevOps.
+The script first logs in to Azure DevOps with the token created during the prerequisites step. It then queries the id of the environment and deletes it. Lastly, we log out of Azure DevOps.
 
 #### Delete the Azure virtual machine
 
