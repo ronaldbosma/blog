@@ -3,7 +3,7 @@ title: "How to install .NET Core on a Windows server"
 date: 2020-05-07T00:00:00+02:00
 publishdate: 2020-05-07T00:00:00+02:00
 lastmod: 2021-02-15T00:00:00+02:00
-tags: [ "Azure Pipelines", "Azure DevOps", ".NET Core", "IIS", "Windows server" ]
+tags: [ "Azure Pipelines", "Azure DevOps", ".NET Core", "IIS", "Windows server", "YAML" ]
 summary: "In this post I show how I install and update the .NET Core Runtime & Hosting Bundle on Windows servers using Azure Pipelines. Making patching .NET Core a trivial matter."
 draft: false
 ---

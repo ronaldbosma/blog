@@ -3,7 +3,7 @@ title: "Build And Release Hugo Site Using Azure Pipelines"
 date: 2019-03-24T00:00:00+01:00
 publishdate: 2019-04-15T00:00:00+01:00
 lastmod: 2019-09-10T00:00:00+01:00
-tags: [ "Azure Pipelines", "Azure DevOps", "Hugo", "Continuous Integration" ]
+tags: [ "Azure Pipelines", "Azure DevOps", "Hugo", "Continuous Integration", "YAML" ]
 comments: true
 draft: false
 summary: "In this post I'll give a step-by-step explanation on how I build and publish my Hugo blog site to GitHub Pages using Azure Pipelines."
