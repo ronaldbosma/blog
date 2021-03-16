@@ -1,11 +1,10 @@
 ---
 title: "Provision an Azure VM in an Azure Pipelines Environment"
-date: 2021-03-05T00:00:00+01:00
-publishdate: 2021-03-05T00:00:00+01:00
-lastmod: 2021-03-05T00:00:00+01:00
+date: 2021-03-16T00:00:00+01:00
+publishdate: 2021-03-16T00:00:00+01:00
+lastmod: 2021-03-16T00:00:00+01:00
 tags: [ "Azure", "Azure CLI", "Azure DevOps", "Azure Pipelines", "Continuous Integration", "YAML" ]
 summary: "In the past I've created a custom Azure Pipelines task to install .NET Core on a Windows server. To test this task, I had to manually setup an environment with virtual machines. I wanted to automate this process, so I created a YAML pipeline in Azure DevOps that automatically provisions an Azure virtual machine and registers the virtual machine in an Azure Pipelines environment."
-draft: true
 ---
 
 In the past I've written the post [How to install .NET Core on a Windows server](https://ronaldbosma.github.io/blog/2020/05/07/how-to-install-.net-core-on-a-windows-server/) where I talked about a custom Azure Pipelines task I build. To test this task in an actual pipeline I used an Azure virtual machine that I created manually and kept around for this specific purpose. Every time I wanted to test something I had to start the machine, test my task, log on to the server and check if .NET Core was installed successfully. If I wanted to test a clean install I had to uninstall .NET Core first. Which meant uninstalling 3 different pieces of software for each supported .NET Core version.
