@@ -1,5 +1,6 @@
-jumbotron.jpg                                                                                                           https://unsplash.com
-cleaning-up-your-test-data-creation/cover.jpg                                       Photo by Hal Gatewood on Unsplash   https://images.unsplash.com/photo-1513610159045-34cb398dc033?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1354&q=80
-using-multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/cover.jpg      Photo by Leone Venter on Unsplash   https://images.unsplash.com/photo-1512418490979-92798cec1380?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1950&q=80
-howto-install-net-core-on-windows-server/cover.jpg								    Photo by Luis Villasmil on Unsplash https://unsplash.com/photos/jPpHpgWNCKs
-handling-technical-ids-in-gherkin-with-specflow/cover.jpg							Photo by AbsolutVision on Unsplash	https://images.unsplash.com/photo-1512314889357-e157c22f938d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1351&q=80
+jumbotron.jpg                                                                                                                   https://unsplash.com
+cleaning-up-your-test-data-creation/cover.jpg                                       Photo by Hal Gatewood on Unsplash           https://images.unsplash.com/photo-1513610159045-34cb398dc033?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1354&q=80
+using-multi-stage-yaml-pipeline-to-create-and-publish-nuget-packages/cover.jpg      Photo by Leone Venter on Unsplash           https://images.unsplash.com/photo-1512418490979-92798cec1380?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1950&q=80
+howto-install-net-core-on-windows-server/cover.jpg								    Photo by Luis Villasmil on Unsplash         https://unsplash.com/photos/jPpHpgWNCKs
+handling-technical-ids-in-gherkin-with-specflow/cover.jpg							Photo by AbsolutVision on Unsplash	        https://images.unsplash.com/photo-1512314889357-e157c22f938d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1351&q=80
+provision-azure-vm-in-azure-pipelines-environment/cover.png						    Photo by Krzysztof Kowalik on Unsplash		https://images.unsplash.com/photo-1561233835-f937539b95b9?ixlib=rb-1.2.1&ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&auto=format&fit=crop&w=1950&q=80
