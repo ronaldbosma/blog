@@ -18,7 +18,7 @@ When I retrieve 'Buffy Summers'
 Then the person 'Buffy Summers' is returned
 ```
 
-In the `Given` step we make sure the person exists in our system. We then retrieve the person and check that the retrieval was successful.
+In the `Given` step we make sure the person exists in our system. We then retrieve the person and verify that the retrieval was successful.
 
 The following step definition class implements this scenario.
 
@@ -27,7 +27,7 @@ The following step definition class implements this scenario.
 class PersonPersonsSteps
 {
     private readonly PersonRepository _people = new PersonRepository();
-    private string _actualPerson;
+    private string _actualName;
 
     [Given(@"the person '(.*)' is registered")]
     public void GivenThePersonLivingAtIsRegistered(string name)
@@ -38,19 +38,19 @@ class PersonPersonsSteps
     [When(@"I retrieve '(.*)'")]
     public void WhenIRetrieve(string name)
     {
-        _actualPerson = _people.GetPersonByName(name);
+        _actualName = _people.GetPersonByName(name);
     }
 
     [Then(@"the person '(.*)' is returned")]
     public void ThenThePersonLivingAtIsReturned(string expectedName)
     {
-        Assert.IsNotNull(_actualPerson, "No person retrieved");
-        Assert.AreEqual(expectedName, _actualPerson);
+        Assert.IsNotNull(_actualName, "No person retrieved");
+        Assert.AreEqual(expectedName, _actualName);
     }
 }
 ```
 
-It uses a simple in-memory `PersonRepository` to store the people. The `_actualPerson` field is used to store the person so we can check if the retrieval was successful in the `Then` step. For demo purposes we only store and retrieve the name of the person.
+It uses a simple in-memory `PersonRepository` to store the people. The `_actualName` field is used to store the person so we can check if the retrieval was successful in the `Then` step. For demo purposes we only store and retrieve the name of the person.
 
 And here's the `PersonRepository` class.
 
