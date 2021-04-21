@@ -8,6 +8,11 @@ tags: [ "Gherkin", "SpecFlow", "Specification by Example", "ATDD", "BDD", "Test 
 
 I commonly use Gherkin scenarios to describe the functional specifications of my software and SpecFlow to automate these scenarios. Usually there will be a couple of scenarios describing the happy paths of the feature I'm building but also some scenarios concerning failures. Depending on how the application code works, these failures are represented by exceptions being thrown. In this post I explain how I handle these exceptions.
 
+### Table of contents
+
+- [Retrieve existing person successfully](#retrieve-existing-person-successfully)
+- [Retrieve unknown person and expect an error](#retrieve-unknown-person-and-expect-an-error)
+
 ### Retrieve existing person successfully
 
 Let's start with the following happy path scenario to retrieve a person.
