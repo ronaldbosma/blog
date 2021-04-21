@@ -8,10 +8,12 @@ tags: [ "Gherkin", "SpecFlow", "Specification by Example", "ATDD", "BDD", "Test 
 
 I commonly use Gherkin scenarios to describe the functional specifications of my software and SpecFlow to automate these scenarios. Usually there will be a couple of scenarios describing the happy paths of the feature I'm building but also some scenarios concerning failures. Depending on how the application code works, these failures are represented by exceptions being thrown. In this post I explain how I handle these exceptions.
 
+### Retrieve existing person successfully
+
 Let's start with the following happy path scenario to retrieve a person.
 
 ```gherkin
-Scenario: Retrieve existing person
+Scenario: Retrieve existing person successfully
 
 Given the person 'Buffy Summers' is registered
 When I retrieve 'Buffy Summers'
@@ -76,3 +78,43 @@ class PersonRepository
 ```
 
 As you can see a `PersonNotFoundException` is raised when the person can not be found.
+
+### Retrieve unknown person and expect an error
+
+To verify that the a person not found error is raised as intended I've added a second scenario.
+
+```gherkin
+Scenario: Retrieve unknown person and expect an error
+
+Given no person is registered
+When I retrieve 'Buffy Summers'
+Then the error 'Person with name Buffy Summers not found' should be raised
+```
+
+This scenario makes sure nog person is registered. It then tries to retrieve a person and validates that an error has occured with the correct error message.
+
+If you execute this scenario with the current implementation of our step definitions the scenario will fail on the `When` step because we're not handling the exception. To fix this you can add a `try catch` block in the `When` step that stores the raised exception in a field called `_actualException` and  check the exception message in the `Then` step.
+
+```csharp
+private Exception _actualException;
+
+[When(@"I retrieve '(.*)'")]
+public void WhenIRetrieve(string name)
+{
+    try
+    {
+        _actualName = _people.GetPersonByName(name);
+    }
+    catch (Exception ex)
+    {
+        _actualException = ex;
+    }
+}
+
+[Then(@"the error '(.*)' should be raised")]
+public void ThenTheErrorShouldBeRaised(string expectedErrorMessage)
+{
+    Assert.IsNotNull(_actualException, "No error was raised");
+    Assert.AreEqual(expectedErrorMessage, _actualException.Message);
+}
+```
