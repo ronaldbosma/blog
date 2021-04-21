@@ -50,9 +50,9 @@ class PersonPersonsSteps
 }
 ```
 
-It uses a simple in-memory `PersonRepository` to store the people. The `_actualName` field is used to store the person so we can check if the retrieval was successful in the `Then` step. For demo purposes we only store and retrieve the name of the person.
+It uses a simple in-memory `PersonRepository` to store persons. The `_actualName` field is used to store the person that was retrieved so we can check if the retrieval was successful in the `Then` step. For demo purposes we only store and retrieve the name of the person.
 
-And here's the `PersonRepository` class.
+And here's the implementation of the `PersonRepository` class.
 
 ```csharp
 class PersonRepository
