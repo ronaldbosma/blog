@@ -312,4 +312,4 @@ Lastly, the `AssertNoUnexpectedExceptionsRaised` method is used in the `AfterSce
 
 With the generic `ErrorDriver` and `ErrorSteps` classes I can quickly create scenario's that both support the happy flow and also failures. This solution also protects against unexpected errors that have occured but are not checked. I case that is often forgotten when using this solution.
 
-A full code example can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/HandlingExceptionsInSpecFlow).
+A full code example can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/HandlingExceptionsInSpecFlow) which also contains extra examples and code for dealing with asynchronous methods.
