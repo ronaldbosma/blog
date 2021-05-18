@@ -45,7 +45,7 @@ internal class PersonSteps
     private string _actualName;
 
     [Given(@"the person '(.*)' is registered")]
-    public void GivenThePersonLivingAtIsRegistered(string name)
+    public void GivenThePersonIsRegistered(string name)
     {
         _people.AddPerson(name);
     }
