@@ -25,7 +25,7 @@ When I retrieve 'Buffy Summers'
 Then the person 'Buffy Summers' is returned
 ```
 
-In the `Given` step we make sure the person exists in our system. We then retrieve the person and verify that the retrieval was successful.
+In the `Given` step we make sure the person exists in our system. We then retrieve the person and verify that the retrieval is successful.
 
 The following step definition class implements this scenario.
 
@@ -57,9 +57,9 @@ class PersonPersonsSteps
 }
 ```
 
-It uses a simple in-memory `PersonRepository` to store persons. The `_actualName` field is used to store the person that was retrieved so we can check if the retrieval was successful in the `Then` step. For demo purposes we only store and retrieve the name of the person.
+It uses a simple in-memory `PersonRepository` to store people. The `_actualName` field is used to store the person that is retrieved so we can check if the retrieval was successful in the `Then` step. For demo purposes we only store and retrieve the name of the person.
 
-And here's the implementation of the `PersonRepository` class.
+Here's the implementation of the `PersonRepository` class.
 
 ```csharp
 class PersonRepository
@@ -86,7 +86,7 @@ As you can see a `PersonNotFoundException` is raised when the person can not be 
 
 ### Retrieve unknown person and expect an error
 
-To verify that the a person not found error is raised as intended I've added a second scenario.
+To verify that an error is raised when a person can not be found, I've added a second scenario.
 
 ```gherkin
 Scenario: Retrieve unknown person and expect an error
@@ -96,9 +96,9 @@ When I retrieve 'Buffy Summers'
 Then the error 'Person with name Buffy Summers not found' should be raised
 ```
 
-This scenario makes sure nog person is registered. It then tries to retrieve a person and validates that an error has occured with the correct error message.
+This scenario makes sure no person is registered. It then tries to retrieve a person and validates that an error has occured with the correct error message.
 
-If you execute this scenario with the current implementation of our step definitions the scenario will fail on the `When` step because we're not handling the exception. To fix this you can add a `try catch` block in the `When` step that stores the raised exception in a field called `_actualException` and  check the exception message in the `Then` step.
+If you execute this scenario with the current implementation of our step definitions the scenario will fail on the `When` step because we're not handling the exception. As the code below shows, you can fix this by adding a `try catch` block in the `When` step that stores the raised exception in a field called `_actualException` and check the exception message in the `Then` step.
 
 ```csharp
 private Exception _actualException;
@@ -123,3 +123,5 @@ public void ThenTheErrorShouldBeRaised(string expectedErrorMessage)
     Assert.AreEqual(expectedErrorMessage, _actualException.Message);
 }
 ```
+
+With this implementation both scenario's will succeed.
