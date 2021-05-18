@@ -18,6 +18,7 @@ I commonly use Gherkin scenarios to describe the functional specifications of my
   - [Refactored PersonsSteps class](#refactored-personssteps-class)
   - [New generic ErrorSteps](#new-generic-errorsteps)
   - [The ErrorDriver class](#the-errordriver-class)
+- [Conclusion](#conclusion)
 
 ### Retrieve existing person successfully
 
@@ -305,3 +306,9 @@ As mentioned earlier the `TryExecute` method contains the `try catch` block and 
 The `AssertExceptionWasRaisedWithMessage` method is used in the `ErrorSteps` class to verify if an expected error has occured. As you can see I'm only checking the message of the exception and not the type. This is on purpose because the business is not familiar with or interested in exception types and I want to keep my scenarios as functional as possible. A unit test can be used to check the actual exception type.
 
 Lastly, the `AssertNoUnexpectedExceptionsRaised` method is used in the `AfterScenario` hook to check for any unexpected errors.
+
+### Conclusion
+
+With the generic `ErrorDriver` and `ErrorSteps` classes I can quickly create scenario's that both support the happy flow and also failures. This solution also protects against unexpected errors that have occured but are not checked. I case that is often forgotten when using this solution.
+
+A full code example can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/HandlingExceptionsInSpecFlow).
