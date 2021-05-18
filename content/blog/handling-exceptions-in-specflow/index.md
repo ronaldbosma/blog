@@ -12,6 +12,7 @@ I commonly use Gherkin scenarios to describe the functional specifications of my
 
 - [Retrieve existing person successfully](#retrieve-existing-person-successfully)
 - [Retrieve unknown person and expect an error](#retrieve-unknown-person-and-expect-an-error)
+- [Expected error was not raised](#expected-error-was-not-raised)
 
 ### Retrieve existing person successfully
 
@@ -125,3 +126,24 @@ public void ThenTheErrorShouldBeRaised(string expectedErrorMessage)
 ```
 
 With this implementation both scenario's will succeed.
+
+### Expected error was not raised
+
+It's also important that my scenario's fail when something goes wrong. Either because my implementation is wrong or the scenario has an error. Take the following two scenario's for example. I expect a certain error to be raised but this does not happen.
+
+```gherkin
+Scenario: Should fail: retrieve person that exists but expect error
+
+Given the person 'Buffy Summers' is registered
+When I retrieve 'Buffy Summers'
+Then the error 'Person with name Buffy Summers not found' should be raised
+
+
+Scenario: Should fail: different error message expected
+
+Given no person is registered
+When I retrieve 'Buffy Summers'
+Then the error 'Something went wrong' should be raised
+```
+
+Both scenario's should and will fail. The first fails because I'm retrieving a person that exists but I expect the error that the person does not exist. The second scenario fails because I'm expecting an error with the wrong error message.
