@@ -104,7 +104,7 @@ When I retrieve 'Buffy Summers'
 Then the error 'Person with name Buffy Summers not found' should be raised
 ```
 
-This scenario makes sure no person is registered. It then tries to retrieve a person and validates that an error has occured with the correct error message.
+This scenario makes sure no person is registered. It then tries to retrieve a person and validates that an error has occurred with the correct error message.
 
 If you execute this scenario with the current implementation of our steps the scenario will fail on the `When` step because we're not handling the exception. As the code below shows, you can fix this by adding a `try catch` block in the `When` step that stores the raised exception in an instance field called `_actualException` and check the exception message in the `Then` step.
 
@@ -168,9 +168,9 @@ When I retrieve 'Buffy Summers'
 
 I'm retrieving a person that is not registered. In the initial implementation of our `When` step without the `try catch` block this scenario would fail because an exception is raised in the `When` step. But now that I catch exceptions the scenario succeeds when it should fail.
 
-> Note that this scenario is missing a `Then` step so it's not the greatest real life example. I have seen this issue however in past projects with scenarios that succeeded when an unexpected error was raised even with a `Then` step. So a bug in the production code or test automation code was flying under the radar.
+> Note that this scenario is missing a `Then` step so it's not the greatest real-life example. I have seen this issue however in past projects with scenarios that succeeded when an unexpected error was raised even with a `Then` step. So, a bug in the production code or test automation code was flying under the radar.
 
-To fix this issue we can use an `AfterScenario` hook to check if an unexpected error has occured after a scenario has been executed. (See [the SpecFlow documentation](https://docs.specflow.org/projects/specflow/en/latest/Bindings/Hooks.html) for more information on hooks.)
+To fix this issue we can use an `AfterScenario` hook to check if an unexpected error has occurred after a scenario has been executed. (See [the SpecFlow documentation](https://docs.specflow.org/projects/specflow/en/latest/Bindings/Hooks.html) for more information on hooks.)
 
 ```csharp
 [Then(@"the error '(.*)' should be raised")]
@@ -196,7 +196,7 @@ A full example of the implementation so far can be found in [this project](https
 
 ### Refactor to reusable code
 
- The current solution works great when I'm retrieving a person but usually I have more features and `When` steps that need this kind of error handling logic. Also the `Then the error '<message>' should be raised` step is really generic but can't be reused over multiple step classes because of the use of the `_actualException` instance field.
+ The current solution works great when I'm retrieving a person but usually I have more features and `When` steps that need this kind of error handling logic. Also, the `Then the error '<message>' should be raised` step is really generic but can't be reused over multiple step classes because of the use of the `_actualException` instance field.
 
 To fix this I've created a generic `ErrorDriver` class following the [Driver pattern](https://docs.specflow.org/projects/specflow/en/latest/Guides/DriverPattern.html) described in the SpecFlow documentation. This class can catch and track exceptions and has a few helper methods for validation.
 
@@ -263,7 +263,7 @@ class ErrorSteps
 }
 ```
 
-This class also receives the `ErrorDriver` class via context injection. It uses the available `Assert` methods to verify if an expected or unexpected error has occured.
+This class also receives the `ErrorDriver` class via context injection. It uses the available `Assert` methods to verify if an expected or unexpected error has occurred.
 
 #### The ErrorDriver class
 
@@ -306,14 +306,14 @@ class ErrorDriver
 }
 ```
 
-As mentioned earlier the `TryExecute` method contains the `try catch` block and catches any exception raised by the action. When an exception is caught it will be written to a trace for troubleshooting and added to the `_exceptions` queue. I'm using a queue so I'm able to handle the exceptions in the order they have occured. Although there will usually only be 0 or 1 exception in the queue.
+As mentioned earlier the `TryExecute` method contains the `try catch` block and catches any exception raised by the action. When an exception is caught it will be written to a trace for troubleshooting and added to the `_exceptions` queue. I'm using a queue so I'm able to handle the exceptions in the order they have occurred. Although there will usually only be 0 or 1 exception in the queue.
 
-The `AssertExceptionWasRaisedWithMessage` method is used in the `ErrorSteps` class to verify if an expected error has occured. As you can see I'm only checking the message of the exception and not the type. This is on purpose because the business is not familiar with or interested in exception types and I want to keep my scenarios as functional as possible. A unit test can be used to check the actual exception type.
+The `AssertExceptionWasRaisedWithMessage` method is used in the `ErrorSteps` class to verify if an expected error has occurred. As you can see I'm only checking the message of the exception and not the type. This is on purpose because the business is not familiar with or interested in exception types and I want to keep my scenarios as functional as possible. A unit test can be used to check the actual exception type.
 
 Lastly, the `AssertNoUnexpectedExceptionsRaised` method is used in the `AfterScenario` hook to check for any unexpected errors.
 
 ### Conclusion
 
-With the generic `ErrorDriver` and `ErrorSteps` classes I can quickly create scenarios that both support the happy flow and failures. This solution also protects against unexpected errors that have occured but are not checked. A case that is often forgotten when using this solution.
+With the generic `ErrorDriver` and `ErrorSteps` classes I can quickly create scenarios that both support the happy flow and failures. This solution also protects against unexpected errors that have occurred but are not checked. A case that is often forgotten when using this solution.
 
 A full code example can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/HandlingExceptionsInSpecFlow) which also contains extra examples and code for dealing with asynchronous methods.
