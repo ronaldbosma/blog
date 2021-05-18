@@ -35,11 +35,11 @@ Then the person 'Buffy Summers' is returned
 
 In the `Given` step we make sure the person exists in our system. We then retrieve the person and verify that the retrieval is successful.
 
-The following step definition class implements this scenario.
+The following `PersonSteps` class implements this scenario.
 
 ```csharp
 [Binding]
-internal class PersonSteps
+class PersonSteps
 {
     private readonly PersonRepository _people = new PersonRepository();
     private string _actualName;
@@ -65,9 +65,9 @@ internal class PersonSteps
 }
 ```
 
-It uses a simple in-memory `PersonRepository` to store people. The `_actualName` field is used to store the person that is retrieved so we can check if the retrieval was successful in the `Then` step. For demo purposes we only store and retrieve the name of the person.
+It uses a simple in-memory `PersonRepository` to store people. The `_actualName` instance field is used to store the person that is retrieved so we can check if the retrieval was successful in the `Then` step. For demo purposes we only store and retrieve the name of the person.
 
-Here's the implementation of the `PersonRepository` class.
+Here's the implementation of `PersonRepository`.
 
 ```csharp
 class PersonRepository
@@ -90,11 +90,11 @@ class PersonRepository
 }
 ```
 
-As you can see a `PersonNotFoundException` is raised when the person can not be found.
+As you can see a `PersonNotFoundException` is raised when the person can't be found.
 
 ### Retrieve unknown person and expect an error
 
-To verify that an error is raised when a person can not be found, I've added a second scenario.
+To verify that an error is raised when a person can't be found, I've added a second scenario.
 
 ```gherkin
 Scenario: Retrieve unknown person and expect an error
@@ -106,7 +106,7 @@ Then the error 'Person with name Buffy Summers not found' should be raised
 
 This scenario makes sure no person is registered. It then tries to retrieve a person and validates that an error has occured with the correct error message.
 
-If you execute this scenario with the current implementation of our step definitions the scenario will fail on the `When` step because we're not handling the exception. As the code below shows, you can fix this by adding a `try catch` block in the `When` step that stores the raised exception in a field called `_actualException` and check the exception message in the `Then` step.
+If you execute this scenario with the current implementation of our steps the scenario will fail on the `When` step because we're not handling the exception. As the code below shows, you can fix this by adding a `try catch` block in the `When` step that stores the raised exception in an instance field called `_actualException` and check the exception message in the `Then` step.
 
 ```csharp
 private Exception _actualException;
@@ -132,7 +132,7 @@ public void ThenTheErrorShouldBeRaised(string expectedErrorMessage)
 }
 ```
 
-With this implementation both scenarios will succeed.
+With this implementation both scenarios will succeed as expected.
 
 ### Expected error was not raised
 
@@ -157,7 +157,7 @@ Both scenarios should and will fail. The first fails because I'm retrieving a pe
 
 ### Check for unexpected errors
 
-One case that is often forgotten is to check for unexpected errors. Take the following scenario for example.
+One case that is often forgotten is to check for unexpected errors. Take the following scenario.
 
 ```gherkin
 Scenario: Should fail: retrieve unknown person but don't check error
@@ -166,11 +166,11 @@ Given no person is registered
 When I retrieve 'Buffy Summers'
 ```
 
-I'm retrieving a person that is not registered. In the first implementation of our `When` step definition without the `try catch` block this scenario would fail because an exception is raised in the `When` step. But now that I catch this exception the scenario succeeds where it should fail.
+I'm retrieving a person that is not registered. In the initial implementation of our `When` step without the `try catch` block this scenario would fail because an exception is raised in the `When` step. But now that I catch exceptions the scenario succeeds when it should fail.
 
-> Note that this scenario is missing a `Then` step so it's not the greatest real life example. I have seen this issue however in past projects with scenarios that succeeded even with a `Then` step but an unexpected error was raised. So a bug in the production code or test automation code was flying under the radar.
+> Note that this scenario is missing a `Then` step so it's not the greatest real life example. I have seen this issue however in past projects with scenarios that succeeded when an unexpected error was raised even with a `Then` step. So a bug in the production code or test automation code was flying under the radar.
 
-To fix this issue we can use an `AfterScenario` hook to check if any unexpected error has occured. I've altered the `Then` step that checks for expected errors to clear the `_actualException` field if an expected error occurs.
+To fix this issue we can use an `AfterScenario` hook to check if an unexpected error has occured after a scenario has been executed. (See [the SpecFlow documentation](https://docs.specflow.org/projects/specflow/en/latest/Bindings/Hooks.html) for more information on hooks.)
 
 ```csharp
 [Then(@"the error '(.*)' should be raised")]
@@ -190,11 +190,15 @@ public void CheckForUnexpectedExceptionsAfterEachScenario()
 }
 ```
 
+As you can see, I've altered the `Then` step that checks for expected errors to clear the `_actualException` instance field if an expected error occurs. If `_actualException` still has a value when the `AfterScenario` hook is executed then the exception was unexpected and the scenario will fail.
+
+A full example of the implementation so far can be found in [this project](https://github.com/ronaldbosma/blog-code-examples/tree/master/HandlingExceptionsInSpecFlow/HandlingExceptionsInSpecFlow.WithoutErrorDriver).
+
 ### Refactor to reusable code
 
-A full example of the implementation so far can be found in [this project](https://github.com/ronaldbosma/blog-code-examples/tree/master/HandlingExceptionsInSpecFlow/HandlingExceptionsInSpecFlow.WithoutErrorDriver). It works great when I'm retrieving a person but usually I have more features and `When` steps that need this kind of implementation. Also the `Then the error '<message>' should be raised` step is really generic but can't be reused over multiple step definition classes because of the use of the `_actualException` private field.
+ The current solution works great when I'm retrieving a person but usually I have more features and `When` steps that need this kind of error handling logic. Also the `Then the error '<message>' should be raised` step is really generic but can't be reused over multiple step classes because of the use of the `_actualException` instance field.
 
-To fix this I've introduced a generic `ErrorDriver` class following the [Driver pattern](https://docs.specflow.org/projects/specflow/en/latest/Guides/DriverPattern.html) described in the SpecFlow documentation. This class can catch and track exceptions and has a few helper methods for validation.
+To fix this I've created a generic `ErrorDriver` class following the [Driver pattern](https://docs.specflow.org/projects/specflow/en/latest/Guides/DriverPattern.html) described in the SpecFlow documentation. This class can catch and track exceptions and has a few helper methods for validation.
 
 #### Refactored PersonSteps class
 
@@ -202,7 +206,7 @@ Before showing the `ErrorDriver` implementation I'll first show how it's used in
 
 ```csharp
 [Binding]
-internal class PersonSteps
+class PersonSteps
 {
     private readonly PersonRepository _people = new PersonRepository();
     private string _actualName;
@@ -236,7 +240,7 @@ The `Then the error '<message>' should be raised` step and the `AfterScenario` h
 
 ```csharp
 [Binding]
-internal class ErrorSteps
+class ErrorSteps
 {
     private readonly ErrorDriver _errorDriver;
 
@@ -266,7 +270,7 @@ This class also receives the `ErrorDriver` class via context injection. It uses 
 Now that you've seen how to use the `ErrorDriver` class here's the implementation.
 
 ```csharp
-internal class ErrorDriver
+class ErrorDriver
 {
     private readonly Queue<Exception> _exceptions = new Queue<Exception>();
 
@@ -310,6 +314,6 @@ Lastly, the `AssertNoUnexpectedExceptionsRaised` method is used in the `AfterSce
 
 ### Conclusion
 
-With the generic `ErrorDriver` and `ErrorSteps` classes I can quickly create scenario's that both support the happy flow and also failures. This solution also protects against unexpected errors that have occured but are not checked. I case that is often forgotten when using this solution.
+With the generic `ErrorDriver` and `ErrorSteps` classes I can quickly create scenarios that both support the happy flow and failures. This solution also protects against unexpected errors that have occured but are not checked. A case that is often forgotten when using this solution.
 
 A full code example can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/HandlingExceptionsInSpecFlow) which also contains extra examples and code for dealing with asynchronous methods.
