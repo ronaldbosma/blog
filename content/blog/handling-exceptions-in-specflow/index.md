@@ -16,7 +16,7 @@ I commonly use Gherkin scenarios to describe the functional specifications of my
 - [Expected error was not raised](#expected-error-was-not-raised)
 - [Check for unexpected errors](#check-for-unexpected-errors)
 - [Refactor to reusable code](#refactor-to-reusable-code)
-  - [Refactored PersonsSteps class](#refactored-personssteps-class)
+  - [Refactored PersonSteps class](#refactored-personsteps-class)
   - [New generic ErrorSteps](#new-generic-errorsteps)
   - [The ErrorDriver class](#the-errordriver-class)
 - [Conclusion](#conclusion)
@@ -39,7 +39,7 @@ The following step definition class implements this scenario.
 
 ```csharp
 [Binding]
-class PersonPersonsSteps
+internal class PersonSteps
 {
     private readonly PersonRepository _people = new PersonRepository();
     private string _actualName;
@@ -196,20 +196,20 @@ A full example of the implementation so far can be found in [this project](https
 
 To fix this I've introduced a generic `ErrorDriver` class following the [Driver pattern](https://docs.specflow.org/projects/specflow/en/latest/Guides/DriverPattern.html) described in the SpecFlow documentation. This class can catch and track exceptions and has a few helper methods for validation.
 
-#### Refactored PersonsSteps class
+#### Refactored PersonSteps class
 
-Before showing the `ErrorDriver` implementation I'll first show how it's used in the refactored `PersonsSteps` class.
+Before showing the `ErrorDriver` implementation I'll first show how it's used in the refactored `PersonSteps` class.
 
 ```csharp
 [Binding]
-internal class PersonsSteps
+internal class PersonSteps
 {
     private readonly PersonRepository _people = new PersonRepository();
     private string _actualName;
 
     private readonly ErrorDriver _errorDriver;
 
-    public PersonsSteps(ErrorDriver errorDriver)
+    public PersonSteps(ErrorDriver errorDriver)
     {
         _errorDriver = errorDriver;
     }
@@ -228,7 +228,7 @@ internal class PersonsSteps
 }
 ```
 
-As you can see the new `ErrorDriver` class is injected into the `PersonsSteps` class via [context injection](https://docs.specflow.org/projects/specflow/en/latest/Bindings/Context-Injection.html). The person specific `Given` and `Then` steps are unaltered. The `When` step no longer has a `try catch` block. Instead the action of retrieving a person is passed into the `TryExecute` method of the `ErrorDriver` class as a lambda. The `TryExecute` method will catch any exception as you'll see in moment. The `_actualException` private field is no longer used and has been removed.
+As you can see the new `ErrorDriver` class is injected into the `PersonSteps` class via [context injection](https://docs.specflow.org/projects/specflow/en/latest/Bindings/Context-Injection.html). The person specific `Given` and `Then` steps are unaltered. The `When` step no longer has a `try catch` block. Instead the action of retrieving a person is passed into the `TryExecute` method of the `ErrorDriver` class as a lambda. The `TryExecute` method will catch any exception as you'll see in moment. The `_actualException` private field is no longer used and has been removed.
 
 #### New generic ErrorSteps
 
