@@ -4,10 +4,10 @@ date: 2021-04-21T00:00:00+02:00
 publishdate: 2021-04-21T00:00:00+02:00
 lastmod: 2021-04-21T00:00:00+02:00
 tags: [ "Gherkin", "SpecFlow", "Specification by Example", "ATDD", "BDD", "Test Automation", "Cleaner Code" ]
-summary: "I commonly use Gherkin scenarios to describe the functional specifications of my software and SpecFlow to automate these scenarios. Usually there will be a couple of scenarios describing the happy paths of the feature I'm building but also some scenarios concerning failures. In this post I'll show my solution how to handle failures in the form of exceptions with the Driver pattern."
+summary: "I use Gherkin scenarios to describe the functional specifications of my software and SpecFlow to automate these scenarios as tests. Usually there will be a couple of scenarios describing the happy paths of the feature I'm building but also some scenarios concerning failures. In this post I'll show my solution how to handle failures in the form of exceptions with the Driver pattern."
 ---
 
-I commonly use Gherkin scenarios to describe the functional specifications of my software and SpecFlow to automate these scenarios. Usually there will be a couple of scenarios describing the happy paths of the feature I'm building but also some scenarios concerning failures. Depending on how the application code works, these failures are represented by exceptions being thrown. In this post I explain how I handle these exceptions.
+I use Gherkin scenarios to describe the functional specifications of my software and SpecFlow to automate these scenarios as tests. Usually there will be a couple of scenarios describing the happy paths of the feature I'm building but also some scenarios concerning failures. Depending on how the application code works, these failures are represented by exceptions being thrown. In this post I explain how I handle these exceptions.
 
 ### Table of contents
 
@@ -29,7 +29,7 @@ Let's start with the following happy path scenario to retrieve a person.
 Scenario: Retrieve existing person successfully
 
 Given the person 'Buffy Summers' is registered
-When I retrieve 'Buffy Summers'
+When I retrieve the person 'Buffy Summers'
 Then the person 'Buffy Summers' is returned
 ```
 
@@ -50,14 +50,14 @@ class PersonSteps
         _people.AddPerson(name);
     }
         
-    [When(@"I retrieve '(.*)'")]
-    public void WhenIRetrieve(string name)
+    [When(@"I retrieve the person '(.*)'")]
+    public void WhenIRetrieveThePerson(string name)
     {
         _actualName = _people.GetPersonByName(name);
     }
 
     [Then(@"the person '(.*)' is returned")]
-    public void ThenThePersonLivingAtIsReturned(string expectedName)
+    public void ThenThePersonIsReturned(string expectedName)
     {
         Assert.IsNotNull(_actualName, "No person retrieved");
         Assert.AreEqual(expectedName, _actualName);
@@ -65,9 +65,9 @@ class PersonSteps
 }
 ```
 
-It uses a simple in-memory `PersonRepository` to store people. The `_actualName` instance field is used to store the person that is retrieved so we can check if the retrieval was successful in the `Then` step. For demo purposes we only store and retrieve the name of the person.
+It uses a simple in-memory `PersonRepository` to store people. The `_actualName` instance field is used to store the person that is retrieved so we can check if the retrieval was successful in the `Then` step. (For demo purposes we only store and retrieve the name of the person.)
 
-Here's the implementation of `PersonRepository`.
+And here's the implementation of `PersonRepository`.
 
 ```csharp
 class PersonRepository
@@ -100,7 +100,7 @@ To verify that an error is raised when a person can't be found, I've added a sec
 Scenario: Retrieve unknown person and expect an error
 
 Given no person is registered
-When I retrieve 'Buffy Summers'
+When I retrieve the person 'Buffy Summers'
 Then the error 'Person with name Buffy Summers not found' should be raised
 ```
 
@@ -111,8 +111,8 @@ If you execute this scenario with the current implementation of our steps the sc
 ```csharp
 private Exception _actualException;
 
-[When(@"I retrieve '(.*)'")]
-public void WhenIRetrieve(string name)
+[When(@"I retrieve the person '(.*)'")]
+public void WhenIRetrieveThePerson(string name)
 {
     try
     {
@@ -136,20 +136,20 @@ With this implementation both scenarios will succeed as expected.
 
 ### Expected error was not raised
 
-It's also important that my scenarios fail when something goes wrong. Either because my implementation is wrong or the scenario has an error. Take the following two scenarios for example. I expect a certain error to be raised but this does not happen.
+It's also important that my scenarios fail when something goes wrong. Either because my implementation is wrong or the scenario has an error. Take the following two scenarios for example. I expect a specific error to be raised but this does not happen.
 
 ```gherkin
 Scenario: Should fail: retrieve person that exists but expect error
 
 Given the person 'Buffy Summers' is registered
-When I retrieve 'Buffy Summers'
+When I retrieve the person 'Buffy Summers'
 Then the error 'Person with name Buffy Summers not found' should be raised
 
 
 Scenario: Should fail: different error message expected
 
 Given no person is registered
-When I retrieve 'Buffy Summers'
+When I retrieve the person 'Buffy Summers'
 Then the error 'Something went wrong' should be raised
 ```
 
@@ -157,13 +157,13 @@ Both scenarios should and will fail. The first fails because I'm retrieving a pe
 
 ### Check for unexpected errors
 
-One case that is often forgotten is to check for unexpected errors. Take the following scenario.
+One case that is often forgotten with this solution is to check for unexpected errors. Take the following scenario.
 
 ```gherkin
 Scenario: Should fail: retrieve unknown person but don't check error
 
 Given no person is registered
-When I retrieve 'Buffy Summers'
+When I retrieve the person 'Buffy Summers'
 ```
 
 I'm retrieving a person that is not registered. In the initial implementation of our `When` step without the `try catch` block this scenario would fail because an exception is raised in the `When` step. But now that I catch exceptions the scenario succeeds when it should fail.
@@ -196,7 +196,7 @@ A full example of the implementation so far can be found in [this project](https
 
 ### Refactor to reusable code
 
- The current solution works great when I'm retrieving a person but usually I have more features and `When` steps that need this kind of error handling logic. Also, the `Then the error '<message>' should be raised` step is really generic but can't be reused over multiple step classes because of the use of the `_actualException` instance field.
+ The current solution works great when I'm retrieving a person but I usually have more features and `When` steps that need this kind of error handling logic. Also, the `Then the error '<message>' should be raised` step is generic but can't be reused over multiple step classes because of the use of the `_actualException` instance field.
 
 To fix this I've created a generic `ErrorDriver` class following the [Driver pattern](https://docs.specflow.org/projects/specflow/en/latest/Guides/DriverPattern.html) described in the SpecFlow documentation. This class can catch and track exceptions and has a few helper methods for validation.
 
@@ -220,8 +220,8 @@ class PersonSteps
 
     /* Given steps omitted */
 
-    [When(@"I retrieve '(.*)'")]
-    public void WhenIRetrieve(string name)
+    [When(@"I retrieve the person '(.*)'")]
+    public void WhenIRetrieveThePerson(string name)
     {
         _errorDriver.TryExecute(() =>
             _actualName = _people.GetPersonByName(name)
@@ -267,7 +267,7 @@ This class also receives the `ErrorDriver` class via context injection. It uses 
 
 #### The ErrorDriver class
 
-Now that you've seen how to use the `ErrorDriver` class here's the implementation.
+And here's the implementation of the `ErrorDriver` class.
 
 ```csharp
 class ErrorDriver
@@ -306,7 +306,9 @@ class ErrorDriver
 }
 ```
 
-As mentioned earlier the `TryExecute` method contains the `try catch` block and catches any exception raised by the action. When an exception is caught it will be written to a trace for troubleshooting and added to the `_exceptions` queue. I'm using a queue so I'm able to handle the exceptions in the order they have occurred. Although there will usually only be 0 or 1 exception in the queue.
+As mentioned earlier the `TryExecute` method contains the `try catch` block and catches any exception raised by the action. When an exception is caught it will be written to a trace for troubleshooting and added to the `_exceptions` queue.
+
+> I'm using a queue so I'm able to handle the exceptions in the order they have occurred. Although there will usually only be 0 or 1 exception in the queue.
 
 The `AssertExceptionWasRaisedWithMessage` method is used in the `ErrorSteps` class to verify if an expected error has occurred. As you can see I'm only checking the message of the exception and not the type. This is on purpose because the business is not familiar with or interested in exception types and I want to keep my scenarios as functional as possible. A unit test can be used to check the actual exception type.
 
