@@ -302,7 +302,7 @@ class ErrorDriver
         if (_exceptions.Any())
         {
             var unexpectedException = _exceptions.Dequeue();
-            Assert.IsNull(unexpectedException, $"No exception was expected to be raised but found exception: {unexpectedException}"); 
+            Assert.Fail($"No exception was expected to be raised but found exception: {unexpectedException}");
         }
     }
 }
