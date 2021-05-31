@@ -1,10 +1,11 @@
 ---
 title: "Handling exceptions in SpecFlow"
-date: 2021-04-21T00:00:00+02:00
-publishdate: 2021-04-21T00:00:00+02:00
-lastmod: 2021-04-21T00:00:00+02:00
+date: 2021-05-31T07:30:00+02:00
+publishdate: 2021-05-31T07:30:00+02:00
+lastmod: 2021-05-31T07:30:00+02:00
 tags: [ "Gherkin", "SpecFlow", "Specification by Example", "ATDD", "BDD", "Test Automation", "Cleaner Code" ]
 summary: "I use Gherkin scenarios to describe the functional specifications of my software and SpecFlow to automate these scenarios as tests. Usually there will be a couple of scenarios describing the happy path of the feature I'm building but also some scenarios concerning failures. In this post I'll show my solution how to handle failures in the form of exceptions with the Driver pattern."
+draft: false
 ---
 
 I use Gherkin scenarios to describe the functional specifications of my software and SpecFlow to automate these scenarios as tests. Usually there will be a couple of scenarios describing the happy path of the feature I'm building but also some scenarios concerning failures. Depending on how the application code works, these failures are represented by exceptions. In this post I explain how I handle these exceptions.
@@ -157,7 +158,7 @@ When I retrieve the person 'Buffy Summers'
 Then the error 'Something went wrong' should be raised
 ```
 
-Both scenarios should and will fail. The first fails because I'm retrieving a person that exists but I expect the error that the person does not exist. The second scenario fails because I'm expecting an error with the wrong error message.
+Both scenarios should and will fail. The first fails because I'm retrieving a person that exists but I expect the error that the person does not exist. The second scenario fails because I'm expecting an error with the wrong message.
 
 ### Check for unexpected errors
 
@@ -182,7 +183,13 @@ public void CheckForUnexpectedExceptionsAfterEachScenario()
 {
     Assert.IsNull(_actualException, $"No exception was expected to be raised but found exception: {_actualException}");
 }
+```
 
+If `_actualException` has a value when the `AfterScenario` hook is executed then the exception was unexpected and the scenario will fail.
+
+To make sure that scenarios where I do expect an error don't fail I clear `_actualException` after checking the error. See the altered implementation of the `Then` step below.
+
+```csharp
 [Then(@"the error '(.*)' should be raised")]
 public void ThenTheErrorShouldBeRaised(string expectedErrorMessage)
 {
@@ -193,8 +200,6 @@ public void ThenTheErrorShouldBeRaised(string expectedErrorMessage)
     _actualException = null;
 }
 ```
-
-As you can see, I've also altered the `Then` step that checks for expected errors to clear the `_actualException` instance field if an expected error occurs. If `_actualException` still has a value when the `AfterScenario` hook is executed then the exception was unexpected and the scenario will fail.
 
 A full example of the implementation so far can be found in [this project](https://github.com/ronaldbosma/blog-code-examples/tree/master/HandlingExceptionsInSpecFlow/HandlingExceptionsInSpecFlow.WithoutErrorDriver).
 
@@ -267,7 +272,7 @@ class ErrorSteps
 }
 ```
 
-This class also receives the `ErrorDriver` class via context injection. It uses the available `Assert` methods to verify if an expected or unexpected error has occurred.
+This class also receives the `ErrorDriver` class via context injection. It uses the available `Assert` methods on `ErrorDriver` to verify if an expected or unexpected error has occurred.
 
 #### The ErrorDriver class
 
@@ -320,6 +325,6 @@ Lastly, the `AssertNoUnexpectedExceptionsRaised` method is used in the `AfterSce
 
 ### Conclusion
 
-With the generic `ErrorDriver` and `ErrorSteps` classes we can quickly create scenarios that both support the happy flow and failures. This solution also protects against unexpected errors that have occurred but are not checked. A case that is often forgotten when using this solution.
+With the generic `ErrorDriver` and `ErrorSteps` classes we can quickly create scenarios that both support the happy flow and failures. This solution also protects against unexpected errors that have occurred but are not explicitly checked in a scenario. A case that is often forgotten when using this solution.
 
 A full code example can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/HandlingExceptionsInSpecFlow) which also contains extra examples and code for dealing with asynchronous methods.
