@@ -2,7 +2,7 @@
 title: "Provision an Azure VM in an Azure Pipelines Environment"
 date: 2021-03-16T00:00:00+01:00
 publishdate: 2021-03-16T00:00:00+01:00
-lastmod: 2021-03-16T00:00:00+01:00
+lastmod: 2021-06-29T17:00:00+01:00
 tags: [ "Azure", "Azure CLI", "Azure DevOps", "Azure Pipelines", "Continuous Integration", "YAML" ]
 summary: "In the past I've created a custom Azure Pipelines task to install .NET Core on a Windows server. To test this task, I had to manually setup an environment with virtual machines. I wanted to automate this process, so I created a YAML pipeline in Azure DevOps that automatically provisions an Azure virtual machine and registers the virtual machine in an Azure Pipelines environment."
 ---
@@ -24,6 +24,15 @@ As you can see, a lot of manual steps were involved. So, I automated the process
   - Deletes the Azure virtual machine.
 
 In the rest of this post I'll explain how [this pipeline](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/provision-vm-in-environment-azure-pipeline.yml) works.
+
+> **Update 29-06-2021**
+>
+> The solution described in this post is based on the functionality in Azure DevOps to automatically create a new environment if it does not exist. A recent update to Azure DevOps has changed this behaviour. See [Release Notes: Changed in the automatic creation of environments](https://docs.microsoft.com/en-us/azure/devops/release-notes/2021/sprint-188-update#changes-in-the-automatic-creation-of-environments)
+>
+> When you follow the steps in this post and start a YAML pipeline, you might get the following error:  
+>```Job InstallNetCore: Environment provision-vm-example-99b1d9650923294a393a8e74602721fb980e549a could not be found. The environment does not exist or has not been authorized for use.```
+>
+> If you get this error you'll need to use a static environment name in the YAML pipeline, manually create that environment in Azure DevOps and remove/disable the step that deletes the environment in Azure DevOps during the cleanup stage. [Here](https://github.com/ronaldbosma/blog-code-examples/blob/master/ProvisionAzureVMInAzurePipelinesEnvironment/azure-devops-unregister-agent-from-enviroment.md) you can find instructions on how to unregister an agent from an Azure DevOps environment.
 
 ### Table of contents
 
