@@ -12,13 +12,14 @@ In my blog post [Handling technical ids in Gherkin with SpecFlow](https://ronald
 
 ### Table of contents
 
-- [Intro](#intro)
+- [Problem](#problem)
 - [Use a Test Model](#use-a-test-model)
 - [Use Value Retriever and Table Alias](#use-value-retriever-and-table-alias)
 - [Use Custom Type with Value Retriever and Comparer](#use-custom-type-with-value-retriever-and-comparer)
 - [Transform Table Column](#transform-table-column)
+- [Conclusion](#conclusion)
 
-### Intro
+### Problem
 
 I've been working on a demo app that displays weather forecast information for different locations. The weather forecast class has a `LocationId` property that is a reference to a location. See the class below.
 
@@ -302,3 +303,7 @@ public void ThenTheFollowingWeatherForecastIsReturned(Table table)
 I think this is a nice and clean approach that will help keep our Gherkin scenarios readable and our code simple. There is however 1 downside. When the comparison fails because the location is wrong, you don't get the message: `London` was found but `Madrid` was expected. Instead you get: `2` was found but `3` was expected. This could be a little bit confusing if you don't know what's happening.
 
 [This project](https://github.com/ronaldbosma/blog-code-examples/tree/master/TransformSpecFlowTableColumn/05-TransformColumn) shows a full working example. I've moved the `TransformColumn("Location", "LocationId", (s) => s.LocationToId().ToString())` call into another extension method to reduce duplication.
+
+### Conclusion
+
+I've described several approaches on how to remove technical id's from your scenarios tables, while still using the ids in your code. Each with their pros and cons. Transforming a tables column was a new approach for me that has worked well for me. I hope it can be another tool in your belt and if you have any other / better solutions I hope to hear from you.
