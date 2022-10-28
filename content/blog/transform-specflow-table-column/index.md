@@ -16,6 +16,7 @@ In my blog post [Handling technical ids in Gherkin with SpecFlow](https://ronald
 - [Use a Test Model](#use-a-test-model)
 - [Use Value Retriever and Table Alias](#use-value-retriever-and-table-alias)
 - [Use Custom Type with Value Retriever and Comparer](#use-custom-type-with-value-retriever-and-comparer)
+- [Transform Table Column](#transform-table-column)
 
 ### Intro
 
@@ -258,4 +259,44 @@ A full example of this solution can be found in [this project](https://github.co
 
 ### Transform Table Column
 
+Because of the mentioned downsides, lately I've been using a different approach to solve the issue at hand. With this approach, I transform the column in the table before using the `Create...` and `Compare...` extension methods. So the location column with location names is transformed into a location id column with location ids.
 
+I've created a generic extension method for this as shown below.
+
+```csharp
+public static Table TransformColumn(this Table table, string oldColumn, string newColum, Func<string, string> transform)
+{
+    table.RenameColumn(oldColumn, newColum);
+
+    foreach (var row in table.Rows)
+    {
+        row[newColum] = transform(row[newColum]);
+    }
+
+    return table;
+}
+```
+
+The transformation is a 2-step process. First the column is renamed from `Location` to `LocationId`. The `RenameColumn` method is already provided by SpecFlow. Then we loop over the rows and update the cell in each row using the provided `transform` function.
+
+No changes are need to `WeatherForecast` class. We also don't need to create a value retriever and comparer. Simply call the `TransformColumn` and then execute the `Create...` or `Compare...` extension method. See the code below for the new implementation of the step definitions.
+
+```csharp
+[Given(@"the weather forecasts")]
+public void GivenTheWeatherForecasts(Table table)
+{
+    var weatherForecasts = table.TransformColumn("Location", "LocationId", (s) => s.LocationToId().ToString())
+                                .CreateSet<WeatherForecast>();
+
+    _repository.Register(weatherForecasts);
+}
+
+[Then(@"the following weather forecast is returned")]
+public void ThenTheFollowingWeatherForecastIsReturned(Table table)
+{
+    table.TransformColumn("Location", "LocationId", (s) => s.LocationToId().ToString())
+         .CompareToInstance(_actualWeatherForecast);
+}
+```
+
+[This project](https://github.com/ronaldbosma/blog-code-examples/tree/master/TransformSpecFlowTableColumn/05-TransformColumn) shows a full working example in which I've moved the `TransformColumn("Location", "LocationId", (s) => s.LocationToId().ToString())` call into another extension method to reduce duplication.
