@@ -146,7 +146,7 @@ Then the following weather forecast is returned
     | 28 October 2022 | London   |
 ```
 
-The full example of this solution can be found in [this project](https://github.com/ronaldbosma/blog-code-examples/tree/master/TransformSpecFlowTableColumn/02-UseTestModel). I've removed the duplicate mapping code by using a couple of [Step ArgumentTrans formation](https://docs.specflow.org/projects/specflow/en/latest/Bindings/Step-Argument-Conversions.html) methods.
+The full example of this solution can be found in [this project](https://github.com/ronaldbosma/blog-code-examples/tree/master/TransformSpecFlowTableColumn/02-UseTestModel). I've removed the duplicate mapping code by using a couple of [Step Argument Transformation](https://docs.specflow.org/projects/specflow/en/latest/Bindings/Step-Argument-Conversions.html) methods.
 
 ### Use Value Retriever and Table Alias
 
