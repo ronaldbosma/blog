@@ -7,7 +7,7 @@ tags: [ "Gherkin", "SpecFlow", "Specification by Example", "ATDD", "BDD", "Test 
 draft: true
 ---
  
-In my blog post [Handling technical ids in Gherkin with SpecFlow](http://localhost:1313/blog/2020/08/08/handling-technical-ids-in-gherkin-with-specflow/) I wrote about a trick on how to remove technical ids from Gherkin scenarios while still using technical ids in the step definitions. The proposed solution worked good for the given scenario, but not for other cases.
+In my blog post [Handling technical ids in Gherkin with SpecFlow](https://ronaldbosma.github.io/blog/2020/08/08/handling-technical-ids-in-gherkin-with-specflow/) I wrote about a trick on how to remove technical ids from Gherkin scenarios while still using technical ids in the step definitions. The proposed solution worked good for the given scenario, but not for other cases.
 
 I've been working on a demo app that displays weather forecast information for different locations. The weather forecast class has a `LocationId` property that is a reference to a location. See the class below.
 
