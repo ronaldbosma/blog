@@ -302,8 +302,8 @@ public void ThenTheFollowingWeatherForecastIsReturned(Table table)
 
 I think this is a nice and clean approach that will help keep our Gherkin scenarios readable and our code simple. There is however 1 downside. When the comparison fails because the location is wrong, you don't get the message: `London` was found but `Madrid` was expected. Instead you get: `2` was found but `3` was expected. This could be a little bit confusing if you don't know what's happening.
 
-[This project](https://github.com/ronaldbosma/blog-code-examples/tree/master/TransformSpecFlowTableColumn/05-TransformColumn) shows a full working example. I've moved the `TransformColumn("Location", "LocationId", (s) => s.LocationToId().ToString())` call into another extension method to reduce duplication.
+[This project](https://github.com/ronaldbosma/blog-code-examples/tree/master/TransformSpecFlowTableColumn/05-TransformColumn) shows a full working example, where I've moved the `TransformColumn("Location", "LocationId", (s) => s.LocationToId().ToString())` call into another extension method to reduce duplication.
 
 ### Conclusion
 
-I've described several approaches on how to remove technical id's from your scenarios tables, while still using the ids in your code. Each with their pros and cons. Transforming a tables column was a new approach for me that has worked well for me. I hope it can be another tool in your belt and if you have any other / better solutions I hope to hear from you.
+I've described several approaches on how to remove technical ids from your scenario's tables, while still using the ids in your code. Each with their pros and cons. Transforming a table column is a new approach for me that has worked well for me. I hope it can be another tool in your belt. If you have any other / better solutions I hope to hear from you.
