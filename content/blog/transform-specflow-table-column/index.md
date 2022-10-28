@@ -299,4 +299,6 @@ public void ThenTheFollowingWeatherForecastIsReturned(Table table)
 }
 ```
 
-[This project](https://github.com/ronaldbosma/blog-code-examples/tree/master/TransformSpecFlowTableColumn/05-TransformColumn) shows a full working example in which I've moved the `TransformColumn("Location", "LocationId", (s) => s.LocationToId().ToString())` call into another extension method to reduce duplication.
+I think this is a nice and clean approach that will help keep our Gherkin scenarios readable and our code simple. There is however 1 downside. When the comparison fails because the location is wrong, you don't get the message: `London` was found but `Madrid` was expected. Instead you get: `2` was found but `3` was expected. This could be a little bit confusing if you don't know what's happening.
+
+[This project](https://github.com/ronaldbosma/blog-code-examples/tree/master/TransformSpecFlowTableColumn/05-TransformColumn) shows a full working example. I've moved the `TransformColumn("Location", "LocationId", (s) => s.LocationToId().ToString())` call into another extension method to reduce duplication.
