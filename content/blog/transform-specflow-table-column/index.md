@@ -14,7 +14,8 @@ In my blog post [Handling technical ids in Gherkin with SpecFlow](https://ronald
 
 - [Intro](#intro)
 - [Use a Test Model](#use-a-test-model)
-
+- [Use Value Retriever and Table Alias](#use-value-retriever-and-table-alias)
+- [Use Custom Type with Value Retriever and Comparer](#use-custom-type-with-value-retriever-and-comparer)
 
 ### Intro
 
@@ -144,4 +145,117 @@ Then the following weather forecast is returned
 ```
 
 The full example of this solution can be found in [this project](https://github.com/ronaldbosma/blog-code-examples/tree/master/TransformSpecFlowTableColumn/02-UseTestModel). I've removed the duplicate mapping code by using a couple of `StepArgumentTransformation` methods.
+
+### Use Value Retriever and Table Alias
+
+When using the `CreateSet` and `CreateInstance` methods, SpecFlow supports conversion of table cells via [Value Retrievers](https://docs.specflow.org/projects/specflow/en/latest/Extend/Value-Retriever.html). To convert the location name into an id, the following value retriever can be use.
+
+```csharp
+internal class LocationIdValueRetriever : IValueRetriever
+{
+    public bool CanRetrieve(KeyValuePair<string, string> keyValuePair, Type targetType, Type propertyType)
+    {
+        return keyValuePair.Key == "Location" && propertyType == typeof(int);
+    }
+
+    public object Retrieve(KeyValuePair<string, string> keyValuePair, Type targetType, Type propertyType)
+    {
+        return keyValuePair.Value.LocationToId();
+    }
+}
+```
+
+The value retriever will convert a cell's value when the column name is `Location` and the type to convert to is an `int` (which is the type of the location id). Because we still use `Location` as the column, we also need to add a table alias to the `LocationId` property as shown below.
+
+```csharp
+public class WeatherForecast
+{
+    public DateTime Date { get; set; }
+
+    [TableAliases("Location")]
+    public int LocationId { get; set; }
+
+    public int Temperature { get; set; }
+}
+```
+
+This approach has 2 downsides. First of all we need to add the `TableAliases` to our model. You probaby don't want to do that in a project code model.
+
+The second downside is that we can't really use this approach for the `Then` step. For comparisons SpecFlow has the notion of Value Comparers. Unfortunately, the interface is a lot more limited then for value retrievers, as you can see below.
+
+```csharp
+public interface IValueComparer
+{
+    bool CanCompare(object actualValue);
+    bool Compare(string expectedValue, object actualValue);
+}
+```
+
+Since we don't know which column we're comparing, it's not really a viable option at the moment.
+
+See [this project](https://github.com/ronaldbosma/blog-code-examples/tree/master/TransformSpecFlowTableColumn/03-UseValueRetriever) for a full implementation of this solution.
+
+### Use Custom Type with Value Retriever and Comparer
+
+To improve on the previous approach, we can introduce a custom `LocationId` type and use it in the weather forecast. See the example below.
+
+> These kinds of types are commonly known as 'value objects'. A term used in Domain Driven Design.
+
+```csharp
+public record struct LocationId(int locationId);
+
+public class WeatherForecast
+{
+    public DateTime Date { get; set; }
+
+    [TableAliases("Location")]
+    public LocationId LocationId { get; set; }
+
+    public int Temperature { get; set; }
+}
+```
+
+The value retriever is changed to convert to a `LocationId` instead of an `int`. We also don't really need to check the column name anymore.
+
+```csharp
+internal class LocationIdValueRetriever : IValueRetriever
+{
+    public bool CanRetrieve(KeyValuePair<string, string> keyValuePair, Type targetType, Type propertyType)
+    {
+        return propertyType == typeof(LocationId);
+    }
+
+    public object Retrieve(KeyValuePair<string, string> keyValuePair, Type targetType, Type propertyType)
+    {
+        return new LocationId(keyValuePair.Value.LocationToId());
+    }
+}
+```
+
+For the comparion, we can now implement a value comparer like the one below.
+
+```csharp
+internal class LocationIdValueComparer : IValueComparer
+{
+    public bool CanCompare(object actualValue)
+    {
+        return actualValue is LocationId;
+    }
+
+    public bool Compare(string expectedValue, object actualValue)
+    {
+        var expected = new LocationId(expectedValue.LocationToId());
+        var actual = (LocationId)actualValue;
+
+        return expected == actual;
+    }
+}
+```
+
+In projects where using value objects is common, this can be a good approach. They only downside is that we still need to add a table alias on the `LocationId` property if we want to use `Location` as the column name.
+
+A full example of this solution can be found in [this project](https://github.com/ronaldbosma/blog-code-examples/tree/master/TransformSpecFlowTableColumn/04-UseCustomTypeWithValueRetrieverAndComparer).
+
+### Transform Table Column
+
 
