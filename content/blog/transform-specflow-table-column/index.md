@@ -83,7 +83,7 @@ We haven't done anything yet to convert the location names in the tables to the 
 
 ### Use a Test Model
 
-Introducing a 'test model' is a common solution when the table doesn't matched the object that is created or compared. This test model is created in the SpecFlow project. In our example it would look like the class below, where we have a `Location` property of type `string` instead of a location id.
+Introducing a 'test model' is a common solution when the table doesn't match the object that is created or compared. This test model is created in the SpecFlow project. In our example it would look like the class below, where we have a `Location` property of type `string` instead of a location id.
 
 ```csharp
 internal class WeatherForecastTestModel
@@ -188,9 +188,9 @@ public class WeatherForecast
 }
 ```
 
-This approach has 2 disadvantages. First of all, we need to add the `TableAliases` attribute to our model. You probably don't want to do that in a class of your actual production code.
+This approach has 2 disadvantages. First, we need to add the `TableAliases` attribute to our model. You probably don't want to do that in a class of your actual production code.
 
-The second disadvantage is that we can't really use this approach for the `Then` step. For comparisons SpecFlow has the notion of Value Comparers. Unfortunately, the interface is a lot more limited then for value retrievers, as you can see below.
+The second disadvantage is that we can't really use this approach for the `Then` step. For comparisons SpecFlow has the notion of Value Comparers. Unfortunately, the interface is a lot more limited than for value retrievers, as you can see below.
 
 ```csharp
 public interface IValueComparer
@@ -241,7 +241,7 @@ internal class LocationIdValueRetriever : IValueRetriever
 }
 ```
 
-For the comparion, we can now implement a value comparer like the one below.
+For the comparison, we can now implement a value comparer like the one below.
 
 ```csharp
 internal class LocationIdValueComparer : IValueComparer
@@ -267,7 +267,7 @@ A full example of this solution can be found in [this project](https://github.co
 
 ### Transform Table Column
 
-Because of the mentioned downsides, lately I've been using a different approach to solve the issue at hand. With this approach, I transform the column in the table before using the `Create...` and `Compare...` extension methods. So the location column with location names is transformed into a location id column with location ids.
+Because of the mentioned downsides, lately I've been using a different approach to solve the issue at hand. With this approach, I transform the column in the table before using the `Create...` and `Compare...` extension methods. So, the location column with location names is transformed into a location id column with location ids.
 
 I've created a generic extension method for this as shown below.
 
@@ -307,10 +307,10 @@ public void ThenTheFollowingWeatherForecastIsReturned(Table table)
 }
 ```
 
-I think this is a nice and clean approach that will help keep our Gherkin scenarios readable and our test automation code simple. There is however 1 downside. When the comparison fails because the location is wrong, you don't get the error message: `Location: Expected <Madrid>, Actual <London>`. Instead you get: `LocationId: Expected <3>, Actual <2>`. This could be confusing if you don't know what's happening on under the hood.
+I think this is a nice and clean approach that will help keep our Gherkin scenarios readable and our test automation code simple. There is however 1 downside. When the comparison fails because the location is wrong, you don't get the error message: `Location: Expected <Madrid>, Actual <London>`. Instead, you get: `LocationId: Expected <3>, Actual <2>`. This could be confusing if you don't know what's happening on under the hood.
 
 [This project](https://github.com/ronaldbosma/blog-code-examples/tree/master/TransformSpecFlowTableColumn/05-TransformColumn) shows a full working example. In this project, I've moved the `TransformColumn("Location", "LocationId", (s) => s.LocationToId().ToString())` call into another extension method to reduce duplication.
 
 ### Conclusion
 
-I've described several approaches on how to remove technical ids from your scenario's tables while still using ids in your code. Each has its pros and cons. Transforming a table column is a new approach for me that has worked well for me. I hope it can be another tool in your belt. If you have any other / better solutions I hope to hear from you.
+I've described several approaches on how to remove technical ids from your scenario's tables while still using ids in your code. Each has its pros and cons. Transforming a table column is a new approach for me that has worked well for me. I hope it can be another tool in your belt. If you have any other / better solutions, I hope to hear from you.
