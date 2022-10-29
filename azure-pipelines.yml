@@ -10,7 +10,7 @@ stages:
   jobs:
   - job:
     pool:
-      vmImage: 'vs2017-win2016'  # need a Windows host because the Hugo task uses PowerShell
+      vmImage: 'ubuntu-latest'
 
     workspace:
       clean: all
@@ -20,10 +20,11 @@ stages:
       displayName: 'Checkout repository including submodules'
       submodules: true  # true so Hugo theme submodule is checked out
 
-    - task: HugoTask@1
+    - task: giuliovdev.hugo-extension.hugo-build-task-v2.HugoTask@2
       displayName: 'Generate Hugo site'
       inputs:
         destination: '$(Build.ArtifactStagingDirectory)'
+        hugoVersion: 0.92.2
 
     - publish: '$(Build.ArtifactStagingDirectory)'
       artifact: 'hugo-site'
@@ -39,7 +40,7 @@ stages:
   jobs:
   - job: # chose to use a normal job instead of a deployment job because I don't need an environment
     pool:
-      vmImage: 'vs2017-win2016'  # need a Windows host because the GitHubPagesPublish task uses PowerShell
+      vmImage: 'windows-latest'  # need a Windows host because the GitHubPagesPublish task uses PowerShell
 
     steps:
     - checkout: none  # no need to checkout any code because we only need the artifact
