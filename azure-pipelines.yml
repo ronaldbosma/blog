@@ -10,7 +10,7 @@ stages:
   jobs:
   - job:
     pool:
-      vmImage: 'vs2017-win2016'  # need a Windows host because the Hugo task uses PowerShell
+      vmImage: 'windows-latest'  # need a Windows host because the Hugo task uses PowerShell
 
     workspace:
       clean: all
@@ -39,7 +39,7 @@ stages:
   jobs:
   - job: # chose to use a normal job instead of a deployment job because I don't need an environment
     pool:
-      vmImage: 'vs2017-win2016'  # need a Windows host because the GitHubPagesPublish task uses PowerShell
+      vmImage: 'windows-latest'  # need a Windows host because the GitHubPagesPublish task uses PowerShell
 
     steps:
     - checkout: none  # no need to checkout any code because we only need the artifact
