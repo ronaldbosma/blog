@@ -25,7 +25,7 @@ In my blog post [Handling technical ids in Gherkin with SpecFlow](https://ronald
 I've been working on a demo app that displays weather forecast information for different locations. The weather forecast class has a `LocationId` property that is a reference to a location entity. See the class below.
 
 ```csharp
-public class WeatherForecast : IWeatherForecast
+internal class WeatherForecast
 {
     public DateTime Date { get; set; }
     public int LocationId { get; set; }
@@ -56,7 +56,7 @@ See the full code below. A working example can be found in [this project](https:
 internal class Steps
 {
     private readonly WeatherForecastRepository _repository = new ();
-    private IWeatherForecast? _actualWeatherForecast;
+    private WeatherForecast? _actualWeatherForecast;
 
     [Given(@"the weather forecasts")]
     public void GivenTheWeatherForecasts(Table table)
@@ -178,7 +178,7 @@ internal class LocationIdValueRetriever : IValueRetriever
 The value retriever will convert a cell's value when the column name is `Location` and the type to convert to is an `int` (which is the type of the location id). Because we still use `Location` as the column name, we also need to add a table alias to the `LocationId` property as shown below.
 
 ```csharp
-public class WeatherForecast
+internal class WeatherForecast
 {
     public DateTime Date { get; set; }
 
@@ -212,9 +212,9 @@ To improve on the previous solution, we can introduce a custom `LocationId` type
 > These kinds of types are commonly known as 'value objects'. A term from in Domain Driven Design.
 
 ```csharp
-public record struct LocationId(int locationId);
+internal record struct LocationId(int locationId);
 
-public class WeatherForecast
+internal class WeatherForecast
 {
     public DateTime Date { get; set; }
 
