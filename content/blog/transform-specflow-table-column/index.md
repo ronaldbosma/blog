@@ -1,11 +1,11 @@
 ---
 title: "Transform SpecFlow Table Column"
-date: 2022-10-29T09:00:00+02:00
-publishdate: 2022-10-29T09:00:00+02:00
-lastmod: 2022-10-29T09:00:00+02:00
+date: 2022-10-29T12:30:00+02:00
+publishdate: 2022-10-29T12:30:00+02:00
+lastmod: 2022-10-29T12:30:00+02:00
 tags: [ "Gherkin", "SpecFlow", "Specification by Example", "ATDD", "BDD", "Test Automation", "Cleaner Code" ]
 summary: "In a previous blog post I wrote about a trick on how to remove technical ids from Gherkin scenarios while still using technical ids in the step definitions. The proposed solution worked well for the given scenario, but not for other cases. In this post I look at several approaches on how to solve this issue."
-draft: true
+draft: false
 ---
  
 In my blog post [Handling technical ids in Gherkin with SpecFlow](https://ronaldbosma.github.io/blog/2020/08/08/handling-technical-ids-in-gherkin-with-specflow/) I wrote about a trick on how to remove technical ids from Gherkin scenarios while still using technical ids in the step definitions. The proposed solution worked well for the given scenario, but not for other cases.
