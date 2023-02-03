@@ -21,7 +21,7 @@ The insights I share are based on my own experience and inspired other sources l
   - [Unit Tests](#unit-tests)
 - [Test Pyramid Extended](#test-pyramid-extended)
   - [Component Tests](#component-tests)
-- [SpecFlow in the Test Pyramid](#specflow-in-the-test-pyramid)
+- [Scope of SpecFlow tests](#scope-of-specflow-tests)
   - [Why I skip the Controller](#why-i-skip-the-controller)
   - [Why I include the repository and database](#why-i-include-the-repository-and-database)
 - [Conclusion](#conclusion)
@@ -126,17 +126,16 @@ Pros:
 Cons:
 - The scope they test is larger than that of unit tests. Making it a bit more difficult to maintain, but still al ot easier in comparison to Service and UUI tests.
 
-
-
+> NOTE: to keep my component tests fast I tend to use an in-memory version of the database. Entity Framework for example not only supports SQL Server, but also has an in-memory provider and a SQLite provider that are designed for test automation. See [Testing without your production database system](https://learn.microsoft.com/en-us/ef/core/testing/testing-without-the-database) for more information.
 
 > Include image of test 'tree' and mention that coverage is high with component tests so the need for unit tests is lower.
 
 
 
 
-### SpecFlow in the Test Pyramid
+### Scope of SpecFlow tests
 
-I find the component test level ideal for automating Gherkin scenarios with SpecFlow. Their scope is not to small as it usually is with unit tests, but I still get the advantages of in-process tests that can run in an automated build pipeline and on my local development machine without requiring a deployment.
+I find the component test level ideal for automating Gherkin scenarios with SpecFlow. Their scope is not to small, as it usually is with unit tests, and I still get the advantages of in-process tests.
 
 When I automate scenarios with SpecFlow I use the following scope. As you can see, I tend to skip the Controller and include the database.
 
@@ -144,21 +143,21 @@ When I automate scenarios with SpecFlow I use the following scope. As you can se
 
 #### Why I skip the Controller
 
-It is not uncommon for an API to support multiple versions of a contract or even different protocols, like REST and gRPC. This would mean multiple controllers, that all use the same application/business logic, as shown below.
+It is not uncommon for an API to support multiple versions of a contract or even different protocols, like REST and gRPC. This would result in multiple controllers, that all use the same application/business logic, as shown below.
 
 ![Multiple Controllers](../../../../../images/where-to-position-specflow-in-the-test-pyramid/multiple-controllers.png)
 
 Which controller would you use to automate a Gherkin scenario? Or would you duplicate the scenarios and implement them on every controller?
 
-Controllers are focused on technology specific concerns, like what status code to return from a REST API if a resource can't be found. It is the application/business logic working together with the other classes that actually implement a Gherkin scenario. That's why I skip the Controllers in my SpecFlow tests.
+In my opinion controllers should be focused on technology specific concerns, like what status code to return from a REST API if a resource can't be found. It is the application/business logic working together with the other classes that actually implement a Gherkin scenario. That's why I skip the Controllers in my SpecFlow tests.
 
 #### Why I include the repository and database
 
-Most of the logic that is described in a Gherkin scenario will reside in the application/business logic and in the aggregates/entities. With that consideration in mind, in the pas I did not include the repository or database in my SpecFlow tests. Instead I stubbed the repository with a test double.
+Most of the logic that is described in a Gherkin scenario will reside in the application/business logic and in the aggregates/entities. With that consideration in mind, in the past I did not include the repository or database in my SpecFlow tests. Instead I stubbed the repository with a test double.
 
 There are two reasons why I've found this approach to be bad.
 
-##### Reason 1: stubbing can be difficult and the number of different situations to support tend to get out of hand
+##### Reason 1: stubbing becomes difficult when the number of different situations to support grow
 
 One of the advantages of Gherkin is that you can define `Given` steps that can be reused across scenarios and features. It can for instance makes sure that books are available in the system when executing the scenario. See the following snippet.
 
@@ -169,19 +168,22 @@ Given the books
     | 9781801815710 | Infrastructure as Code with Azure Bicep |
     | 9781680504989 | The Cucumber for Java Book              |
 When ...
+Then ...
 ```
 
-In the first scenario we might retrieve all books. A call to `respository.GetAllBooks()` will performed which we have to stub in the step definition of the `Given` step. In a second scenario we might want to retrieve a single book by its EAN (European Article Number). A call to `respository.GetBookByEAN(ean)` is performed which we also have to stub in the step definition of the `Given` step.
+In our first scenario we might need to retrieve all books. A call to `respository.GetAllBooks()` will performed by the application logic. We have to stub the call on our test double in the step definition of the `Given` step.
 
-As the functionality of the application grows, so will the number of methods on our repository to retrieve books. Resulting in more and more configuration on our stub. And to make it generic, the stubbing logic will tend to mimic the implementation of the repository.
+In a second scenario we might need to retrieve a single book by its EAN (European Article Number). A call to `respository.GetBookByEAN(ean)` is performed. We'll have to include this call on our stub in the same `Given` step definition and we have to make sure that the correct book is returned for the specified EAN. Basically mimicing the filter logic in the repository.
 
-By including the repository and database in the scope of the component test, it becomes much easier to setup the data specified in a `Given` step. You can simply insert it in the database. 
+As the functionality of the application grows, so will the number of methods on our repository to retrieve books. Resulting in more and more setup code on our stub.
+
+By including the repository and database in the scope of the component test, it becomes much easier to setup the data specified in a `Given` step. You can simply insert it in the database and the selection of what books to retrieve is handled by the repository.
 
 ##### Reason 2: filter logic is part of the scenario
 
 The second reason why a include the repository and database is that it's not uncommon that code in for instance the repository is part of the scenario.
 
-Take the following scenario for example. We're searching for a book. This is implement in the repository by executing a query with filter on the database. If we had mocked the repository, we would not be able to test the specified logic.
+Take the following scenario for example.
 
 ```gherkin
 Given the books
@@ -195,7 +197,7 @@ Then I expect the following book to be found
     | 9781617290084 | Specification by Example                |
 ```
 
-To keep my component tests fast I tend to use an in-memory version of a database. Entity Framework for example not only supports SQL Server, but also has an in-memory provider and a SQLite provider that are designed for test automation. See [Testing without your production database system](https://learn.microsoft.com/en-us/ef/core/testing/testing-without-the-database) for more information.
+We're searching for a book. This is implemented in the repository by executing a query with a filter on the database. If we had stubbed the repository, we would not be able to test the specified logic.
 
 ### Conclusion
 
