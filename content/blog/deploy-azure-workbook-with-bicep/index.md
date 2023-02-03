@@ -49,7 +49,7 @@ The ARM template can then be decompiled to a Bicep script with the following com
 > You can find the Bicep CLI on [Bicep Tools](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install)
 
 ```powershell
- bicep decompile .\my-workbook-arm-template.json
+ bicep decompile ./my-workbook-arm-template.json
 ```
 
 The result will be a Bicep file similar to the snippet below. See [my-workbook-arm-template.bicep](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookWithBicep/exports/my-workbook-arm-template.bicep) for the full script.
