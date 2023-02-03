@@ -11,7 +11,7 @@ In my software development projects I prefer to use Specification by Example to 
 
 As with all tests, there are different levels on which a Gherkin scenario can be automated using SpecFlow (or Cucumber for that matter). In this blog post I consider the different levels of the test pyramid and describe my preferred level for SpecFlow tests. 
 
-The insights I share are based on my own experience and inspired by industry leaders like [Martin Fowler's Blog](https://martinfowler.com/tags/testing.html).
+The insights I share are based on my own experience and inspired other sources like [Martin Fowler's Blog](https://martinfowler.com/tags/testing.html).
 
 ### Table of Contents
 
