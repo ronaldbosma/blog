@@ -54,5 +54,14 @@ for ($i = 0; $i -lt $workbook.Count; $i++)
 }
 
 Set-Content -Path $targetFile -Value $workbook
+```
 
+
+
+```powershell
+az deployment group create `
+    --name 'my-workbook-deployment' `
+    --resource-group 'my-resource-group' `
+    --template-file './my-workbook.bicep' `
+    --verbose
 ```
