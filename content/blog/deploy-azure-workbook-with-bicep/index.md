@@ -3,7 +3,7 @@ title: "Deploy Azure Workbook with Bicep"
 date: 2023-02-03T00:00:00+02:00
 publishdate: 2023-02-03T00:00:00+02:00
 lastmod: 2023-02-03T00:00:00+02:00
-tags: [ "Azure", "Bicep", "Infra as Code" ]
+tags: [ "Azure", "Bicep", "Infra as Code", "PowerShell" ]
 summary: "In this post I explain how to deploy an Azure workbook using Bicep and use environment specific variables. To improve maintainability of the Bicep script, I convert the workbook JSON definition to a formatted Bicep object with PowerShell."
 draft: true
 ---
