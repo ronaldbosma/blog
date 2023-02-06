@@ -8,7 +8,7 @@ summary: "In this post I explain how to deploy an Azure workbook using Bicep and
 draft: true
 ---
 
-For my current project I've created an [Azure Workbook](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) to gain more insight into the use of our API's hosted in Azure API Management. We create and deploy all our resources with Bicep. So I wanted to do the same with my workbook. In this blog post I'll show you how.
+For my current project I've created an [Azure Workbook](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) to gain more insight into the use of our API's hosted in Azure API Management. We create and deploy all our resources with Bicep. So, I wanted to do the same with my workbook. In this blog post I'll show you how.
 
 > If you're interested in creating your own workbooks. [The Azure Workbook documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) is a good starting point.
 
@@ -39,7 +39,7 @@ Note the filter on the API Management instance `my-api-management-dev`. This nam
 
 ### Deploy with ARM template
 
-I always start by creating my workbook through the Azure Portal in my Dev environment. Once your done, you can download an ARM Template that you can convert to a Bicep script. To do this, open the workbook in Edit mode and click the Advanced Editor button.
+I always start by creating my workbook through the Azure Portal in my Dev environment. Once you're done, you can download an ARM Template that you can convert to a Bicep script. To do this, open the workbook in Edit mode and click the Advanced Editor button.
 
 ![Edit Workbook - Advanced Editor](../../../../../images/deploy-azure-workbook-with-bicep/edit-workbook-advanced-editor.png)
 
@@ -52,7 +52,7 @@ The ARM template can then be decompiled to a Bicep script with the following com
  bicep decompile ./my-workbook-arm-template.json
 ```
 
-The result will be a Bicep file similar to the snippet below. See [my-workbook-arm-template.bicep](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookWithBicep/exports/my-workbook-arm-template.bicep) for the full script.
+The result will be a Bicep file like the snippet below. See [my-workbook-arm-template.bicep](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookWithBicep/exports/my-workbook-arm-template.bicep) for the full script.
 
 ```bicep
 @description('The friendly name for the workbook that is used in the Gallery or Saved List.  This name must be unique within a resource group.')
@@ -84,7 +84,7 @@ resource workbookId_resource 'microsoft.insights/workbooks@2021-03-08' = {
 output workbookId string = workbookId_resource.id
 ```
 
-The workbook definition is set throught the `serializedData` property. As you can see it's one long string that contains the entire workbook definition. Including hardcoded environment specific values, like the API Management instance name `my-api-management-dev`.
+The workbook definition is set through the `serializedData` property. As you can see it's one long string that contains the entire workbook definition. Including hardcoded environment specific values, like the API Management instance name `my-api-management-dev`.
 
 To make it deployable to multiple environments, add an extra parameter to the Bicep script for the API Management instance name as shown below.
 
@@ -95,11 +95,11 @@ param apimResourceName string = 'my-api-management-dev'
 
 You can then replace every value of `my-api-management-dev` with `${apimResourceName}` in the workbook definition string.
 
-The biggest downside of this solution is that the entire workbook definition is a serialized string on one line. This makes it difficult to make small changes directly in the definition or to see what has changed during a review. You'll also need to replace the environment specific values with parameters (or variables) after every change to the workbook and export of the ARM template.
+The biggest downside of this solution is that the entire workbook definition is a serialized string on one line. This makes it difficult to make minor changes directly in the definition or to see what has changed during a review. You'll also need to replace the environment specific values with parameters (or variables) after every change to the workbook and export of the ARM template.
 
 ### Deploy with Bicep object
 
-To solve this problem I convert the workbook JSON definition into a Bicep object. It can be used inside the Bicep script and can be formatted for improved readability. 
+To solve this problem, I convert the workbook JSON definition into a Bicep object. It can be used inside the Bicep script and can be formatted for improved readability. 
 
 The first step is to download the workbook definition. Open the workbook in Edit mode and click the Advanced Editor button.
 
@@ -152,14 +152,14 @@ for ($i = 0; $i -lt $workbook.Count; $i++)
 Set-Content -Path $targetFile -Value $workbook
 ```
 
-When this script is executed, the `my-workbook.workbook` file is loaded and we loop over every line performing the following transformations:
+When this script is executed, the `my-workbook.workbook` file is loaded, and we loop over every line performing the following transformations:
 1. Remove the `"` that surrounds the property names. Bicep properties don't have these.
-1. Escape all occurences of `'` with a \`. This will escape for instance a `'` that is used in a query.
+1. Escape all occurrences of `'` with a \`. This will escape for instance a `'` that is used in a query.
 1. Surround string values with `'` instead of `"` and remove any trailing `,`
-1. Remove all trailing `,` that were skipped by the previous step (e.g. in case of non string value)
+1. Remove all trailing `,` that were skipped by the previous step (in case of non-string value for example)
 1. Remove the `\` from `\"`. The `"` in values was escaped, but this is no longer necessary since the values are surround by a `'`
 1. Remove the JSON schema property
-1. Replace all environment specific values with variables/parameters. E.g. `my-api-management-dev` becomes `${apimResourceName}`.
+1. Replace all environment specific values with variables/parameters. The value `my-api-management-dev` becomes `${apimResourceName}` for example.
 
 The result is a Bicep file that looks like [my-workbook-definition.bicep](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookWithBicep/exports/my-workbook-definition.bicep).
 
@@ -195,7 +195,7 @@ As you can see, the definition is first converted with the `string()` function b
 
 Because the workbook definition is formatted instead of a one liner string, it's easier to make small changes or see what was changed.
 
-You can now deploy the workbook using the following Azure CLI command and your done.
+You can now deploy the workbook using the following Azure CLI command and you're done.
 
 ```powershell
 az deployment group create `
