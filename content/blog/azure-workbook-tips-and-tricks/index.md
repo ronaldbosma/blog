@@ -17,12 +17,13 @@ In this blog post I'll share some tips & tricks that I've gathered over the year
 - [Workbook](#workbook)
   - [Parameters](#parameters)
     - [Time Range Parameter](#time-range-parameter)
-    - [Subscription Parameter](#subscription-parameter)
-    - [Api Parameter](#api-parameter)
-    - [Success Parameter](#success-parameter)
+    - [Subscription Parameter (drop down from logs)](#subscription-parameter-drop-down-from-logs)
+    - [Api Parameter (drop down from logs)](#api-parameter-drop-down-from-logs)
+    - [Success Parameter (drop down from JSON)](#success-parameter-drop-down-from-json)
   - [Table](#table)
     - [Request Details in Context Pane](#request-details-in-context-pane)
     - [End-to-end Transaction Details](#end-to-end-transaction-details)
+  - [Totals (tiles)](#totals-tiles)
   
 
 ### Construct a query
@@ -117,7 +118,7 @@ We'll want to filter on a specific time range, so click on the 'Add Parameter' b
 
 Click Save to add the parameter.
 
-##### Subscription Parameter
+##### Subscription Parameter (drop down from logs)
 
 When calling API Management, we need to use a subscription for authentication. I want to filter on this subscription so we can see who performed which requests.
 
@@ -143,7 +144,7 @@ The New Parameter screen should look like this.
 
 Click Save to add the parameter.
 
-##### Api Parameter
+##### Api Parameter (drop down from logs)
 
 As mentioned before, we also want to filter on the API that was called.
 
@@ -163,7 +164,7 @@ The New Parameter screen should look like this.
 
 Click Save to add the parameter.
 
-##### Success parameter
+##### Success parameter (drop down from JSON)
 
 You can also use a static list to populate a drop down filter. We'll add another parameter to filter on successful and/or failed requests.
 
@@ -272,7 +273,44 @@ Choose Save and Close to see the results. When you click on a transaction link, 
 ![End-to-end Transaction Details](../../../../../images/azure-workbook-tips-and-tricks/end-to-end-transaction-details.png)
 
 
-### Save Workbook
+#### Totals (Tiles)
+
+Besides tables you can also use other visualizations to display your query results. One I like to use is tiles. You can use these to for instance show the total number of requests, failures and errors per API. See the example below.
+
+![Total Tiles](../../../../../images/azure-workbook-tips-and-tricks/tiles-totals.png)
+
+Start by adding another query to the workbook. Select Time as the Time Range, Tiles as the Visualization and Tiny as the Size.
+
+Add the following query.
+
+```
+ApimRequests
+| summarize 
+        requests=strcat('Total # of requests: ', count()), 
+        failures=strcat('Total # of failures: ', countif(success==false)),
+        errors=countif(toint(resultCode)>=500)
+    by api
+```
+
+This query groups the results by api and counts all requests, all failed requests and all requests with result code >= 500. To clarify what the different numbers are, I add a bit of text to the results.
+
+If you run the query, you'll notice that it doesn't quite look the same as the example above. We need to customize the tile.
+
+Choose Tile Settings. The api is already the title and the errors are displayed as the larger number on the left.
+
+To add the total number of requests and failures. Select the Subtitle field and select requests as the column to use. Select the Bottom field and select failures as the column to use.
+
+You can also configure on what property to order the results. Select api as the Sort Criteria under Sort Settings and Ascending as the Sort Order.
+
+![Tiles Settings](../../../../../images/azure-workbook-tips-and-tricks/tiles-settings.png)
+
+Choose Save and Close.
+
+We can add a title to the chart to clarify what is displayed. Go to Advanced Settings and set the chart title to: Total # of errors per API (status code >=500).
+
+I usually display the totals above a table. You can move the Tiles section above the table by choosing 'Move > Move up'.
+
+#### Save Workbook
 
 'Done Editing' 
 
