@@ -29,6 +29,7 @@ In this blog post I'll share some tips & tricks that I've gathered over the year
   - [Add Detail Table](#add-detail-table)
   - [Show Detail Table on Selection](#show-detail-table-on-selection)
 - [Save Workbook](#save-workbook)
+- [Conclusion](#conclusion)
 
 ### Construct a query
 
@@ -386,3 +387,18 @@ With this the details table is only shown when the SelectedSessionCorrelationId 
 Ones your done editing the workbook you can choose 'Done Editing'. Then choose Save, enter a title and select the correct subscription, resource group & location. Choose Apply and the workbook is saved.
 
 Note that parameter selection is also saved. So if you're filtering on e.g. success == false and choose Save, this selection will be saved. Whenever you or another users opens the workbook this selection will be pre selected.
+
+Here are links to the exported workbook and shared function:
+- [API Management Requests.workbook](https://github.com/ronaldbosma/blog-code-examples/blob/master/AzureWorkbookTipsAndTricks/API%20Management%20Requests.workbook)
+- [ApimRequests.kql](https://github.com/ronaldbosma/blog-code-examples/blob/master/AzureWorkbookTipsAndTricks/ApimRequests.kql)
+
+In a next post I'll show you how to deploy this workbook using Bicep.
+
+
+### Conclusion
+
+As you can see, there's a lot you can do with workbooks and we've only scratched the surface. See these links for more information.
+
+- [Dashboard](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/tutorial-logs-dashboards)
+- [Kusto Query Language](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/)
+- [Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview)
