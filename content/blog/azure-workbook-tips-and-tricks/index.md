@@ -20,6 +20,9 @@ In this blog post I'll share some tips & tricks that I've gathered over the year
     - [Subscription Parameter](#subscription-parameter)
     - [Api Parameter](#api-parameter)
     - [Success Parameter](#success-parameter)
+  - [Table](#table)
+    - [Request Details in Context Pane](#request-details-in-context-pane)
+    - [End-to-end Transaction Details](#end-to-end-transaction-details)
   
 
 ### Construct a query
@@ -188,3 +191,89 @@ Now that we've added our parameters, click the 'Done Editing' button in the 'Edi
 
 #### Table
 
+The next step is to add a table that shows the requests. Choose 'Add > Add query'.
+
+To filter the results in the table based on the selected time range of the previously created Time parameter, we can select the Time parameter in the Time Range drop down. And with Grid as the Visualization, the results will be shown as a table.
+
+![Grid Time Range and Visualization](../../../../../images/azure-workbook-tips-and-tricks/grid-time-range-and-visualization.png)
+
+Now add the following query.
+
+```kusto
+let subscriptionFilter = dynamic([{Subscription}]);
+let apiFilter = dynamic([{Api}]);
+let successFilter = '{Success}';
+
+ApimRequests
+| where array_length(subscriptionFilter) == 0 or subscription in (subscriptionFilter)
+| where array_length(apiFilter) == 0 or api in (apiFilter)
+| where isempty(successFilter) or success == tobool(successFilter)
+| project timestamp
+    , subscription
+    , api
+    , name
+    , success
+    , resultCode
+    , duration = strcat(round(duration, 1), " ms")
+    , details = itemId
+    , transaction = itemId
+    , sessionCorrelationId
+| order by timestamp desc
+```
+
+The `let subscriptionFilter = dynamic([{Subscription}]);` line will create an array of selected subscriptions based on the Subscription parameter. If no subscription was selected, the array is empty. The filter `| where array_length(subscriptionFilter) == 0 or subscription in (subscriptionFilter)` will show all requests if no subscription was filtered or it will show requests that have a subscription specified in the Subscription parameter.
+
+The Success parameter was not multi select, so `let successFilter = '{Success}';` will be empty if nothing is selected, `true` if yes is selected and `false` if no is selected. With the filter `| where isempty(successFilter) or success == tobool(successFilter)` we either show all request or the requests that were (un)successful.
+
+The `itemId` is displayed twice in the column `details` and `transaction`. We'll use these further on to create links to extra data.
+
+The query is executed when you click the Run Query button. You can now also filter the data by changing the values of the parameters. For example, select no in the Success parameter to show all failed requests.
+
+In the Advanced Settings tab you can configure more settings. I've set the chart title to 'Requests'. I also liked to check the 'Show filter field above grid or tiles' box. This will show a filter input field above the table that can be used to furter filter the results as shown below.
+
+![Table Filter Field](../../../../../images/azure-workbook-tips-and-tricks/table-filter-field.png)
+
+When you click the 'Column Settings' on the Settings tab you can further customize the way columns are show. For example setting a fixed with.
+
+##### Request Details in Context Pane
+
+To show more information about a request, we can change the details column to show a link that opens the request details to the side.
+
+Follow these steps:
+- Click on the Column Settings button and select the details column
+- Select Link in the Column renderer drop down
+- Enter '11ch' as the Custom Column Width
+- Select Request Details in the View to open drop down
+- Enter 'details' as the Link label
+- Check the 'Open link in Context pane' box
+
+![Table Column Details](../../../../../images/azure-workbook-tips-and-tricks/table-column-details.png)
+
+Choose Save and Close to see the results. When you click on a details link, a context pane opens on the right of the screen showing the request properties. See the example below.
+
+![Request Details](../../../../../images/azure-workbook-tips-and-tricks/request-details.png)
+
+##### End-to-end Transaction Details
+
+To show the end-to-end transaction details of a request, we can change the transaction column to show a link that opens the end-to-end-transaction details.
+
+Follow these steps:
+- Click on the Column Settings button and select the transaction column
+- Select Link in the Column renderer drop down
+- Enter '15ch' as the Custom Column Width
+- Select Request Details in the View to open drop down
+- Enter 'transaction' as the Link label
+- Keep the 'Open link in Context pane' unchecked
+
+![Table Column Transaction](../../../../../images/azure-workbook-tips-and-tricks/table-column-transaction.png)
+
+Choose Save and Close to see the results. When you click on a transaction link, the end-to-end transaction screen is shown. See the example below.
+
+![End-to-end Transaction Details](../../../../../images/azure-workbook-tips-and-tricks/end-to-end-transaction-details.png)
+
+
+### Save Workbook
+
+'Done Editing' 
+
+Choose Save, enter a title and select the correct subscription, resource group & location.
