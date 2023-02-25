@@ -14,21 +14,21 @@ In this blog post I'll share some tips & tricks that I've gathered over the year
 
 - [Construct a query](#construct-a-query)
 - [Create reusable query](#create-reusable-query)
-- [Workbook](#workbook)
-  - [Parameters](#parameters)
-    - [Time Range Parameter](#time-range-parameter)
-    - [Subscription Parameter (drop down from logs)](#subscription-parameter-drop-down-from-logs)
-    - [Api Parameter (drop down from logs)](#api-parameter-drop-down-from-logs)
-    - [Success Parameter (drop down from JSON)](#success-parameter-drop-down-from-json)
-  - [Table](#table)
-    - [Request Details in Context Pane](#request-details-in-context-pane)
-    - [End-to-end Transaction Details](#end-to-end-transaction-details)
-  - [Totals (tiles)](#totals-tiles)
-  - [Master-detail Table](#master-detail-table)
-    - [Export Selection from Master Table](#export-selection-from-master-table)
-    - [Add Detail Table](#add-detail-table)
-    - [Show Detail Table on Selection](#show-detail-table-on-selection)
-  - [Save Workbook](#save-workbook)
+- [Create Workbook](#create-workbook)
+- [Parameters](#parameters)
+  - [Time Range Parameter](#time-range-parameter)
+  - [Subscription Parameter (drop down from logs)](#subscription-parameter-drop-down-from-logs)
+  - [Api Parameter (drop down from logs)](#api-parameter-drop-down-from-logs)
+  - [Success Parameter (drop down from JSON)](#success-parameter-drop-down-from-json)
+- [Table](#table)
+  - [Request Details in Context Pane](#request-details-in-context-pane)
+  - [End-to-end Transaction Details](#end-to-end-transaction-details)
+- [Totals (tiles)](#totals-tiles)
+- [Master-detail Table](#master-detail-table)
+  - [Export Selection from Master Table](#export-selection-from-master-table)
+  - [Add Detail Table](#add-detail-table)
+  - [Show Detail Table on Selection](#show-detail-table-on-selection)
+- [Save Workbook](#save-workbook)
 
 ### Construct a query
 
@@ -100,7 +100,7 @@ To save the query as a function, choose 'Save > Save as function' and give it a 
 
 ![Query Results](../../../../../images/azure-workbook-tips-and-tricks/query-results.png)
 
-### Workbook
+### Create Workbook
 
 Now that we have our query, we can start creating our workbook. Open your Application Insights instance and go to Workbooks. As you can see, Azure already provides several workbooks that you can use and customize. We'll start from scratch, so click on Empty _(A completely empty workook)_.
 
@@ -108,13 +108,13 @@ When you click on Add, you'll see that we can add different items to the workboo
 
 ![Add Items Menu](../../../../../images/azure-workbook-tips-and-tricks/add-items-menu.png)
 
-#### Parameters
+### Parameters
 
 The first thing we'll do is add a couple of parameters. These will allow us to filter on the data that will be displayed.
 
 Click on 'Add > Add parameters' to add a parameters section to the top of the workbook.
 
-##### Time Range Parameter
+#### Time Range Parameter
 
 We'll want to filter on a specific time range, so click on the 'Add Parameter' button. Enter the parameter name 'Time', select 'Time range picker' as the parameter type and make it required.
 
@@ -122,9 +122,9 @@ We'll want to filter on a specific time range, so click on the 'Add Parameter' b
 
 Click Save to add the parameter.
 
-##### Subscription Parameter (drop down from logs)
+#### Subscription Parameter (drop down from logs)
 
-When calling API Management, we need to use a subscription for authentication. I want to filter on this subscription so we can see who performed which requests.
+When calling API Management, we need to use a subscription for authentication. I want to be able filter on this subscription so we can see who performed which requests.
 
 Click on the 'Add Parameter' button. Enter the parameter name 'Subscription', select 'Drop down' as the parameter type, check the 'Allow multiple selections' box and select 'Query' as the source of the data.
 
@@ -138,7 +138,9 @@ ApimRequests
 
 If you want to filter the results in your parameter based on the selected time in the Time parameter, then select Time in the Time Range drop down.
 
-To test the query, click the Run Query button. You might have to select a time range in the Time parameter for the query to work.
+To test the query, click the Run Query button. 
+
+> You might have to select a time range in the Time parameter first for the query to work.
 
 The New Parameter screen should look like this.
 
@@ -148,7 +150,7 @@ The New Parameter screen should look like this.
 
 Click Save to add the parameter.
 
-##### Api Parameter (drop down from logs)
+#### Api Parameter (drop down from logs)
 
 As mentioned before, we also want to filter on the API that was called.
 
@@ -168,7 +170,7 @@ The New Parameter screen should look like this.
 
 Click Save to add the parameter.
 
-##### Success parameter (drop down from JSON)
+#### Success parameter (drop down from JSON)
 
 You can also use a static list to populate a drop down filter. We'll add another parameter to filter on successful and/or failed requests.
 
@@ -194,7 +196,7 @@ Now that we've added our parameters, click the 'Done Editing' button in the 'Edi
 ![Workbook Parameters](../../../../../images/azure-workbook-tips-and-tricks/workbook-parameters.png)
 
 
-#### Table
+### Table
 
 The next step is to add a table that shows the requests. Choose 'Add > Add query'.
 
@@ -226,21 +228,21 @@ ApimRequests
 | order by timestamp desc
 ```
 
-The `let subscriptionFilter = dynamic([{Subscription}]);` line will create an array of selected subscriptions based on the Subscription parameter. If no subscription was selected, the array is empty. The filter `| where array_length(subscriptionFilter) == 0 or subscription in (subscriptionFilter)` will show all requests if no subscription was filtered or it will show requests that have a subscription specified in the Subscription parameter.
+The `let subscriptionFilter = dynamic([{Subscription}]);` line will create an array of selected subscriptions based on the Subscription parameter. If no subscription was selected, the array is empty. The filter `| where array_length(subscriptionFilter) == 0 or subscription in (subscriptionFilter)` will show all requests if no subscription was selected or that have a matching subscription if one or more were selected.
 
-The Success parameter was not multi select, so `let successFilter = '{Success}';` will be empty if nothing is selected, `true` if yes is selected and `false` if no is selected. With the filter `| where isempty(successFilter) or success == tobool(successFilter)` we either show all request or the requests that were (un)successful.
+The Success parameter was not multiselect, so `let successFilter = '{Success}';` will be empty if nothing is selected, `true` if yes is selected and `false` if no is selected. With the filter `| where isempty(successFilter) or success == tobool(successFilter)` we either show all request or the requests that were (un)successful.
 
-The `itemId` is displayed twice in the column `details` and `transaction`. We'll use these further on to create links to extra data.
+The `itemId` is displayed twice in both the `details` and `transaction` column. We'll use these further on to create links to the request details.
 
 The query is executed when you click the Run Query button. You can now also filter the data by changing the values of the parameters. For example, select no in the Success parameter to show all failed requests.
 
-In the Advanced Settings tab you can configure more settings. I've set the chart title to 'Requests'. I also liked to check the 'Show filter field above grid or tiles' box. This will show a filter input field above the table that can be used to furter filter the results as shown below.
+In the Advanced Settings tab you can configure more settings. I've set the chart title to 'Requests'. I also liked to check the 'Show filter field above grid or tiles' box. This will show a filter input field above the table that can be used to further filter the results as shown below.
 
 ![Table Filter Field](../../../../../images/azure-workbook-tips-and-tricks/table-filter-field.png)
 
-When you click the 'Column Settings' on the Settings tab you can further customize the way columns are show. For example setting a fixed with.
+When you click the 'Column Settings' on the Settings tab you can customize the way columns are show. For example setting a fixed width.
 
-##### Request Details in Context Pane
+#### Request Details in Context Pane
 
 To show more information about a request, we can change the details column to show a link that opens the request details to the side.
 
@@ -258,7 +260,7 @@ Choose Save and Close to see the results. When you click on a details link, a co
 
 ![Request Details](../../../../../images/azure-workbook-tips-and-tricks/request-details.png)
 
-##### End-to-end Transaction Details
+#### End-to-end Transaction Details
 
 To show the end-to-end transaction details of a request, we can change the transaction column to show a link that opens the end-to-end-transaction details.
 
@@ -277,7 +279,7 @@ Choose Save and Close to see the results. When you click on a transaction link, 
 ![End-to-end Transaction Details](../../../../../images/azure-workbook-tips-and-tricks/end-to-end-transaction-details.png)
 
 
-#### Totals (Tiles)
+### Totals (Tiles)
 
 Besides tables you can also use other visualizations to display your query results. One I like to use is tiles. You can use these to for instance show the total number of requests, failures and errors per API. See the example below.
 
@@ -302,9 +304,11 @@ If you run the query, you'll notice that it doesn't quite look the same as the e
 
 Choose Tile Settings. The api is already the title and the errors are displayed as the larger number on the left.
 
-To add the total number of requests and failures. Select the Subtitle field and select requests as the column to use. Select the Bottom field and select failures as the column to use.
+To add the total number of requests. Select the Subtitle field and select requests as the column to use. To add the total number of failures. Select the Bottom field and select failures as the column to use.
 
 You can also configure on what property to order the results. Select api as the Sort Criteria under Sort Settings and Ascending as the Sort Order.
+
+The Tile Settings screen should look like this.
 
 ![Tiles Settings](../../../../../images/azure-workbook-tips-and-tricks/tiles-settings.png)
 
@@ -315,7 +319,7 @@ We can add a title to the chart to clarify what is displayed. Go to Advanced Set
 I usually display the totals above a table. You can move the Tiles section above the table by choosing 'Move > Move up'.
 
 
-#### Master-detail Table
+### Master-detail Table
 
 Tables and other items provide the option to select data. We can use that selection as a filter in other items. 
 
@@ -323,7 +327,7 @@ As an example, we'll create a master-detail table. When a request in the master 
 
 ![Master-detail Table](../../../../../images/azure-workbook-tips-and-tricks/master-detail-table.png)
 
-##### Export Selection from Master Table
+#### Export Selection from Master Table
 
 To start Edit the current Requests table. Go to Advanced Settings and check the 'When items are selected, export parameters' box.
 
@@ -337,7 +341,7 @@ Choose Save. It should look like this.
 
 Choose Done Editing on the Editing query item.
 
-##### Add Detail Table
+#### Add Detail Table
 
 Choose 'Add > Add query' to add another table. Select Time as the Time Range and Grid as Visualization.
 
@@ -362,7 +366,7 @@ This query look similar to the previous one, but only filters on the `sessionCor
 
 You can customize the columns again, similar to the master table. I also like to add a chart title in which I display the selected value. You can update the chart title in the Advanced Settings with: `Requests for session: {SelectedSessionCorrelationId}`.
 
-##### Show Detail Table on Selection
+#### Show Detail Table on Selection
 
 If you don't select an item in the master table. You'll see the message below.
 
@@ -377,7 +381,7 @@ Open the Advanced Settings and check the 'Make this item conditionally visible'.
 With this the details table is only shown when the SelectedSessionCorrelationId has a value, which it will have if a row is selected in the master table.
 
 
-#### Save Workbook
+### Save Workbook
 
 Ones your done editing the workbook you can choose 'Done Editing'. Then choose Save, enter a title and select the correct subscription, resource group & location. Choose Apply and the workbook is saved.
 
