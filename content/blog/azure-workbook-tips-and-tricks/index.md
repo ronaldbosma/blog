@@ -3,7 +3,7 @@ title: "Azure Workbook Tips & Tricks"
 date: 2023-02-10T00:00:00+02:00
 publishdate: 2023-02-10T00:00:00+02:00
 lastmod: 2023-02-10T00:00:00+02:00
-tags: [ "Azure" ]
+tags: [ "Azure", "Application Insights", "kusto" ]
 draft: true
 summary: "foo"
 ---
@@ -28,19 +28,19 @@ When you want to display data from Application Insights on a dashboard or workbo
 
 Creating such a query can be daunting if you're unfamiliar with the syntax. I always like to start by constructing an initial query through the transaction search screen of Application Insights.
 
-For this, open your Application Insights instance in the portal and go the transaction search. At the top you'll see 'pills' that you can use to filter the data. By default it will show logging from the last 24 hours for all event types. 
+For this, open your Application Insights instance in the portal and go the transaction search. At the top you'll see 'pills' that you can use to filter the data. By default it will show logging from the last 24 hours for all event types. In our case, we're interested in requests, so unselect all event types except 'Request'.
 
-In our case, we're interested in requests, so unselect all event types except 'Request'. We can also add extra filters by adding a new pill. You can then select the property on which to filter and the value(s). 
+We can also add extra filters by adding a new pill. You can then select the property on which to filter and the value(s). 
 
 To filter on requests from our API Management instance, first select the 'Service ID' property and then the name of the API Management instance. 
 
-I also want to be able to filter on equests from specific API's. Add another pill, select 'API Name' as the property and select the API's on which to filter.
+I also want to be able to filter on requests from specific API's. Add another pill, select 'API Name' as the property and select the API's on which to filter.
 
 The result should look similar to the image below.
 
 ![Transaction Search](../../../../../images/azure-workbook-tips-and-tricks/transaction-search.png)
 
-By clicking on 'View in Logs' you'll go to the logs screen where the query we've just constructed is loaded. It should look like the query below.
+By clicking on 'View in Logs' you'll go to the Logs screen where the query we've just constructed is loaded. It should look like the query below.
 
 ```kusto
 union isfuzzy=true requests
@@ -55,7 +55,7 @@ At the left of the Logs screen you can see which tables you can query and the co
 
 ![Requests Table Properties](../../../../../images/azure-workbook-tips-and-tricks/requests-table-properties.png)
 
-The `timestamp` property is a property we can directly use on our queries because it's a column of the `requests` table. The `Service ID` and `API Name` are not default columns because they are specific to API Management. These are stored in the `customDimensions` array and can be accessed with the syntax `customDimensions["Service ID"]` and `customDimensions["API Name"]`. When you specify custom properties to log from your application, you'll find them in the `customDimensions` property.
+The `timestamp` property is a property we can directly use on our queries because it's a column of the `requests` table. The `Service ID` and `API Name` are not default columns in the requests table because they are specific to API Management. These are stored in the `customDimensions` property and can be accessed with the syntax `customDimensions["Service ID"]` and `customDimensions["API Name"]`. When you specify custom properties to log from your application, you'll find them in this `customDimensions` property.
 
 ### Create reusable query
 
@@ -88,7 +88,7 @@ requests
 
 Note the custom dimension `Request-Session-Correlation-Id`. I've configured my API Management instance to log the header `Session-Correlation-Id` with every request so I can correlate all requests from a specific session. We'll use it when creating a master detail table.
 
-To save the query as a function, choose 'Save > Save as function' and give it a name like 'ApimRequests'. You can now use it in a query like this:
+To save the query as a function, choose 'Save > Save as function' and give it a name like 'ApimRequests'. You can then use it in a query like this:
 
 ```kusto
 ApimRequests
@@ -100,21 +100,23 @@ ApimRequests
 
 Now that we have our query, we can start creating our workbook. Open your Application Insights instance and go to Workbooks. As you can see, Azure already provides several workbooks that you can use and customize. We'll start from scratch, so click on Empty _(A completely empty workook)_.
 
-When you click on Add, you'll see that we can add different items to the workbook. We'll focus on the parameters and queries in this workbook.
+When you click on Add, you'll see that we can add different items to the workbook. We'll focus on parameters and queries in this workbook.
 
 ![Add Items Menu](../../../../../images/azure-workbook-tips-and-tricks/add-items-menu.png)
 
 #### Parameters
 
-The first thing we'll do is add a couple of parameters. Click on 'Add > Add parameters' to add a parameters section to the top of the workbook.
+The first thing we'll do is add a couple of parameters. These will allow us to filter on the data that will be displayed.
+
+Click on 'Add > Add parameters' to add a parameters section to the top of the workbook.
 
 ##### Time Range Parameter
 
-We'll want to filter on a specific time range, so slick on the 'Add Parameter' button. Enter the parameter name 'Time', select 'Time range picker' as the parameter type and make it required.
+We'll want to filter on a specific time range, so click on the 'Add Parameter' button. Enter the parameter name 'Time', select 'Time range picker' as the parameter type and make it required.
 
 ![Add Parameter Time](../../../../../images/azure-workbook-tips-and-tricks/add-parameter-time.png)
 
-If you scroll down in the Edit Parameter window, you'll see how you can use this parameter in a query. Choose Save.
+Click Save to add the parameter.
 
 ##### Subscription Parameter
 
@@ -137,6 +139,8 @@ To test the query, click the Run Query button. You might have to select a time r
 The New Parameter screen should look like this.
 
 ![Add Parameter Subscription](../../../../../images/azure-workbook-tips-and-tricks/add-parameter-subscription.png)
+
+> NOTE: if you scroll down in the New Parameter window, you'll see how you can use this parameter in a query.
 
 Click Save to add the parameter.
 
@@ -164,7 +168,7 @@ Click Save to add the parameter.
 
 You can also use a static list to populate a drop down filter. We'll add another parameter to filter on successful and/or failed requests.
 
-Click on the 'Add Parameter' button. Enter the parameter name 'Api', select 'Drop down' as the parameter type and select 'JSON' as the source of the data.
+Click on the 'Add Parameter' button. Enter the parameter name 'Success', select 'Drop down' as the parameter type and select 'JSON' as the source of the data.
 
 In the JSON Input we need to add an array of values and labels. See the example below.
 
@@ -184,4 +188,7 @@ Click Save to add the parameter.
 Now that we've added our parameters, click the 'Done Editing' button in the 'Editing parameters item' section. The result should look something like this.
 
 ![Workbook Parameters](../../../../../images/azure-workbook-tips-and-tricks/workbook-parameters.png)
+
+
+#### Table
 
