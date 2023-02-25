@@ -28,7 +28,7 @@ In this blog post I'll share some tips & tricks that I've gathered over the year
     - [Export Selection from Master Table](#export-selection-from-master-table)
     - [Add Detail Table](#add-detail-table)
     - [Show Detail Table on Selection](#show-detail-table-on-selection)
-  
+  - [Save Workbook](#save-workbook)
 
 ### Construct a query
 
@@ -319,7 +319,9 @@ I usually display the totals above a table. You can move the Tiles section above
 
 Tables and other items provide the option to select data. We can use that selection as a filter in other items. 
 
-As an example, we'll create a master-detail table. When a request in the master table is selected, all requests that have the same session correlation id will be displayed in the detail table.
+As an example, we'll create a master-detail table. When a request in the master table is selected, all requests that have the same session correlation id will be displayed in the detail table. See the example below.
+
+![Master-detail Table](../../../../../images/azure-workbook-tips-and-tricks/master-detail-table.png)
 
 ##### Export Selection from Master Table
 
@@ -374,8 +376,9 @@ Open the Advanced Settings and check the 'Make this item conditionally visible'.
 
 With this the details table is only shown when the SelectedSessionCorrelationId has a value, which it will have if a row is selected in the master table.
 
+
 #### Save Workbook
 
-'Done Editing' 
+Ones your done editing the workbook you can choose 'Done Editing'. Then choose Save, enter a title and select the correct subscription, resource group & location. Choose Apply and the workbook is saved.
 
-Choose Save, enter a title and select the correct subscription, resource group & location.
+Note that parameter selection is also saved. So if you're filtering on e.g. success == false and choose Save, this selection will be saved. Whenever you or another users opens the workbook this selection will be pre selected.
