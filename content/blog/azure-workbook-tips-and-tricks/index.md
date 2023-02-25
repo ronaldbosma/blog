@@ -8,7 +8,7 @@ draft: true
 summary: "foo"
 ---
 
-If you use Azure, you most likely will use Application Insights for logging. You can use a [Dashboard](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/tutorial-logs-dashboards) to visualize your logging and gain better insights, but dashboards come with some limitations. For instance, you can't add your own custom parameters to filter data. For these situations Azure has [Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview).
+If you use Azure, you most likely use Application Insights for logging. You can use a [Dashboard](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/tutorial-logs-dashboards) to visualize your logging and gain better insights, but dashboards come with some limitations. For instance, you can't add your own custom parameters to filter data. For these situations Azure has [Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview).
 
 In this blog post I'll share some tips & tricks that I've gathered over the years. As a sample we'll create a workbook that shows information about requests send to an API Management instance.
 
