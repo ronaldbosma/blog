@@ -24,6 +24,10 @@ In this blog post I'll share some tips & tricks that I've gathered over the year
     - [Request Details in Context Pane](#request-details-in-context-pane)
     - [End-to-end Transaction Details](#end-to-end-transaction-details)
   - [Totals (tiles)](#totals-tiles)
+  - [Master-detail Table](#master-detail-table)
+    - [Export Selection from Master Table](#export-selection-from-master-table)
+    - [Add Detail Table](#add-detail-table)
+    - [Show Detail Table on Selection](#show-detail-table-on-selection)
   
 
 ### Construct a query
@@ -306,9 +310,69 @@ You can also configure on what property to order the results. Select api as the 
 
 Choose Save and Close.
 
-We can add a title to the chart to clarify what is displayed. Go to Advanced Settings and set the chart title to: Total # of errors per API (status code >=500).
+We can add a title to the chart to clarify what is displayed. Go to Advanced Settings and set the chart title to `Total # of errors per API (status code >=500)`.
 
 I usually display the totals above a table. You can move the Tiles section above the table by choosing 'Move > Move up'.
+
+
+#### Master-detail Table
+
+Tables and other items provide the option to select data. We can use that selection as a filter in other items. 
+
+As an example, we'll create a master-detail table. When a request in the master table is selected, all requests that have the same session correlation id will be displayed in the detail table.
+
+##### Export Selection from Master Table
+
+To start Edit the current Requests table. Go to Advanced Settings and check the 'When items are selected, export parameters' box.
+
+Clik on Add parameter. Enter sessionCorrelationId as the Field to Export. Enter SelectedSessionCorrelationId as the Parameter name.
+
+![Export Parameter Settings](../../../../../images/azure-workbook-tips-and-tricks/export-parameter-settings.png)
+
+Choose Save. It should look like this.
+
+![Exported Parameter](../../../../../images/azure-workbook-tips-and-tricks/exported-parameter.png)
+
+Choose Done Editing on the Editing query item.
+
+##### Add Detail Table
+
+Choose 'Add > Add query' to add another table. Select Time as the Time Range and Grid as Visualization.
+
+Add the following query.
+
+```kusto
+ApimRequests
+| where sessionCorrelationId == '{SelectedSessionCorrelationId}'
+| project timestamp
+    , subscription
+    , api
+    , name
+    , success
+    , resultCode
+    , duration = strcat(round(duration, 1), " ms")
+    , details = itemId
+    , transaction = itemId
+| order by timestamp desc
+```
+
+This query look similar to the previous one, but only filters on the `sessionCorrelationId` column using the exported parameter of the master table. 
+
+You can customize the columns again, similar to the master table. I also like to add a chart title in which I display the selected value. You can update the chart title in the Advanced Settings with: `Requests for session: {SelectedSessionCorrelationId}`.
+
+##### Show Detail Table on Selection
+
+If you don't select an item in the master table. You'll see the message below.
+
+![Master-detail Table No Selected Item](../../../../../images/azure-workbook-tips-and-tricks/master-detail-table-no-selected-item.png)
+
+If you don't like this, you can make the detail table hide when no row is selected in the master table. 
+
+Open the Advanced Settings and check the 'Make this item conditionally visible'. Choose Add Condition. Enter SelectedSessionCorrelationId as the Parameter name and select 'is not equal to' in the Comparison drop down. Leave the Parameter value input empty.
+
+![Visibility Condition](../../../../../images/azure-workbook-tips-and-tricks/visibility-condition.png)
+
+With this the details table is only shown when the SelectedSessionCorrelationId has a value, which it will have if a row is selected in the master table.
 
 #### Save Workbook
 
