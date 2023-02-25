@@ -90,11 +90,7 @@ Note the custom dimension `Request-Session-Correlation-Id`. I've configured my A
 
 To save the query as a function, choose 'Save > Save as function' and give it a name like 'ApimRequests'. You can then use it in a query like this:
 
-```kusto
-ApimRequests
-| where api in ('bar', 'qux')
-| order by timestamp desc
-```
+![Query Results](../../../../../images/azure-workbook-tips-and-tricks/query-results.png)
 
 ### Workbook
 
