@@ -66,35 +66,74 @@ To make it deployable to multiple environments, we can replace the hardcoded app
 
 We can now deploy the workbook using the following Azure CLI command.
 
-```
+```powershell
 $resourceGroupName = '<resource group>'
 $applicationInsightsId = '<application insights id>'
 
 az deployment group create `
     --name 'sample-workbook-deployment' `
     --resource-group $resourceGroupName `
-    --template-file './sample-arm-template.bicep' `
-    --parameters `
-        workbookDisplayName='Sample Deployed Workbook (Based on ARM template)' `
-        workbookSourceId=$applicationInsightsId `
+    --template-file './sample.bicep' `
+    --parameters workbookSourceId=$applicationInsightsId `
     --verbose
 ```
 
 If you run this command multiple times, it will fail with the error `A Workbook with the same name already exists within this subscription` because the workbook id is different with every deployment. You can fix this by generating a GUID based on a string that is the same for each deployment. See the example below.
 
 ```
-param workbookId string = guid('sample-based-on-arm-template')
+param workbookId string = guid('sample-workbook')
 ```
 
-A working sample with these changes can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookWithBicep/arm-template/sample-full.bicep). 
+A working sample with these changes can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookWithBicep/arm-template/sample.bicep). 
 
-The biggest downside of this solution is that the entire workbook definition is a serialized string on one line. This makes it difficult to make minor changes directly in the definition or to see what has changed during a review.
-
+The biggest downside of this solution is that the entire workbook definition is a serialized string on one line. This makes it difficult to make minor changes directly in the definition or to see what has changed during a review. To solve this problem, I load the workbook definition from a file. 
 
 ### Load workbook from file
 
+The first step is to download the workbook definition. Open the workbook in Edit mode and click the Advanced Editor button.
 
+![Edit Workbook - Advanced Editor](../../../../../images/deploy-azure-workbook-with-bicep/edit-workbook-advanced-editor.png)
 
+Choose Gallery Template as the Template Type and download the template. The result will be a JSON file containing only the definition of the workbook. It should look like [sample.workbook](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookWithBicep/exports/sample.workbook).
+
+We can't replace the application insights id with the `workbookSourceId` parameter like we did before, so I've replaced the value inside the sample.workbook JSON file with a placeholder. You can do this for every environment specific value. See the example below.
+
+```json
+"fallbackResourceIds": [
+  "##applicationInsightsId##"
+],
+```
+
+Using the bicep script from the previous example as a base, we can now load the workbook definition from the file and replace the `##applicationInsightsId##` placeholder. See the snippet below.
+
+```bicep
+var definition = loadTextContent('./sample.workbook')
+var serializedData = replace(definition, '##applicationInsightsId##', workbookSourceId)
+
+resource workbookId_resource 'microsoft.insights/workbooks@2021-03-08' = {
+  ...
+  properties: {
+    serializedData: serializedData
+    ...
+  }
+}
+```
+
+As you can see the definition is loaded using the `loadTextContent` function. We then use `replace` to replace the placeholder. The last step is to set the `serializedData` property. See [sample.bicep](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookWithBicep/exports/sample.bicep) for the full sample.
+
+Using the same Azure CLI command as before, we can deploy the workbook using Bicep.
+
+```powershell
+$resourceGroupName = '<resource group>'
+$applicationInsightsId = '<application insights id>'
+
+az deployment group create `
+    --name 'sample-workbook-deployment' `
+    --resource-group $resourceGroupName `
+    --template-file './sample.bicep' `
+    --parameters workbookSourceId=$applicationInsightsId `
+    --verbose
+```
 
 ### Deploy with Bicep object
 
