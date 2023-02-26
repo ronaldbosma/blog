@@ -10,7 +10,7 @@ summary: "foo"
 
 If you use Azure, you most likely use Application Insights for logging. You can use a [Dashboard](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/tutorial-logs-dashboards) to visualize your logging and gain better insights, but dashboards come with some limitations. For instance, you can't add your own custom parameters to filter data. For these situations Azure has [Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview).
 
-In this blog post I'll share some tips & tricks that I've gathered over the years. As a sample we'll create a workbook that shows information about requests send to an API Management instance.
+In this blog post I'll share some tips & tricks that I've gathered over the years. As a sample, we'll create a workbook that shows information about requests send to an API Management instance.
 
 - [Construct a query](#construct-a-query)
 - [Create reusable query](#create-reusable-query)
@@ -64,19 +64,21 @@ At the left of the Logs screen you can see which tables you can query and the co
 
 ![Requests Table Properties](../../../../../images/azure-workbook-tips-and-tricks/requests-table-properties.png)
 
-The `timestamp` property is a property we can directly use on our queries because it's a column of the `requests` table. The `Service ID` and `API Name` are not default columns in the requests table because they are specific to API Management. These are stored in the `customDimensions` property and can be accessed with the syntax `customDimensions["Service ID"]` and `customDimensions["API Name"]`. When you specify custom properties to log from your application, you'll find them in this `customDimensions` property.
+The `timestamp` property is a property we can directly use in our queries because it's a column of the `requests` table. The `Service ID` and `API Name` are not default columns in the requests table because they are specific to API Management. These are stored in the `customDimensions` property and can be accessed with the syntax `customDimensions["Service ID"]` and `customDimensions["API Name"]`. 
+
+When you specify custom properties to log from your application, you'll find them in this `customDimensions` property.
 
 ### Create reusable query
 
-In our workbook we'll be reusing the same query in different places, so we're going to make a function.
+We'll be reusing the same query in different parts of our workbook, so we're going to make a function.
 
-First we'll cleanup the generated query and only select the columns we're interested in.
+First we'll cleanup the generated query.
 
 - The `union isfuzzy=true` part is useful when quering multiple even types. Because we're only querying requests we can remove it.
 - The query screen provides a 'Time range' pill that can be used to specify a time range to filter on. We will provide a similar filter on our workbook. So the where clause on `timestamp` can be removed.
 - We'll only query on a single API Management instance, so the 'in' filter can become an 'equals'.
-- We'll be adding the filter on the API name in our workbook. So we can remove it for now.
-- We add a projection so we only show specific columns. The custom dimensions are by default dynamic, so we convert them to a string.
+- We'll be adding the filter on API name in our workbook. So we can remove it for now.
+- We extend the results with specific properties for the custom dimensions we're interested in. We also convert them to strings, so they're easier to work with.
 - Lastly, we can remove the `| take 100` to show more columns.
 
 The result should look like the following query.
@@ -84,26 +86,22 @@ The result should look like the following query.
 ```kusto
 requests
 | where customDimensions["Service ID"] == "apim-robo-test"
-| project timestamp
-    , subscription = tostring(customDimensions["Subscription Name"])
+| extend subscription = tostring(customDimensions["Subscription Name"])
     , api = tostring(customDimensions["API Name"])
-    , name
-    , success
-    , resultCode
-    , duration
-    , itemId
     , sessionCorrelationId = tostring(customDimensions["Request-Session-Correlation-Id"])
 ```
 
-Note the custom dimension `Request-Session-Correlation-Id`. I've configured my API Management instance to log the header `Session-Correlation-Id` with every request so I can correlate all requests from a specific session. We'll use it when creating a master detail table.
+Note the custom dimension `Request-Session-Correlation-Id`. I've configured my API Management instance to log the header `Session-Correlation-Id` with every request so I can correlate all requests from a specific session. We'll use it when creating a master-detail table.
 
 To save the query as a function, choose 'Save > Save as function' and give it a name like 'ApimRequests'. You can then use it in a query like this:
 
 ![Query Results](../../../../../images/azure-workbook-tips-and-tricks/query-results.png)
 
+Because we've extended the results in the function with `api`, we don't need to use the `customDimensions` array in our query.
+
 ### Create Workbook
 
-Now that we have our query, we can start creating our workbook. Open your Application Insights instance and go to Workbooks. As you can see, Azure already provides several workbooks that you can use and customize. We'll start from scratch, so click on Empty _(A completely empty workook)_.
+Now that we have our query, we can start creating our workbook. Open your Application Insights instance and go to Workbooks. As you can see, Azure already provides several workbooks that you can use and customize. We'll start from scratch, so click on Empty _(A completely empty workbook)_.
 
 When you click on Add, you'll see that we can add different items to the workbook. We'll focus on parameters and queries in this workbook.
 
@@ -125,11 +123,11 @@ Click Save to add the parameter.
 
 #### Subscription Parameter (drop down from logs)
 
-When calling API Management, we need to use a subscription for authentication. I want to be able filter on this subscription so we can see who performed which requests.
+When calling API Management, we need to use a subscription for authentication. I want to be able filter on this subscription to see who performed which requests.
 
 Click on the 'Add Parameter' button. Enter the parameter name 'Subscription', select 'Drop down' as the parameter type, check the 'Allow multiple selections' box and select 'Query' as the source of the data.
 
-Enter the following query. We're using the function that we've created in a previous step.
+Enter the following query. We're using the function that we've created earlier.
 
 ```kusto
 ApimRequests
@@ -153,17 +151,24 @@ Click Save to add the parameter.
 
 #### Api Parameter (drop down from logs)
 
-As mentioned before, we also want to filter on the API that was called.
+As mentioned before, we also want to filter on the API that was called. As an added requirement, I want to filter the API's based on the selected subscription(s) from Subscription parameter.
 
 Click on the 'Add Parameter' button. Enter the parameter name 'Api', select 'Drop down' as the parameter type, check the 'Allow multiple selections' box and select 'Query' as the source of the data.
 
 Enter the following query and select Time as the Time Range.
 
 ```kusto
+let subscriptionFilter = dynamic([{Subscription}]);
+
 ApimRequests
+| where array_length(subscriptionFilter) == 0 or subscription in (subscriptionFilter)
 | distinct api
 | sort by api asc
 ```
+
+As you can see, the query is bit more complicated.
+- The `let subscriptionFilter = dynamic([{Subscription}]);` line will create an array of selected subscriptions based on the Subscription parameter. If no subscription was selected, the array is empty.
+- The filter `| where array_length(subscriptionFilter) == 0 or subscription in (subscriptionFilter)` will show all apis if no subscription was selected or apis with requests that have a matching subscription if one or more are selected.
 
 The New Parameter screen should look like this.
 
@@ -201,7 +206,7 @@ Now that we've added our parameters, click the 'Done Editing' button in the 'Edi
 
 The next step is to add a table that shows the requests. Choose 'Add > Add query'.
 
-To filter the results in the table based on the selected time range of the previously created Time parameter, we can select the Time parameter in the Time Range drop down. And with Grid as the Visualization, the results will be shown as a table.
+To filter the results in the table based on the selected time range of the previously created Time parameter, we can select the Time parameter in the Time Range drop down. Set the Visualization to Grid to display the results as a table.
 
 ![Grid Time Range and Visualization](../../../../../images/azure-workbook-tips-and-tricks/grid-time-range-and-visualization.png)
 
@@ -229,13 +234,13 @@ ApimRequests
 | order by timestamp desc
 ```
 
-The `let subscriptionFilter = dynamic([{Subscription}]);` line will create an array of selected subscriptions based on the Subscription parameter. If no subscription was selected, the array is empty. The filter `| where array_length(subscriptionFilter) == 0 or subscription in (subscriptionFilter)` will show all requests if no subscription was selected or that have a matching subscription if one or more were selected.
+The subscription and api filters are similar to the one in the query of the Api parameter.
 
 The Success parameter was not multiselect, so `let successFilter = '{Success}';` will be empty if nothing is selected, `true` if yes is selected and `false` if no is selected. With the filter `| where isempty(successFilter) or success == tobool(successFilter)` we either show all request or the requests that were (un)successful.
 
 The `itemId` is displayed twice in both the `details` and `transaction` column. We'll use these further on to create links to the request details.
 
-The query is executed when you click the Run Query button. You can now also filter the data by changing the values of the parameters. For example, select no in the Success parameter to show all failed requests.
+The query is executed when you click the Run Query button. You can filter the data by changing the values of the parameters. For example, select no in the Success parameter to show all failed requests.
 
 In the Advanced Settings tab you can configure more settings. I've set the chart title to 'Requests'. I also liked to check the 'Show filter field above grid or tiles' box. This will show a filter input field above the table that can be used to further filter the results as shown below.
 
@@ -248,16 +253,18 @@ When you click the 'Column Settings' on the Settings tab you can customize the w
 To show more information about a request, we can change the details column to show a link that opens the request details to the side.
 
 Follow these steps:
-- Click on the Column Settings button and select the details column
-- Select Link in the Column renderer drop down
-- Enter '11ch' as the Custom Column Width
-- Select Request Details in the View to open drop down
-- Enter 'details' as the Link label
+- Click on the 'Column Settings' button and select the details column
+- Select Link in the 'Column renderer' drop down
+- Enter '11ch' as the 'Custom Column Width'
+- Select 'Request Details' in the 'View to open' drop down
+- Enter 'details' as the 'Link label'
 - Check the 'Open link in Context pane' box
 
 ![Table Column Details](../../../../../images/azure-workbook-tips-and-tricks/table-column-details.png)
 
-Choose Save and Close to see the results. When you click on a details link, a context pane opens on the right of the screen showing the request properties. See the example below.
+Choose 'Save and Close' to see the results.
+
+When you click on a details link, a context pane opens on the right of the screen showing the request properties. See the example below.
 
 ![Request Details](../../../../../images/azure-workbook-tips-and-tricks/request-details.png)
 
@@ -266,16 +273,18 @@ Choose Save and Close to see the results. When you click on a details link, a co
 To show the end-to-end transaction details of a request, we can change the transaction column to show a link that opens the end-to-end-transaction details.
 
 Follow these steps:
-- Click on the Column Settings button and select the transaction column
-- Select Link in the Column renderer drop down
-- Enter '15ch' as the Custom Column Width
-- Select Request Details in the View to open drop down
-- Enter 'transaction' as the Link label
+- Click on the 'Column Settings' button and select the transaction column
+- Select Link in the 'Column renderer' drop down
+- Enter '15ch' as the 'Custom Column Width'
+- Select 'Request Details' in the 'View to open' drop down
+- Enter 'transaction' as the 'Link label'
 - Keep the 'Open link in Context pane' unchecked
 
 ![Table Column Transaction](../../../../../images/azure-workbook-tips-and-tricks/table-column-transaction.png)
 
-Choose Save and Close to see the results. When you click on a transaction link, the end-to-end transaction screen is shown. See the example below.
+Choose 'Save and Close' to see the results.
+
+When you click on a transaction link, the end-to-end transaction screen is shown. See the example below.
 
 ![End-to-end Transaction Details](../../../../../images/azure-workbook-tips-and-tricks/end-to-end-transaction-details.png)
 
@@ -299,7 +308,7 @@ ApimRequests
     by api
 ```
 
-This query groups the results by api and counts all requests, all failed requests and all requests with result code >= 500. To clarify what the different numbers are, I add a bit of text to the results.
+This query groups the results by api and counts all requests, all failed requests and all requests with result code >= 500. To clarify what the different numbers are, I've included a bit of text in the results.
 
 If you run the query, you'll notice that it doesn't quite look the same as the example above. We need to customize the tile.
 
@@ -313,7 +322,7 @@ The Tile Settings screen should look like this.
 
 ![Tiles Settings](../../../../../images/azure-workbook-tips-and-tricks/tiles-settings.png)
 
-Choose Save and Close.
+Choose 'Save and Close'.
 
 We can add a title to the chart to clarify what is displayed. Go to Advanced Settings and set the chart title to `Total # of errors per API (status code >=500)`.
 
@@ -330,7 +339,7 @@ As an example, we'll create a master-detail table. When a request in the master 
 
 #### Export Selection from Master Table
 
-To start Edit the current Requests table. Go to Advanced Settings and check the 'When items are selected, export parameters' box.
+To start, Edit the current Requests table. Go to Advanced Settings and check the 'When items are selected, export parameters' box.
 
 Clik on Add parameter. Enter sessionCorrelationId as the Field to Export. Enter SelectedSessionCorrelationId as the Parameter name.
 
