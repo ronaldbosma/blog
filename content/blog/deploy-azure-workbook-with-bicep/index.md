@@ -80,15 +80,20 @@ az deployment group create `
     --verbose
 ```
 
-If you run this command multiple times, it will fail with the error `A Workbook with the same name already exists within this subscription.`, because the workbook id is different with every deployment. You can fix this by generating a GUID based on a string that is the same for each deployment. See the example below.
+If you run this command multiple times, it will fail with the error `A Workbook with the same name already exists within this subscription` because the workbook id is different with every deployment. You can fix this by generating a GUID based on a string that is the same for each deployment. See the example below.
 
 ```
-param workbookId string = guid('sample-arm-template')
+param workbookId string = guid('sample-based-on-arm-template')
 ```
 
 A working sample with these changes can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookWithBicep/arm-template/sample-full.bicep). 
 
 The biggest downside of this solution is that the entire workbook definition is a serialized string on one line. This makes it difficult to make minor changes directly in the definition or to see what has changed during a review.
+
+
+### Load workbook from file
+
+
 
 
 ### Deploy with Bicep object
