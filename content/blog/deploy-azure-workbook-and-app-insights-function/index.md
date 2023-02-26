@@ -4,13 +4,17 @@ date: 2023-02-03T00:00:00+02:00
 publishdate: 2023-02-03T00:00:00+02:00
 lastmod: 2023-02-03T00:00:00+02:00
 tags: [ "Azure", "Application Insights", "Bicep", "Infra as Code", "PowerShell" ]
-summary: "In this post I explain how to deploy an Azure workbook using Bicep and set environment specific variables. To improve maintainability of the Bicep script, I convert the workbook JSON definition to a formatted Bicep object with PowerShell."
+summary: "In this post I explain how to deploy an Azure workbook using Bicep and set environment specific variables. I'll also show how to deploy an Application Insights function with the Azure CLI."
 draft: true
 ---
 
 In my [previous blog post](/blog/2023/02/28/azure-workbook-tips-and-tricks/) we created an [Azure Workbook](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) to gain more insight into the use of our API's hosted in Azure API Management. In this blog post I'll show you how to deploy this workbook, and the kusto function it uses, with Bicep.
 
-### Deploy based on ARM template
+- [Deploy workbook based on ARM template](#deploy-workbook-based-on-arm-template)
+- [Load workbook from file](#load-workbook-from-file)
+- [Deploy App Insights function](#deploy-app-insights-function)
+
+### Deploy workbook based on ARM template
 
 You can download an ARM Template of the workbook, which you can convert to a Bicep script. To do this, open the workbook in Edit mode and click the Advanced Editor button.
 
@@ -140,6 +144,6 @@ az deployment group create `
 > NOTE: when you open the workbook in the Azure Portal, you'll get the error `Failed to resolve table or column expression named 'ApimRequests'...` because we haven't deployed the `ApimRequests` function yet.
 
 
-### Deploy Function
+### Deploy App Insights function
 
 The last step is to deploy the function that the workbook is dependent on. 
