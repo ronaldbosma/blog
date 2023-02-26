@@ -146,4 +146,72 @@ az deployment group create `
 
 ### Deploy App Insights function
 
-The last step is to deploy the function that the workbook is dependent on. 
+The last step is to deploy the function that the workbook is dependent on. I thought I could use the [analyticsItems](https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/components/analyticsitems?pivots=deployment-language-bicep) Bicep resource to deploy the function, but unfortunately this doesn't work at all. The problem has been reported on GitHub in [this issue](https://github.com/Azure/bicep/issues/5518).
+
+The Azure CLI doesn't provide any commands either. So the only option seems to be to use the REST API. There is no page about creating an Application Insights function in the [documentation](https://learn.microsoft.com/en-us/rest/api/application-insights/) however. Luckily I found [this blogpost](https://blog.peterschen.de/create-functions-in-application-insights-through-rest-api/) that describes the various operations.
+
+The following `PUT` can be used to create a function.
+
+```
+PUT https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Insights/components/{applicationName}/analyticsItems/item?api-version=2015-05-01
+
+{
+    "scope": "shared",
+    "type": "function",
+    "name": "myFunction",
+    "content": "requests | order by timestamp desc",
+    "properties": {
+        "functionAlias": "myFunction"
+    }
+}
+```
+
+When you execute it a second time, you'll get the following error though: `A function with the same name already exists (ID: 'd939000a-438c-4b77-aa00-060335edf7f6')`. I've tried various things, but there doesn't seem to be a way to update an existing function. As a workaround, I first delete an existing function with the specified name before adding it again.
+
+Here's a extract of the PowerShell script I've created. It uses the `az rest` command to call the REST API.
+
+```powershell
+$functions = az rest --method get --url "https://management.azure.com/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroup/providers/Microsoft.Insights/components/$AppInsightsName/analyticsItems?api-version=2015-05-01"
+$function = $functions | ConvertFrom-Json | Where-Object -Property "name" -Value $FunctionName -EQ
+if ($null -ne $function)
+{
+    az rest --method "DELETE" --url """https://management.azure.com/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroup/providers/Microsoft.Insights/components/$AppInsightsName/analyticsItems/item?api-version=2015-05-01&includeContent=true&scope=shared&type=function&name=$FunctionName"""
+}
+
+$content = Get-Content -Path $FunctionFilePath
+$content = $content -Replace """", "\"""  # Escape " in the query
+foreach ($key in $Placeholders.Keys)
+{
+    $content = $content -Replace "##$key##", $Placeholders[$key]
+}
+
+$requestBodyPath = Join-Path $env:TEMP "create-shared-function-request-body.json"
+Set-Content -Path $requestBodyPath -Value @"
+{
+    "scope": "shared",
+    "type": "function",
+    "name": "$FunctionName",
+    "content": "$content",
+    "properties": {
+        "functionAlias": "$FunctionName"
+    }
+}
+"@
+az rest --method "PUT" --url "https://management.azure.com/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroup/providers/Microsoft.Insights/components/$AppInsightsName/analyticsItems/item?api-version=2015-05-01" --headers "Content-Type=application/json" --body "@$requestBodyPath"
+
+```
+
+See [deploy-shared-function.ps1](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookAndAppInsightsFunction/app-insights-function/deploy-shared-function.ps1) for the full script. You can call it with the following command.
+
+```powershell
+$placeholders = @{
+    "apimName" = "<api management name>";
+}
+
+.\deploy-shared-function.ps1 -SubscriptionId "<subscription id>" `
+    -ResourceGroup "<resource group with app insights>" `
+    -AppInsightsName "app insights name" `
+    -FunctionName "ApimRequests" `
+    -FunctionFilePath ".\ApimRequests.kql" `
+    -Placeholders $placeholders
+```
