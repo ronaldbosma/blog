@@ -12,7 +12,9 @@ In my [previous blog post](/blog/2023/02/28/azure-workbook-tips-and-tricks/) we 
 
 - [Deploy workbook based on ARM template](#deploy-workbook-based-on-arm-template)
 - [Load workbook from file](#load-workbook-from-file)
+- [Define workbook as Bicep object](#define-workbook-as-bicep-object)
 - [Deploy App Insights function](#deploy-app-insights-function)
+- [Conclusion](#conclusion)
 
 ### Deploy workbook based on ARM template
 
@@ -94,6 +96,7 @@ A working sample with these changes can be found [here](https://github.com/ronal
 
 The biggest downside of this solution is that the entire workbook definition is a serialized string on one line. This makes it difficult to make minor changes directly in the definition or to see what has changed during a review. To solve this problem, I load the workbook definition from a file. 
 
+
 ### Load workbook from file
 
 The first step is to download the workbook definition. Open the workbook in Edit mode and click the Advanced Editor button.
@@ -142,6 +145,17 @@ az deployment group create `
 ```
 
 > NOTE: when you open the workbook in the Azure Portal, you'll get the error `Failed to resolve table or column expression named 'ApimRequests'...` because we haven't deployed the `ApimRequests` function yet.
+
+
+### Define workbook as Bicep object
+
+I have explored another option, which is to use a Bicep object for the workbook definition and place it directly in the Bicep script. The first version of this blog post was based on that solution actually.
+
+The solution was pretty error prone though. Over the past weeks I've found numerous issues with the generated Bicep and had to update the conversion script multiple times.
+
+loading the JSON as a string and doing a simple replace for the placeholders seems to be an easier way to deploy and also easier explain to other developers.
+
+If your still interested in the Bicep object solution, see this [README.md](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookAndAppInsightsFunction/bicep-object/README.md).
 
 
 ### Deploy App Insights function
