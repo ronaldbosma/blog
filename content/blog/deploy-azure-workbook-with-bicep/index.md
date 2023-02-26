@@ -3,14 +3,12 @@ title: "Deploy Azure Workbook with Bicep"
 date: 2023-02-03T00:00:00+02:00
 publishdate: 2023-02-03T00:00:00+02:00
 lastmod: 2023-02-03T00:00:00+02:00
-tags: [ "Azure", "Bicep", "Infra as Code", "PowerShell" ]
+tags: [ "Azure", "Application Insights", "Bicep", "Infra as Code", "PowerShell" ]
 summary: "In this post I explain how to deploy an Azure workbook using Bicep and set environment specific variables. To improve maintainability of the Bicep script, I convert the workbook JSON definition to a formatted Bicep object with PowerShell."
 draft: true
 ---
 
-For my current project I've created an [Azure Workbook](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) to gain more insight into the use of our API's hosted in Azure API Management. We create and deploy all our resources with Bicep. So, I wanted to do the same with my workbook. In this blog post I'll show you how.
-
-> If you're interested in creating your own workbooks. [The Azure Workbook documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) is a good starting point.
+In my [previous blog post](/blog/2023/02/28/azure-workbook-tips-and-tricks/) we created an [Azure Workbook](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) to gain more insight into the use of our API's hosted in Azure API Management. In this blog post I'll show you how to deploy this workbook, and the kusto function it uses, with Bicep.
 
 ### Table of contents
 
