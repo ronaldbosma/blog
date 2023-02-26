@@ -229,3 +229,10 @@ $placeholders = @{
     -FunctionFilePath ".\ApimRequests.kql" `
     -Placeholders $placeholders
 ```
+
+
+### Conclusion
+
+Deploying an Azure Workbook is fairly straightforward. Placing the workbook JSON in a separate file as an improvement makes it a lot easier to make small changes directly in the definition. It also makes it easier to see what has changed.
+
+Deploying a function in Application Insights is poorly supported however. Using Bicep seems to be a no go at the moment. The only alternative is using the REST API. Hopefully the support will improve in the future.
