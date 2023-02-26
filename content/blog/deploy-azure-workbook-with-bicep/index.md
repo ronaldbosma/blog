@@ -139,3 +139,7 @@ az deployment group create `
 
 > NOTE: when you open the workbook in the Azure Portal, you'll get the error `Failed to resolve table or column expression named 'ApimRequests'...` because we haven't deployed the `ApimRequests` function yet.
 
+
+### Deploy Function
+
+The last step is to deploy the function that the workbook is dependent on. 
