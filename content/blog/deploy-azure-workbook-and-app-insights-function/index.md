@@ -22,7 +22,7 @@ You can download an ARM Template of the workbook, which you can convert to a Bic
 
 ![Edit Workbook - Advanced Editor](../../../../../images/deploy-azure-workbook-and-app-insights-function/edit-workbook-advanced-editor.png)
 
-Choose ARM Template as the Template Type and download the template. The result will look like [sample-arm-template.json](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookAndAppInsightsFunction/arm-template/sample-arm-template.json).
+Choose ARM Template as the Template Type and download the template. The result will look like [sample-arm-template.json](https://github.com/ronaldbosma/blog-code-examples/blob/master/DeployAzureWorkbookAndAppInsightsFunction/arm-template/sample-arm-template.json).
 
 The ARM template can then be decompiled to a Bicep script with the following Azure CLI command. 
 
@@ -30,7 +30,7 @@ The ARM template can then be decompiled to a Bicep script with the following Azu
 az bicep decompile --file .\sample-arm-template.json
 ```
 
-The result will be a Bicep file like the snippet below. See [sample-after-decompile.bicep](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookAndAppInsightsFunction/arm-template/sample-after-decompile.bicep) for the full script.
+The result will be a Bicep file like the snippet below. See [sample-after-decompile.bicep](https://github.com/ronaldbosma/blog-code-examples/blob/master/DeployAzureWorkbookAndAppInsightsFunction/arm-template/sample-after-decompile.bicep) for the full script.
 
 ```bicep
 @description('The friendly name for the workbook that is used in the Gallery or Saved List.  This name must be unique within a resource group.')
@@ -51,7 +51,7 @@ resource workbookId_resource 'microsoft.insights/workbooks@2021-03-08' = {
   kind: 'shared'
   properties: {
     displayName: workbookDisplayName
-    serializedData: '{"version":"Notebook/1.0","items":[{"type":9,"content":{"version":.......'
+    serializedData: '{"version":"Notebook/1.0","items":[{"type":9,"content":{"version":.....<long string>.....'
     version: '1.0'
     sourceId: workbookSourceId
     category: workbookType
@@ -62,7 +62,7 @@ resource workbookId_resource 'microsoft.insights/workbooks@2021-03-08' = {
 output workbookId string = workbookId_resource.id
 ```
 
-The workbook definition is set through the `serializedData` property. As you can see it's one long string that contains the entire workbook definition. Including hardcoded environment specific values, like the application insights resource id at the end of the string.
+The workbook definition is set through the `serializedData` property. This is one long string that contains the entire workbook definition. Including hardcoded environment specific values, like the application insights resource id at the end of the string.
 
 To make it deployable to multiple environments, we can replace the hardcoded application insights id with the `workbookSourceId` parameter. See the example below.
 
@@ -84,17 +84,17 @@ az deployment group create `
     --verbose
 ```
 
-> NOTE: when you open the workbook in the Azure Portal, you'll get the error `Failed to resolve table or column expression named 'ApimRequests'...` because we haven't deployed the `ApimRequests` function yet.
+> NOTE: when you open the workbook in the Azure Portal, you'll get the error `Failed to resolve table or column expression named 'ApimRequests'` because we haven't deployed the `ApimRequests` function yet.
 
-If you run this command multiple times, it will fail with the error `A Workbook with the same name already exists within this subscription` because the workbook id is different with every deployment. You can fix this by generating a GUID based on a string that is the same for each deployment. See the example below.
+If you run this command multiple times, it will fail with the error `A Workbook with the same name already exists within this subscription`. The workbook id is different with every deployment. You can fix this by generating a GUID based on a string that is the same for each deployment. See the example below.
 
 ```
 param workbookId string = guid('sample-workbook')
 ```
 
-A working sample with these changes can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookAndAppInsightsFunction/arm-template/sample.bicep). 
+A working sample with these changes can be found [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/DeployAzureWorkbookAndAppInsightsFunction/arm-template/sample.bicep). 
 
-The biggest downside of this solution is that the entire workbook definition is a serialized string on one line. This makes it difficult to make minor changes directly in the definition or to see what has changed during a review. To solve this problem, I load the workbook definition from a file. 
+The biggest downside of this solution is that the entire workbook definition is a serialized string on one line. This makes it difficult to make minor changes directly in the definition or to see what has changed. To solve this problem, we can load the workbook definition from a separate file. 
 
 
 ### Load workbook from file
@@ -103,7 +103,7 @@ The first step is to download the workbook definition. Open the workbook in Edit
 
 ![Edit Workbook - Advanced Editor](../../../../../images/deploy-azure-workbook-and-app-insights-function/edit-workbook-advanced-editor.png)
 
-Choose Gallery Template as the Template Type and download the template. The result will be a JSON file containing only the definition of the workbook. It should look like [sample.workbook](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookAndAppInsightsFunction/exports/sample.workbook).
+Choose Gallery Template as the Template Type and download the template. The result will be a JSON file containing only the definition of the workbook. It should look like [sample.workbook](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/DeployAzureWorkbookAndAppInsightsFunction/load-workbook-from-file/sample.workbook).
 
 We can't replace the application insights id with the `workbookSourceId` parameter like we did before, so I've replaced the value inside the sample.workbook JSON file with a placeholder. You can do this for every environment specific value. See the example below.
 
@@ -128,7 +128,7 @@ resource workbookId_resource 'microsoft.insights/workbooks@2021-03-08' = {
 }
 ```
 
-As you can see the definition is loaded using the `loadTextContent` function. We then use `replace` to replace the placeholder. The last step is to set the `serializedData` property. See [sample.bicep](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookAndAppInsightsFunction/exports/sample.bicep) for the full sample.
+As you can see, the definition is loaded using the `loadTextContent` function. We then use `replace` to replace the placeholder. The last step is to set the `serializedData` property. See [sample.bicep](https://github.com/ronaldbosma/blog-code-examples/blob/master/DeployAzureWorkbookAndAppInsightsFunction/load-workbook-from-file/sample.bicep) for the full sample.
 
 Using the same Azure CLI command as before, we can deploy the workbook using Bicep.
 
@@ -149,20 +149,20 @@ az deployment group create `
 
 ### Define workbook as Bicep object
 
-I have explored another option, which is to use a Bicep object for the workbook definition and place it directly in the Bicep script. The first version of this blog post was based on that solution actually.
+I have explored another option to deploy a workbook. You can use a Bicep object for the workbook definition and place it directly in the Bicep script. The first version of this blog post was based on that solution.
 
 The solution was pretty error prone though. Over the past weeks I've found numerous issues with the generated Bicep and had to update the conversion script multiple times.
 
-loading the JSON as a string and doing a simple replace for the placeholders seems to be an easier way to deploy and also easier explain to other developers.
+Loading the workbook definition from a JSON file as a string and doing a simple replace for the placeholders seems to be an easier way to deploy, less error prone and also simpler explain to other developers.
 
-If your still interested in the Bicep object solution, see this [README.md](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookAndAppInsightsFunction/bicep-object/README.md).
+I would not recommend this solution, given the disadvantages, but see this [README.md](https://github.com/ronaldbosma/blog-code-examples/blob/master/DeployAzureWorkbookAndAppInsightsFunction/bicep-object/README.md) if you're still interested.
 
 
 ### Deploy App Insights function
 
-The last step is to deploy the function that the workbook is dependent on. I thought I could use the [analyticsItems](https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/components/analyticsitems?pivots=deployment-language-bicep) Bicep resource to deploy the function, but unfortunately this doesn't work at all. The problem has been reported on GitHub in [this issue](https://github.com/Azure/bicep/issues/5518).
+The last step is to deploy the function that the workbook is dependent on. I thought I could simply use the [analyticsItems](https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/components/analyticsitems?pivots=deployment-language-bicep) Bicep resource, but unfortunately this doesn't work at all. The problem has been reported on GitHub in [this issue](https://github.com/Azure/bicep/issues/5518).
 
-The Azure CLI doesn't provide any commands either. So the only option seems to be to use the REST API. There is no page about creating an Application Insights function in the [documentation](https://learn.microsoft.com/en-us/rest/api/application-insights/) however. Luckily I found [this blogpost](https://blog.peterschen.de/create-functions-in-application-insights-through-rest-api/) that describes the various operations.
+The Azure CLI doesn't provide any commands either. The only option seems to be to use the REST API. There is no page about creating an Application Insights function in the [documentation](https://learn.microsoft.com/en-us/rest/api/application-insights/) however. Luckily I found [this blogpost](https://blog.peterschen.de/create-functions-in-application-insights-through-rest-api/) that describes the various operations.
 
 The following `PUT` can be used to create a function.
 
@@ -182,7 +182,7 @@ PUT https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{
 
 When you execute it a second time, you'll get the following error though: `A function with the same name already exists (ID: 'd939000a-438c-4b77-aa00-060335edf7f6')`. I've tried various things, but there doesn't seem to be a way to update an existing function. As a workaround, I first delete an existing function with the specified name before adding it again.
 
-Here's a extract of the PowerShell script I've created. It uses the `az rest` command to call the REST API.
+Here's an extract of the PowerShell script I've created. It uses the `az rest` command to call the REST API.
 
 ```powershell
 $functions = az rest --method get --url "https://management.azure.com/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroup/providers/Microsoft.Insights/components/$AppInsightsName/analyticsItems?api-version=2015-05-01"
@@ -215,7 +215,7 @@ az rest --method "PUT" --url "https://management.azure.com/subscriptions/$Subscr
 
 ```
 
-See [deploy-shared-function.ps1](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookAndAppInsightsFunction/app-insights-function/deploy-shared-function.ps1) for the full script. You can call it with the following command.
+See [deploy-shared-function.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/DeployAzureWorkbookAndAppInsightsFunction/app-insights-function/deploy-shared-function.ps1) for the full script. You can call it with the following command.
 
 ```powershell
 $placeholders = @{
@@ -224,7 +224,7 @@ $placeholders = @{
 
 .\deploy-shared-function.ps1 -SubscriptionId "<subscription id>" `
     -ResourceGroup "<resource group with app insights>" `
-    -AppInsightsName "app insights name" `
+    -AppInsightsName "<app insights name>" `
     -FunctionName "ApimRequests" `
     -FunctionFilePath ".\ApimRequests.kql" `
     -Placeholders $placeholders
@@ -233,6 +233,6 @@ $placeholders = @{
 
 ### Conclusion
 
-Deploying an Azure Workbook is fairly straightforward. Placing the workbook JSON in a separate file as an improvement makes it a lot easier to make small changes directly in the definition. It also makes it easier to see what has changed.
+Deploying an Azure Workbook is fairly straightforward. Placing the workbook JSON in a separate file as a nice improvement that makes it a lot easier to make small changes directly in the definition. It also makes it easier to see what has changed.
 
 Deploying a function in Application Insights is poorly supported however. Using Bicep seems to be a no go at the moment. The only alternative is using the REST API. Hopefully the support will improve in the future.
