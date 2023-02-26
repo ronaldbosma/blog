@@ -10,57 +10,31 @@ draft: true
 
 In my [previous blog post](/blog/2023/02/28/azure-workbook-tips-and-tricks/) we created an [Azure Workbook](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) to gain more insight into the use of our API's hosted in Azure API Management. In this blog post I'll show you how to deploy this workbook, and the kusto function it uses, with Bicep.
 
-### Table of contents
+### Deploy based on ARM template
 
-- [The workbook](#the-workbook)
-- [Deploy with ARM template](#deploy-with-arm-template)
-- [Deploy with Bicep object](#deploy-with-bicep-object)
-
-
-### The workbook
-
-Here's a screenshot of the workbook we'll be deploying.
-
-![My Workbook](../../../../../images/deploy-azure-workbook-with-bicep/workbook.png)
-
-The workbook has a couple of parameters and a table. All populated with query results from Application Insights. Here's an example of the query for the Subscription parameter.
-
-```kusto
-requests
-| where customDimensions["Service ID"] == "my-api-management-dev"
-| project Subscription = tostring(column_ifexists('customDimensions', '')['Subscription Name'])
-| distinct Subscription
-| sort by Subscription asc
-```
-
-Note the filter on the API Management instance `my-api-management-dev`. This name is environment specific and we're going to set this during deployment.
-
-### Deploy with ARM template
-
-I always start by creating my workbook through the Azure Portal in my Dev environment. Once you're done, you can download an ARM Template that you can convert to a Bicep script. To do this, open the workbook in Edit mode and click the Advanced Editor button.
+You can download an ARM Template of the workbook, which you can convert to a Bicep script. To do this, open the workbook in Edit mode and click the Advanced Editor button.
 
 ![Edit Workbook - Advanced Editor](../../../../../images/deploy-azure-workbook-with-bicep/edit-workbook-advanced-editor.png)
 
-Choose ARM Template as the Template Type and download the template. The result will look like [my-workbook-arm-template.json](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookWithBicep/exports/my-workbook-arm-template.json).
+Choose ARM Template as the Template Type and download the template. The result will look like [sample-arm-template.json](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookWithBicep/arm-template/sample-arm-template.json).
 
-The ARM template can then be decompiled to a Bicep script with the following command. 
-> You can find the Bicep CLI on [Bicep Tools](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install)
+The ARM template can then be decompiled to a Bicep script with the following Azure CLI command. 
 
 ```powershell
- bicep decompile ./my-workbook-arm-template.json
+az bicep decompile --file .\sample-arm-template.json
 ```
 
-The result will be a Bicep file like the snippet below. See [my-workbook-arm-template.bicep](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookWithBicep/exports/my-workbook-arm-template.bicep) for the full script.
+The result will be a Bicep file like the snippet below. See [sample-after-decompile.bicep](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookWithBicep/arm-template/sample-after-decompile.bicep) for the full script.
 
 ```bicep
 @description('The friendly name for the workbook that is used in the Gallery or Saved List.  This name must be unique within a resource group.')
-param workbookDisplayName string = 'My Workbook'
+param workbookDisplayName string = 'API Management Requests'
 
 @description('The gallery that the workbook will been shown under. Supported values include workbook, tsg, etc. Usually, this is \'workbook\'')
 param workbookType string = 'workbook'
 
 @description('The id of resource instance to which the workbook will be associated')
-param workbookSourceId string = '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-test/providers/microsoft.insights/components/my-application-insights-dev'
+param workbookSourceId string = '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-test/providers/microsoft.insights/components/appin-robo-test'
 
 @description('The unique guid for this workbook instance')
 param workbookId string = newGuid()
@@ -71,7 +45,7 @@ resource workbookId_resource 'microsoft.insights/workbooks@2021-03-08' = {
   kind: 'shared'
   properties: {
     displayName: workbookDisplayName
-    serializedData: '{"version":"Notebook/1.0","items":[{"type":9,"content":{"version":"KqlParameterItem/1.0",.......'
+    serializedData: '{"version":"Notebook/1.0","items":[{"type":9,"content":{"version":.......'
     version: '1.0'
     sourceId: workbookSourceId
     category: workbookType
@@ -82,18 +56,40 @@ resource workbookId_resource 'microsoft.insights/workbooks@2021-03-08' = {
 output workbookId string = workbookId_resource.id
 ```
 
-The workbook definition is set through the `serializedData` property. As you can see it's one long string that contains the entire workbook definition. Including hardcoded environment specific values, like the API Management instance name `my-api-management-dev`.
+The workbook definition is set through the `serializedData` property. As you can see it's one long string that contains the entire workbook definition. Including hardcoded environment specific values, like the application insights resource id at the end of the string.
 
-To make it deployable to multiple environments, add an extra parameter to the Bicep script for the API Management instance name as shown below.
+To make it deployable to multiple environments, we can replace the hardcoded application insights id with the `workbookSourceId` parameter. See the example below.
 
-```bicep
-@description('The name of the API Management resource that is queried in the workbook.')
-param apimResourceName string = 'my-api-management-dev'
-``` 
+```json
+... "fallbackResourceIds":["${workbookSourceId}"] ...
+```
 
-You can then replace every value of `my-api-management-dev` with `${apimResourceName}` in the workbook definition string.
+We can now deploy the workbook using the following Azure CLI command.
 
-The biggest downside of this solution is that the entire workbook definition is a serialized string on one line. This makes it difficult to make minor changes directly in the definition or to see what has changed during a review. You'll also need to replace the environment specific values with parameters (or variables) after every change to the workbook and export of the ARM template.
+```
+$resourceGroupName = '<resource group>'
+$applicationInsightsId = '<application insights id>'
+
+az deployment group create `
+    --name 'sample-workbook-deployment' `
+    --resource-group $resourceGroupName `
+    --template-file './sample-arm-template.bicep' `
+    --parameters `
+        workbookDisplayName='Sample Deployed Workbook (Based on ARM template)' `
+        workbookSourceId=$applicationInsightsId `
+    --verbose
+```
+
+If you run this command multiple times, it will fail with the error `A Workbook with the same name already exists within this subscription.`, because the workbook id is different with every deployment. You can fix this by generating a GUID based on a string that is the same for each deployment. See the example below.
+
+```
+param workbookId string = guid('sample-arm-template')
+```
+
+A working sample with these changes can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/DeployAzureWorkbookWithBicep/arm-template/sample-full.bicep). 
+
+The biggest downside of this solution is that the entire workbook definition is a serialized string on one line. This makes it difficult to make minor changes directly in the definition or to see what has changed during a review.
+
 
 ### Deploy with Bicep object
 
