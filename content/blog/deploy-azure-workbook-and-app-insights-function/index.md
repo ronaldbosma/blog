@@ -8,7 +8,7 @@ summary: "In this post I explain how to deploy an Azure workbook using Bicep and
 draft: true
 ---
 
-In my [previous blog post](/blog/2023/02/28/azure-workbook-tips-and-tricks/) we created an [Azure Workbook](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) to gain more insight into the use of our API's hosted in Azure API Management. In this blog post I'll show you how to deploy this workbook, and the kusto query function it uses, with Bicep.
+In my [previous blog post](/blog/2023/02/28/azure-workbook-tips-tricks/) we created an [Azure Workbook](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) to gain more insight into the use of our APIs hosted in Azure API Management. In this blog post I'll show you how to deploy this workbook, and the kusto query function it uses, with Bicep.
 
 - [Deploy workbook based on ARM template](#deploy-workbook-based-on-arm-template)
 - [Load workbook from file](#load-workbook-from-file)
