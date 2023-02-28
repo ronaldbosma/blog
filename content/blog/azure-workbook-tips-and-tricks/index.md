@@ -37,13 +37,13 @@ When you want to display data from Application Insights on a dashboard or workbo
 
 Creating such a query can be daunting if you're unfamiliar with the syntax. I always like to start by constructing an initial query through the transaction search screen of Application Insights.
 
-For this, open your Application Insights instance in the portal and go to Transaction Search. At the top you'll see 'pills' that you can use to filter the data. By default it will show logging from the last 24 hours for all event types. In our case, we're interested in requests, so unselect all event types except 'Request'.
+For this, open your Application Insights instance in the portal and go to Transaction Search. At the top you'll see 'pills' that you can use to filter the data. By default, it will show logging from the last 24 hours for all event types. In our case, we're interested in requests, so unselect all event types except 'Request'.
 
 We can add extra filters by adding new pills. You can then select the property on which to filter and the value(s). 
 
-To filter on requests from our API Management instance, first select the 'Service ID' property and then the name your the API Management instance. 
+To filter on requests from our API Management instance, first select the 'Service ID' property and then the name of your API Management instance. 
 
-I also want to be able to filter on requests from specific API's. Add another pill, select 'API Name' as the property and select the API's on which to filter.
+I also want to be able to filter on requests from specific APIs. Add another pill, select 'API Name' as the property and select the APIs on which to filter.
 
 The result should look similar to the image below.
 
@@ -72,7 +72,7 @@ When you specify your own custom properties to log from your application, you'll
 
 ### Create reusable query
 
-We'll be reusing the same query in different parts of our workbook, so we're going to make a function. First we'll cleanup the previously generated query to look like this:
+We'll be reusing the same query in different parts of our workbook, so we're going to make a function. First, we'll cleanup the previously generated query to look like this:
 
 ```kusto
 requests
@@ -82,12 +82,12 @@ requests
     , sessionCorrelationId = tostring(customDimensions["Request-Session-Correlation-Id"])
 ```
 
-We've made the following changes;
+We've made the following changes:
 
-- The `union isfuzzy=true` part is useful when quering multiple even types. Because we're only querying requests we've removed it.
-- The query screen provides a 'Time range' pill that can be used to specify a time range to filter on. We will provide a similar filter in our workbook. So the where clause on `timestamp` is removed.
+- The `union isfuzzy=true` part is useful when querying multiple even types. Because we're only querying requests we've removed it.
+- The query screen provides a 'Time range' pill that can be used to specify a time range to filter on. We will provide a similar filter in our workbook. So, the where clause on `timestamp` is removed.
 - We'll only query on a single API Management instance, so the 'in' filter has become an 'equals'.
-- We'll be adding the filter on API name in our workbook. So it's removed for now.
+- We'll be adding the filter on API name in our workbook. So, it's removed for now.
 - We extend the query results with the following properties from the custom dimensions array. We also convert them to strings, so they're easier to work with.
   - Subscription Name: the name of the subscription that was used to call an API. This will make it possible to identify who performed a request.
   - API Name: this is the name of the API that was called.
@@ -105,7 +105,7 @@ Because we've extended the results in the function with `api`, we don't need to 
 
 ### Create Workbook
 
-Now that we have our query, we can start creating our workbook. Open your Application Insights instance and go to Workbooks. Azure already provides several workbooks that you can use and customize, but we'll start from scratch. Click on Empty _(A completely empty workbook)_. An new empty workbook opens.
+Now that we have our query, we can start creating our workbook. Open your Application Insights instance and go to Workbooks. Azure already provides several workbooks that you can use and customize, but we'll start from scratch. Click on Empty _(A completely empty workbook)_. A new empty workbook opens.
 
 When you click on Add, you'll see that you can add different items to the workbook. We'll focus on parameters and queries in this workbook.
 
@@ -155,7 +155,7 @@ Click Save to add the parameter.
 
 #### Api Parameter (drop down from logs)
 
-As mentioned before, we also want to filter on the API that was called. As an extra requirement, I want to filter the list of API's based on the selected subscription(s) from Subscription parameter.
+As mentioned before, we also want to filter on the API that was called. As an extra requirement, I want to filter the list of APIs based on the selected subscription(s) from Subscription parameter.
 
 Click on the 'Add Parameter' button. Enter the parameter name 'Api', select 'Drop down' as the parameter type, check the 'Allow multiple selections' box and select 'Query' as the source of the data.
 
@@ -172,7 +172,7 @@ ApimRequests
 
 As you can see, the query is a bit more complicated.
 - The `let subscriptionFilter = dynamic([{Subscription}]);` line will create an array of selected subscriptions based on the Subscription parameter. If no subscription is selected, the array is empty.
-- The filter `| where array_length(subscriptionFilter) == 0 or subscription in (subscriptionFilter)` will show all apis if no subscription is selected or apis with requests that have a matching subscription if one or more are selected in the Subscription filter.
+- The filter `| where array_length(subscriptionFilter) == 0 or subscription in (subscriptionFilter)` will show all APIs if no subscription is selected or APIs with requests that have a matching subscription if one or more are selected in the Subscription filter.
 
 The New Parameter screen should look like this.
 
@@ -240,7 +240,7 @@ ApimRequests
 | order by timestamp desc
 ```
 
-The subscription and api filters are similar to the one in the query of the Api parameter.
+The subscription and api filters are like the one in the query of the Api parameter.
 
 The Success parameter was not multiselect, so `let successFilter = '{Success}';` will be empty if nothing is selected, `true` if yes is selected and `false` if no is selected. With the filter `| where isempty(successFilter) or success == tobool(successFilter)` we either show all request or the requests that were (un)successful.
 
@@ -248,7 +248,7 @@ With the `project` keyword we specify a list of columns to display in the table.
 
 The query is executed when you click the Run Query button. You can filter the data by changing the values of the parameters. For example, select 'no' in the Success parameter to show all failed requests.
 
-In the Advanced Settings tab you can configure more settings. I've set the chart title to 'Requests'. I also like to check the 'Show filter field above grid or tiles' box. This will show a filter input field above the table. It can be used to further filter the results as shown below.
+You can configure more settings in the Advanced Settings tab. I've set the chart title to 'Requests'. I also like to check the 'Show filter field above grid or tiles' box. This will show a filter input field above the table. It can be used to further filter the results as shown below.
 
 ![Table Filter Field](../../../../../images/azure-workbook-tips-and-tricks/table-filter-field.png)
 
@@ -345,7 +345,7 @@ As an example, we'll create a master-detail table. When a request in the master 
 
 To start, Edit the current Requests table. Go to Advanced Settings and check the 'When items are selected, export parameters' box.
 
-Clik on Add parameter. Enter sessionCorrelationId as the field to export. Enter SelectedSessionCorrelationId as the parameter name.
+Click on Add parameter. Enter sessionCorrelationId as the field to export. Enter SelectedSessionCorrelationId as the parameter name.
 
 ![Export Parameter Settings](../../../../../images/azure-workbook-tips-and-tricks/export-parameter-settings.png)
 
@@ -378,7 +378,7 @@ ApimRequests
 | order by timestamp desc
 ```
 
-This query look similar to the previous one, but only filters on the `sessionCorrelationId` column using the exported parameter of the master table. 
+This query looks like the previous one, but only filters on the `sessionCorrelationId` column using the exported parameter of the master table. 
 
 You can customize the columns again, similar to the master table. I also like to add a chart title in which I display the selected value. You can update the chart title in the Advanced Settings with: `Requests for session: {SelectedSessionCorrelationId}`.
 
@@ -401,7 +401,7 @@ With this the details table is only shown when the SelectedSessionCorrelationId 
 
 Once you're done editing the workbook you can choose 'Done Editing'. Then click the Save button. Enter a title in the Save As window and select the correct subscription, resource group & location. Choose Apply and the workbook is saved.
 
-Note that parameter selections are also saved. Meaning, if you're filtering on e.g. success == no and choose Save, this selection will be saved. Whenever you or another users opens the workbook this selection will be pre selected.
+Note that parameter selections are also saved. Meaning, if you're filtering on for example success == no and choose Save, this selection will be saved. Whenever you or another user opens the workbook, this selection will be pre-selected.
 
 Here are links to the exported workbook and shared function:
 - [API Management Requests.workbook](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/AzureWorkbookTipsAndTricks/API%20Management%20Requests.workbook)
@@ -412,7 +412,7 @@ In my next post I'll show you how to deploy this workbook using Bicep and the Az
 
 ### Conclusion
 
-As you can see, there's a lot you can do with workbooks and we've only scratched the surface. See these links for more information.
+As you can see, there's a lot you can do with workbooks, and we've only scratched the surface. See these links for more information.
 
 - [Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview)
 - [Kusto Query Language](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/)
