@@ -5,10 +5,10 @@ publishdate: 2023-02-10T00:00:00+02:00
 lastmod: 2023-02-10T00:00:00+02:00
 tags: [ "Azure", "Application Insights", "kusto" ]
 draft: true
-summary: "foo"
+summary: "If you use Azure, you most likely use Application Insights for logging. You can use a dashboard to visualize your logging and gain better insights, but dashboards come with some limitations. For more flexibility Azure has worbooks. In this blog post I'll share some tips & tricks that I've gathered over the years. As a sample, we'll create a workbook that shows information about requests sent to an API Management instance."
 ---
 
-If you use Azure, you most likely use Application Insights for logging. You can use a [Dashboard](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/tutorial-logs-dashboards) to visualize your logging and gain better insights, but dashboards come with some limitations. For more flexibility Azure has [Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview).
+If you use Azure, you most likely use Application Insights for logging. You can use a [dashboard](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/tutorial-logs-dashboards) to visualize your logging and gain better insights, but dashboards come with some limitations. For more flexibility Azure has [workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview).
 
 In this blog post I'll share some tips & tricks that I've gathered over the years. As a sample, we'll create a workbook that shows information about requests sent to an API Management instance.
 
