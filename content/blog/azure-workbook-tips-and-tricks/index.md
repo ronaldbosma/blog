@@ -1,10 +1,9 @@
 ---
 title: "Azure Workbook Tips & Tricks"
-date: 2023-02-10T00:00:00+02:00
-publishdate: 2023-02-10T00:00:00+02:00
-lastmod: 2023-02-10T00:00:00+02:00
+date: 2023-02-28T19:30:00+01:00
+publishdate: 2023-02-28T19:30:00+01:00
+lastmod: 2023-02-28T19:30:00+01:00
 tags: [ "Azure", "Application Insights", "kusto" ]
-draft: true
 summary: "If you use Azure, you most likely use Application Insights for logging. You can use a dashboard to visualize your logging and gain better insights, but dashboards come with some limitations. For more flexibility Azure has worbooks. In this blog post I'll share some tips & tricks that I've gathered over the years. As a sample, we'll create a workbook that shows information about requests sent to an API Management instance."
 ---
 
