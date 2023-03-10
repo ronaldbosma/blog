@@ -413,5 +413,5 @@ In my next post I'll show you how to deploy this workbook using Bicep and the Az
 
 As you can see, there's a lot you can do with workbooks, and we've only scratched the surface. See these links for more information.
 
-- [Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview)
-- [Kusto Query Language](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/)
+- [Azure Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview)
+- [Kusto Query Language (KQL) overview](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/)
