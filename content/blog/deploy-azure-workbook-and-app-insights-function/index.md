@@ -153,7 +153,7 @@ I have explored another option to deploy a workbook. You can use a Bicep object 
 
 I've found this solution was pretty error prone though. Over the past weeks I encountered numerous issues with the generated Bicep and had to update the conversion script accordingly.
 
-Loading the workbook definition from a JSON file as a string and doing a simple string replace for the placeholders seems to be an easier way to deploy, less error prone and also simpler to explain to other people.
+Loading the workbook definition from a JSON file as a string and doing a simple string replace for the placeholders seems to be an easier way to deploy, less error prone and simpler to explain to other people.
 
 So, I would not recommend this solution given the disadvantages, but see this [README.md](https://github.com/ronaldbosma/blog-code-examples/blob/master/DeployAzureWorkbookAndAppInsightsFunction/bicep-object/README.md) if you're still interested.
 
@@ -228,7 +228,7 @@ Set-Content -Path $requestBodyPath -Value @"
 az rest --method "PUT" --url "https://management.azure.com/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroup/providers/Microsoft.Insights/components/$AppInsightsName/analyticsItems/item?api-version=2015-05-01" --headers "Content-Type=application/json" --body "@$requestBodyPath"
 ```
 
-As you can see. The first step is to load the file and escape any `"` in the query. We then replace each placholder with the environment specific value.
+As you can see. The first step is to load the file and escape any `"` in the query. We then replace each placeholder with the environment specific value.
 
 Step two is to query the existing functions and check if a function with the same name already exists. If it does, we remove it.
 
@@ -254,6 +254,6 @@ $placeholders = @{
 
 Deploying an Azure Workbook is fairly straightforward. Placing the workbook JSON in a separate file is a nice improvement that makes it easier to make small changes directly in the definition. It also makes it easier to see what has changed.
 
-Deploying a shared function in Application Insights is poorly supported however. Using Bicep seems to be a no go at the moment. An alternative is to use the REST API. Hopefully the support will improve in the future.
+Deploying a shared function in Application Insights is poorly supported, however. Using Bicep seems to be a no go at the moment. An alternative is to use the REST API. Hopefully the support will improve in the future.
 
 _If you know a better or more elegant way to deploy a shared function. Hit me up on [Twitter](https://twitter.com/ronaldbosma1) or [LinkedIn](https://linkedin.com/in/ronald-bosma-1346a64)._
