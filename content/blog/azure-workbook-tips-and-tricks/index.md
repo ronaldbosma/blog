@@ -406,7 +406,7 @@ Here are links to the exported workbook and shared function:
 - [API Management Requests.workbook](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/AzureWorkbookTipsAndTricks/API%20Management%20Requests.workbook)
 - [ApimRequests.kql](https://github.com/ronaldbosma/blog-code-examples/blob/master/AzureWorkbookTipsAndTricks/ApimRequests.kql)
 
-In my next post I'll show you how to deploy this workbook using Bicep and the Azure CLI.
+In my blog post [Deploy Azure Workbook and App Insights Function](/blog/2023/03/10/deploy-azure-workbook-and-app-insights-function/) I show you how to deploy this workbook using Bicep and the Azure CLI.
 
 
 ### Conclusion

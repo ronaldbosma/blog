@@ -7,7 +7,7 @@ tags: [ "Azure", "Azure CLI", "Application Insights", "Bicep", "Continuous Integ
 summary: "In this post I explain how to deploy an Azure workbook using Bicep and set environment specific variables. I'll also show how to deploy a shared kusto function in Application Insights with the Azure CLI."
 ---
 
-In my [previous blog post](/blog/2023/02/28/azure-workbook-tips-tricks/) we created an [Azure Workbook](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) to gain more insight into the use of our APIs hosted in Azure API Management. In this blog post I'll show you how to deploy this workbook with [Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview?tabs=bicep) and set environment specific variables. I'll also show how to deploy a shared kusto function in Application Insights with the Azure CLI.
+In my previous blog post [Azure Workbook Tips & Tricks](/blog/2023/02/28/azure-workbook-tips-tricks/) we created an [Azure Workbook](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) to gain more insight into the use of our APIs hosted in Azure API Management. In this blog post I'll show you how to deploy this workbook with [Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview?tabs=bicep) and set environment specific variables. I'll also show how to deploy a shared kusto function in Application Insights with the Azure CLI.
 
 - [Deploy workbook based on ARM template](#deploy-workbook-based-on-arm-template)
 - [Load workbook from file](#load-workbook-from-file)
