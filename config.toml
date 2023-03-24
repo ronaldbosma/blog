@@ -4,7 +4,7 @@ title = "Ronald's Blog"
 theme = "mediumish"
 summaryLength = 25
 copyright = "Ronald Bosma - All rights reserved"
-googleAnalytics = "UA-136383708-1"
+googleAnalytics = "G-BGRV7RC2V8"
 pygmentsCodeFences = true
 
 [permalinks]
