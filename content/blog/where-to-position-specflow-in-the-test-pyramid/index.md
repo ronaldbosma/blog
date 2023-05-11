@@ -201,5 +201,4 @@ We're searching for a book. This is implemented inside the repository by executi
 
 ### Conclusion
 
-
->TODO: conclusion
+In conclusion, when automating scenarios with SpecFlow, it is important to consider the appropriate scope for testing. I my experience, the component test layer as an ideal choice for automating the mayority of my Gherkin scenarios. Unlike unit tests, there scope is broad enough to test a complete scenario. They also offer fast feedback because they can be run in-process on my local development machine, as opposed to UI and service tests.
