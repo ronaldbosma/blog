@@ -7,9 +7,9 @@ tags: [ "Gherkin", "SpecFlow", "Specification by Example", "ATDD", "BDD", "Test 
 draft: true
 ---
 
-In my software development projects I prefer to use Specification by Example to explore and document the specifications of the applications to build. I use Gherkin to describe the specifications and [SpecFlow](https://specflow.org) to execute them. Resulting in a suite of automated (acceptance) tests.
+In my software development projects we use Specification by Example to explore and document the specifications of the applications to build. We use Gherkin to describe the specifications and [SpecFlow](https://specflow.org) to execute them. Resulting in a suite of automated (acceptance) tests.
 
-As with all automated tests, there are different layers in the test pyramid at which a Gherkin scenario can be automated using SpecFlow (or Cucumber). In this blog post I consider the different layers and describe my preferred layer for SpecFlow tests. 
+As with all automated tests, there are different layers in the test pyramid at which a Gherkin scenario can be automated using SpecFlow (or Cucumber). In this blog post I explore the different layers and describe my preferred layer for SpecFlow tests. 
 
 The insights I share are based on my own experience and inspired by other sources like [Martin Fowler's Blog](https://martinfowler.com/tags/testing.html).
 
@@ -21,7 +21,7 @@ The insights I share are based on my own experience and inspired by other source
   - [Unit Tests](#unit-tests)
 - [Test Pyramid Extended](#test-pyramid-extended)
   - [Component Tests](#component-tests)
-- [Scope of SpecFlow tests](#scope-of-specflow-tests)
+- [Gherkin scenario test layer](#gherkin-scenario-test-layer)
   - [Why I skip the Controller](#why-i-skip-the-controller)
   - [Why I include the repository and database](#why-i-include-the-repository-and-database)
 - [Conclusion](#conclusion)
@@ -34,15 +34,15 @@ The classis test pyramid, as show in the image below, has 3 layers: UI, Service 
 
 The higher the layer in the pyramid, the higher the integration and coverage of your tests. But tests will also be slower and more fragile. The lower the layer in the pyramid, the higher the isolation, speed and stability of your tests. The coverage per test will be lower though.
 
-Considering these factors, it is recommended to have automated tests covering all layers. Most tests should be automated on the lowest layer. Fewer test will be automated on the Service layer and even less on the UI layer. By following this approach, we strike a balance between comprehensive test coverage and efficient test execution. 
+Considering these factors, it is recommended to have automated tests covering all layers. Most tests should be automated on the lowest layer. Fewer tests will be automated on the Service layer and even less on the UI layer. By following this approach, we create a balance between comprehensive test coverage and efficient test execution. 
 
-Before delving into SpecFlow's placement, let's first reacap the test pyramids key layers.
+Let's first reacap the test pyramids key layers.
 
 #### UI Tests
 
 UI tests are end-to-end tests that interact with the system under test through the UI. These tests simulate a user interacting with the UI of the system.
 
-See the following context diagram to illustrate the scope of what UI tests cover.
+Everything in the following diagram is included in the scope of a UI test.
 
 ![UI Tests Scope](../../../../../images/where-to-position-specflow-in-the-test-pyramid/ui-tests-scope.png)
 
@@ -56,9 +56,9 @@ Pros:
 
 Cons:
 - Slow, resulting in long build and release times.
-- Fragile. These tests often break due to environment related issues. Like a database that is temporary timing out or an external API that is unavailable.
-- Both the UI and underlying services need to be deployed before performing these tests. As a result, these tests can only be executed in a release pipeline after deployment on an environment.
-- Difficult to maintain, because there is a lot to take into account. You have to not only consider the UI, but also the available data in the database and external services, among others.
+- Fragile. These tests often break due to environment related issues. Like a database that is temporary timing out, an external API that is unavailable or an UI-element that can't be found.
+- Both the UI and underlying services need to be deployed before running these tests. As a result, these tests can only be executed in a release pipeline after deployment on an environment.
+- Difficult to maintain, because there is a lot to take into account. You have to not only consider the UI, but also the available data in the databases and external services, among others.
 
 Because of the disadvantages, I usually keep the number of UI tests to a minimum. I use them as smoke tests to check if the deployment of the UI was successful and to test if the integration with underlying services works. I do this by automating the most important user scenarios and core processes.
 
@@ -68,7 +68,7 @@ Because of the disadvantages, I usually keep the number of UI tests to a minimum
 
 Service tests skip the UI and talk directly to the underlying services. They interact with a REST API or send messages to an Azure Service Bus, for example.
 
-The scope of these tests can cover a single service or a combination of multiple services.
+The scope of these tests can cover a single service or a combination of multiple services as shown in the following diagram.
 
 ![Service Test Scope](../../../../../images/where-to-position-specflow-in-the-test-pyramid/service-tests-scope.png)
 
@@ -102,7 +102,7 @@ As the classic test pyramid suggest, the bulk of your tests would normally be on
 
 ### Test Pyramid Extended
 
-Considering the three layers of the classic test pyramid in relation to automating Gherkin scenarios, the scope of a unit test is often to narrow. Gherkin scenarios typically describe functionality that is implemented through the collaboration of multiple classes and methods. With proper focus, these scenarios tend to cover functionality within a single service or API, making the scope of UI and Service tests too broad. This is why I introduce an additional layer in the test pyramid, as depicted below.
+Considering the three layers of the classic test pyramid in relation to automating Gherkin scenarios, the scope of a unit test is often to narrow. Gherkin scenarios typically describe functionality that is implemented through the collaboration of multiple classes and methods. With proper focus, these scenarios tend to cover functionality within a single service or API, making the scope of UI and service tests too broad. This is why I introduce an additional layer in the test pyramid, as depicted below.
 
 ![Test Pyramid Extended](../../../../../images/where-to-position-specflow-in-the-test-pyramid/test-pyramid-extended.png)
 
@@ -126,16 +126,15 @@ Pros:
 Cons:
 - The scope they test is larger than that of unit tests. This makes them more difficult to maintain, but still considerably easier when compared to Service and UI tests.
 
-> NOTE: to keep my component tests fast, I tend to use an in-memory version of the database. For example, Entity Framework not only supports SQL Server, but also has an in-memory provider and a SQLite provider that are designed with test automation in mind. See [Testing without your production database system](https://learn.microsoft.com/en-us/ef/core/testing/testing-without-the-database) for more information.
+> NOTE: to keep my component tests fast, I tend to use an in-memory version of the database. Entity Framework not only supports SQL Server, but also has an in-memory provider and a SQLite provider that are designed with test automation in mind. See [Testing without your production database system](https://learn.microsoft.com/en-us/ef/core/testing/testing-without-the-database) for more information.
 
-> TODO: Include image of test 'tree' and mention that coverage is high with component tests so the need for unit tests is lower.
+### Gherkin scenario test layer
 
+I find the component test layer ideal for automating most Gherkin scenarios. Their scope is not to small, as it usually is with unit tests, and I still get the advantages of in-process tests.
 
+When you automate most of your scenarios at the component layer, the need for having a lot of unit tests decreases. The test pyramid will become a test tree as shown in the image below.
 
-
-### Scope of SpecFlow tests
-
-I find the component test layer ideal for automating Gherkin scenarios. Their scope is not to small, as it usually is with unit tests, and I still get the advantages of in-process tests.
+![Test Tree](../../../../../images/where-to-position-specflow-in-the-test-pyramid/test-tree.png)
 
 When I automate scenarios with SpecFlow I use the scope illustrated in the diagram below. As you can see, I tend to skip the Controller and include the database.
 
@@ -149,17 +148,19 @@ It is not uncommon for an API to support multiple versions of a contract or diff
 
 Which controller would you use to automate your Gherkin scenario? Or would you duplicate the scenarios and implement them on every controller?
 
-In my opinion, controllers should be focused on technology specific concerns, like what status code to return from a REST API if a resource can't be found. It is the application and business logic working together with the other classes that actually implement a Gherkin scenario. That's why I skip the Controllers in my SpecFlow scenarios.
+In my opinion, controllers should be focused on technology specific concerns, like what status code to return from a REST API if a resource can't be found. It is the application and business logic working together with the other code that actually implement the functionality described by a Gherkin scenario. That's why I skip the Controllers in my SpecFlow scenarios.
+
+> NOTE: if the functionality differs between API versions, they won't share the same application logic. In that case it makes sense to create separate scenarios for each version.
 
 #### Why I include the repository and database
 
-Considering that most of the logic that is described in a Gherkin scenario is located in the application and business logic, as well as in the aggregates and entities, I previously did not include the repository or database in my test's scope. Instead, I replaced the repository with a test double.
+Most of the logic described in a Gherkin scenario is located in the application and business logic, as well as in the aggregates and entities. So, I previously did not include the repository or database in my test’s scope. Instead, I replaced the repository with a test double.
 
-There are two reasons why I have found this approach to be suboptimal.
+There are two reasons why I have found this approach to be inadequate.
 
-##### Reason 1: stubbing becomes difficult when the number of different situations to support grow
+##### Reason 1: stubbing becomes difficult when the number of different situations to support grows
 
-One of the advantages of Gherkin is that the ability to define `Given` steps that can be reused across multiple scenarios and features. For instance, you can ensure that books are present in the system by using the following Gherkin.
+One of the advantages of Gherkin is  the ability to define `Given` steps that can be reused across multiple scenarios and features. For instance, you can ensure that books are present in the system by using the following Gherkin.
 
 ```gherkin
 Given the books
@@ -167,13 +168,13 @@ Given the books
     | 9781617290084 | Specification by Example                |
     | 9781801815710 | Infrastructure as Code with Azure Bicep |
     | 9781680504989 | The Cucumber for Java Book              |
-When ...
+When all books are retrieved
 Then ...
 ```
 
 In our first scenario we might need to retrieve all books. A call to `respository.GetAllBooks()` will performed by the application logic. We have to stub this call on our test double in the `Given` step definition.
 
-In another scenario, we might need to retrieve a single book by its EAN (European Article Number) using `respository.GetBookByEAN(ean)`. We'll have to include this call on our stub in the same `Given` step definition and we have to make sure that the correct book is returned for the specified EAN. Essentially replicating the filter logic implemented in the repository.
+In another scenario, we might need to retrieve a single book by its EAN (European Article Number) using `respository.GetBookByEAN(ean)`. We'll have to include this call on our stub in the same `Given` step definition and we have to make sure that the correct book is returned for the specified EAN. Essentially duplicating the filter logic implemented in the repository.
 
 As the application's functionality increases, so does the number of methods on our repository to retrieve books. Resulting in more and more setup code on our stub.
 
@@ -181,7 +182,7 @@ By including the repository and database in the scope of the component test, it 
 
 ##### Reason 2: filter logic is part of the scenario
 
-The second reason why a include the repository and database is that it's not uncommon that code in for example the repository is part of the scenario.
+The second reason why I include the repository and database is that it's not uncommon that code in the repository or database is part of the scenario.
 
 Take the following scenario.
 
@@ -197,8 +198,8 @@ Then I expect the following book to be found
     | 9781617290084 | Specification by Example                |
 ```
 
-We're searching for a book. This is implemented inside the repository by executing a query with filter on the database. If we had stubbed the repository, we would not be able to test the specified logic.
+We're searching for a book. This is implemented inside the repository by executing a filtered query on the database. If we had stubbed the repository, we would not be able to test the specified logic.
 
 ### Conclusion
 
-In conclusion, when automating scenarios with SpecFlow, it is important to consider the appropriate scope for testing. I my experience, the component test layer as an ideal choice for automating the mayority of my Gherkin scenarios. Unlike unit tests, there scope is broad enough to test a complete scenario. They also offer fast feedback because they can be run in-process on my local development machine, as opposed to UI and service tests.
+As with all test automation, when automating scenarios with SpecFlow, it is important to consider the appropriate scope. In my experience, the component test layer is an ideal choice for automating the majority of Gherkin scenarios. Unlike unit tests, there scope is broad enough to test a complete scenario. They also offer fast feedback because they can be run in-process on a local development machine and in an automated build pipeline, as opposed to UI and service tests.
