@@ -4,28 +4,35 @@ date: 2023-07-08T00:00:00+02:00
 publishdate: 2023-07-08T00:00:00+02:00
 lastmod: 2023-07-08T00:00:00+02:00
 tags: [ "Azure", "Azure CLI", "Azure DevOps", "Azure Pipeline", "API Management", "Bicep", "Continuous Integration", "Infra as Code", "Key Vault" ]
+summary: "Azure API Management is a powerful service that enables you to expose, secure, and manage APIs. In some scenarios, you may need to connect to a backend system that is secured with mTLS (mutual Transport Layer Security). This blog post will guide you through the process of creating an Azure Pipeline that imports a client certificate into Azure Key Vault and use it in Azure API Management."
+draft: true
 ---
 
-Azure API Management is a powerful service that enables you to expose, secure, and manage APIs. In some scenarios, you may need to connect to a backend system that is secured with mutual Transport Layer Security (mTLS). This blog post will guide you through the process of creating an Azure Pipeline that imports a client certificate into Azure Key Vault and use it with Azure API Management.
+Azure API Management is a powerful service that enables you to expose, secure, and manage APIs. In some scenarios, you may need to connect to a backend system that is secured with mTLS (mutual Transport Layer Security). On [Secure backend services using client certificate authentication in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates) Microsoft already gives a good explanation on how to configure mTLS in Azure API Management. This blog post will guide you through the process of creating an Azure Pipeline that the steps for you.
 
-On [Secure backend services using client certificate authentication in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates) Microsoft already gives a good explanation on how to configure mTLS in Azure API Management. In this blog post, we'll focus on how to automate the process using an Azure Pipeline.
+In this post I've chosen to store the original client certificate in Azure DevOps. This can be useful when you don't have the necessary permissions to import the certificate into the Key Vault. If you have already imported the client certificate in Key Vault, you can skip some of the steps, which I'll explain later.
 
-> TODO: explain the setup. No access to key vault, use secure file, ... 
->       if cert already in key vault, skip to...
+- [Prerequisites](#prerequisites)
+- [Azure Pipeline](#azure-pipeline)
+    - [Download Secure File](#download-secure-file)
+    - [Import Client Certificate](#import-client-certificate)
+    - [Use Client Certificate in API Management](#use-client-certificate-in-api-management)
+
+>TODO: add rest to table of contents
 
 ### Prerequisites
 
-For this solution to work, you'll need an Azure API Management instance and a Key Vault. The can give the API Management instance access to the Key Vault by enable RBAC Authorization and assigning the API Management identity the 'Key Vault Secrets User' role. See [Secure backend services using client certificate authentication in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates) for a detailed explanation.
+For this solution to work, you'll need an Azure API Management instance and a Key Vault. You can give API Management access to the Key Vault by enabling RBAC Authorization and assigning the API Management identity the [Key Vault Secrets User](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#key-vault-secrets-user) role. See [Secure backend services using client certificate authentication in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates) for a detailed explanation.
 
-I've created a Bicep script that creates the required resources and a PowerShell script to run it. You can find them [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/prerequisites/README.md).
+I've created a Bicep script that creates the required prerequisites and a PowerShell script to deploy them. You can find them [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/prerequisites/README.md).
 
-You'll also need a client certificate to use in API Management. You can use your own or use the self-signed certificate [my-sample-client-certificate.pfx](https://github.com/ronaldbosma/blog-code-examples/blob/master/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/client-certificates/README.md).
+You'll also need a client certificate to use in API Management. You can use your own or use the self-signed certificate [my-sample-client-certificate.pfx](https://github.com/ronaldbosma/blog-code-examples/blob/master/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/client-certificates/README.md) that I'm using. The password is `MyPassword`.
 
 ### Azure Pipeline
 
 This post assumes you have experience creating Azure Pipelines. If not, have a look at [Create your first pipeline](https://learn.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline?view=azure-devops&tabs=java%2Ctfs-2018-2%2Cbrowser) first.
 
-Let's start with a couple of variables that we'll use throughout the pipeline. Replace the placeholders with your own values.
+Let's start with a couple of variables that we'll use throughout the pipeline. Create an `azure-pipelines.yaml` file and add the follow Bicep. Replace the placeholders with your own values.
 
 ```yaml
 trigger: none
@@ -36,30 +43,32 @@ jobs:
     azureServiceConnection: '<your-azure-service-connection>'
     resourceGroupName: '<your-resource-group-name>'
     keyVaultName: '<your-key-vault-name>'
-    clientCertificateName: '<client-certificate-name>'
-    clientCertificatePassword: '<client-certificate-password>' # Should be a secret variable
+    clientCertificateName: '<your-client-certificate-name>'
+    clientCertificatePassword: '<your-client-certificate-password>' # Should be a secret variable in a real world scenario
     apiManagementServiceName: '<your-api-management-service-name>'
 ```
 
-The `clientCertificateName` variable will be used as the name of the certificate in Key Vault. The `clientCertificatePassword` variable will be used to import the certificate with its private key. Normally this would be a secret in e.g. a variable group, but for the sake of this example, I've put it directly in the pipeline.
+The `clientCertificateName` variable will be used as the name of the certificate in Key Vault. Don't use the `.pfx` extension of the certificate file name, because this will result in an error.
 
->TODO: if cert already in key vault, skip to...
+The `clientCertificatePassword` variable will be used to import the certificate with its private key. Normally this would be a secret in e.g. a variable group, but for the sake of this example, I've put it directly in the pipeline.
 
-#### Secure File
+If you already have a client certificate in Key Vault, you can skip the next two steps an go directly to [Use Client Certificate in API Management](#use-client-certificate-in-api-management).
+
+#### Download Secure File
 
 The client certificate has a private key that needs to be protected. We can protect it by storing the certificate in the Secure files library of Azure DevOps. Secure files are encrypted and can only be used in a pipeline by referencing them in a task. See [Secure files](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/secure-files?view=azure-devops&tabs=yaml) for more information.
 
 Click on the Library menu item under Pipelines and open the Secure files tab. Upload your certificate. The result should look like the following image:
 
-![Secure Files - Client Certificate](../../../static/images/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/secure-files-client-certificate.png)
+![Secure Files - Client Certificate](../../../../../images/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/secure-files-client-certificate.png)
 
 You'll also need to give your pipeline permission to access the secure file. Follow these steps:
 
-1. Open the Secure file
-1. Click the 'Pipeline permissions' button
-1. Add your pipeline
+1. Open the Secure file you just uploaded.
+1. Click the 'Pipeline permissions' button.
+1. Add your pipeline.
 
-In our pipeline, we can access the secure file using the [DownloadSecureFile](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/download-secure-file?view=azure-devops) task. The task will download the certificate in the `$(Agent.TempDirectory)` directory. See the example below:
+In the pipeline, we can access the secure file using the [DownloadSecureFile](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/download-secure-file?view=azure-devops) task. The task will download the certificate in the `$(Agent.TempDirectory)` directory. See the example below:
 
 ```yaml
 - task: DownloadSecureFile@1
@@ -69,13 +78,13 @@ In our pipeline, we can access the secure file using the [DownloadSecureFile](ht
     secureFile: 'my-sample-client-certificate.pfx'
 ```
 
-We can access the path to the secure file using the `$(clientCertificate.secureFilePath)` variable. Where `clientCertificate` is the name of the task. 
+We can access the path to the downloaded secure file in subsequent steps using the `$(clientCertificate.secureFilePath)` variable. Where `clientCertificate` is the name of the `DownloadSecureFile` task. 
 
 #### Import Client Certificate
 
-Now that we've stored the client certificate in the Secure files library, we can import it into Key Vault. Since I use Bicep to create most of my Azure resources, I wanted to import the client certificate using Bicep. Unfortunately, Bicep only supports adding secrets and keys, not certificates. We can however use the Azure CLI or PowerShell as described on [Tutorial: Import a certificate in Azure Key Vault](https://learn.microsoft.com/en-us/azure/key-vault/certificates/tutorial-import-certificate?tabs=azure-cli).
+Now that we've stored the client certificate in the Secure files library, we can import it into Key Vault. Since I use Bicep to create most of my Azure resources, I wanted to import the client certificate using Bicep. Unfortunately, Bicep only supports adding secrets and keys to Key Vault, not certificates. We can however use the Azure CLI or PowerShell as described on [Tutorial: Import a certificate in Azure Key Vault](https://learn.microsoft.com/en-us/azure/key-vault/certificates/tutorial-import-certificate?tabs=azure-cli).
 
-We can use the [az keyvault certificate import](https://learn.microsoft.com/nl-nl/cli/azure/keyvault/certificate?view=azure-cli-latest#az-keyvault-certificate-import) command in combination with the [AzureCLI](https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/azure-cli-v2?view=azure-pipelines) task to import the certificate. See the example below:
+Using the [az keyvault certificate import](https://learn.microsoft.com/nl-nl/cli/azure/keyvault/certificate?view=azure-cli-latest#az-keyvault-certificate-import) command in combination with the [AzureCLI](https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/azure-cli-v2?view=azure-pipelines) task, we can import the certificate. See the example below:
 
 ```yaml
 - task: AzureCLI@2
@@ -92,7 +101,7 @@ We can use the [az keyvault certificate import](https://learn.microsoft.com/nl-n
         --password '$(clientCertificatePassword)'
 ```
 
-It's important to note that a secret and certificate in Key Vault can not have the same name. If you try to import a certificate with the same name as an existing secret, you'll get an error.
+It's important to note that in Key Vault a secret and a certificate can not have the same name. If you try to import a certificate with the same name as an existing secret, you'll get an error.
 
 If you execute the pipeline now, you might get the following error:
 
@@ -112,9 +121,9 @@ Inner error: {
 }
 ```
 
-The error message tells us that the service connection principal is not authorized to perform the action. In my case, the service connection had the [Contributor](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#contributor) role. This role does not have the data action `Import Certificate`, which is required to import a certificate containing a private key in either PFX or PEM format.
+This error message tells us that the service connection principal is not authorized to perform the action. In my case, the service connection had the [Contributor](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#contributor) role. This role does not have the data action `Import Certificate`, which is required to import a certificate.
 
-We can fix this by assigning the service connection the built-in role [Key Vault Certificates Officer](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#key-vault-certificates-officer) (id: `a4417e6f-fecd-4de8-b567-7b0420556985`). Use the following Azure CLI command. Replace the placeholders with your own values that you can find in the error message.
+We can fix this by assigning the service connection the built-in role [Key Vault Certificates Officer](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#key-vault-certificates-officer) (id: `a4417e6f-fecd-4de8-b567-7b0420556985`). Use the following Azure CLI command. Replace the placeholders with your own values. You can find them in the error message.
 
 ```powershell
 az role assignment create `
@@ -124,15 +133,15 @@ az role assignment create `
     --scope "/subscriptions/<your-subscription-id>/resourcegroups/<your-resource-group-name>/providers/microsoft.keyvault/vaults/<your-key-vault-name>"
 ```
 
-The pipeline should now run successfully and the client certificate should be imported into Key Vault as show below.
+The pipeline should now run successfully and the client certificate should be imported into Key Vault as shown below.
 
-![Imported Client Certificate](../../../static/images/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/imported-client-certificate.png)
+![Imported Client Certificate](../../../../../images/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/imported-client-certificate.png)
 
 > If the role 'Key Vault Certificates Officer' has to much permissions for your scenario, you can create a custom role with the required permissions. See [Azure custom roles](https://learn.microsoft.com/en-us/azure/role-based-access-control/custom-roles) for more information.
 
 #### Use Client Certificate in API Management
 
-Now that we have imported the client certificate in Key Vault it's time to use it in API Management. We'll be using [Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview?tabs=bicep) to do the following:
+Now that we've imported the client certificate in Key Vault, it's time to use it in API Management. We'll be using [Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview?tabs=bicep) to do the following:
 
 - Create a certificate in API Management that references the client certificate in Key Vault.
 - Create a backend that uses the certificate.
@@ -151,7 +160,7 @@ param clientCertificateName string
 param apiManagementServiceName string
 ```
 
-The script assumes that the Key Vault, client certificate and API Management Service already exist. We can reference them using the `existing` keyword using the following sample.
+The script assumes that the Key Vault, client certificate and API Management Service already exist. We can reference them using the `existing` keyword with the following Bicep.
 
 ```bicep
 resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' existing = {
@@ -168,7 +177,9 @@ resource apiManagementService 'Microsoft.ApiManagement/service@2022-08-01' exist
 }
 ```
 
-Now we can create the certificate in API Management that references the client certificate in Key Vault. We'll use the [Microsoft.ApiManagement/service/certificates](https://learn.microsoft.com/en-us/azure/templates/microsoft.apimanagement/service/certificates?pivots=deployment-language-bicep) resource type. The `secretUri` property of the `clientCertificateSecret` is used to create the reference to the client certificate in Key Vault.
+Now we can create the certificate in API Management that references the client certificate in Key Vault. We'll use the [Microsoft.ApiManagement/service/certificates](https://learn.microsoft.com/en-us/azure/templates/microsoft.apimanagement/service/certificates?pivots=deployment-language-bicep) resource type, which should not be mistaken for the `certificates` property on the API Management service resource intended for CA certificates.
+
+The `secretUri` property of the `clientCertificateSecret` is used to create the reference to the client certificate in Key Vault.
 
 ```bicep
 resource clientCertificate 'Microsoft.ApiManagement/service/certificates@2022-08-01' = {
@@ -182,7 +193,8 @@ resource clientCertificate 'Microsoft.ApiManagement/service/certificates@2022-08
 }
 ```
 
-To use the certificate we create a backend and pass in the `id` of the `clientCertificate` resources we just created. 
+To use the certificate in an API, we create a backend and pass in the `id` of the `clientCertificate` resource we just created. 
+
 ```bicep
 resource echoBackend 'Microsoft.ApiManagement/service/backends@2022-08-01' = {
   name: 'echo-backend'
@@ -206,9 +218,6 @@ resource echoBackend 'Microsoft.ApiManagement/service/backends@2022-08-01' = {
 > The API http://echoapi.cloudapp.net/api that we're calling doesn't really validate the certificate, but this is not a problem for the demo.
 
 Finally, we create an API with a POST operation. We also set an API level policy so all operations use the `echo-backend`.
-
-```bicep
-
 
 ```bicep
 resource echoApi 'Microsoft.ApiManagement/service/apis@2022-08-01' = {
@@ -248,7 +257,7 @@ resource echoApi 'Microsoft.ApiManagement/service/apis@2022-08-01' = {
 
 A full version of the `main.bicep` file can be found [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/sample/main.bicep).
 
-The last thing we need to do is to deploy the Bicep script from our pipeline. We can use the [AzureCLI](https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/deploy/azure-cli?view=azure-devops) task to do this. See the example below. Replace `<folder-with-bicep-file>` with the path to the folder that contains the `main.bicep` file.
+The last thing we need to do is to deploy the Bicep script from our pipeline. We can use the [AzureCLI](https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/deploy/azure-cli?view=azure-devops) task to do this. See the example below. Replace `<folder-with-bicep-file>` with the path to the folder that contains `main.bicep`.
 
 ```yaml
 - task: AzureCLI@2
@@ -268,15 +277,15 @@ The last thing we need to do is to deploy the Bicep script from our pipeline. We
         --verbose
 ```
 
-After executing the pipeline you should have a Certificate in your API Management instance like the following image.
+After executing the pipeline you should have a certificate in your API Management instance like the following image.
 
-![API Management Certificate](../../../static/images/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/apim-certificate.png)
+![API Management Certificate](../../../../../images/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/apim-certificate.png)
 
-The backend should also be configured to use the certificate as shown below.
+The backend should  be configured to use the certificate as shown below.
 
-![Backend with Client Certificate](../../../static/images/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/backend-with-client-certificate.png.png)
+![Backend with Client Certificate](../../../../../images/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/backend-with-client-certificate.png)
 
-You can test the API with the Visual Studio Code [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension using the following request. Replace `<your-api-management-service-name>` with the name of your API Management instance and `<your-subscription-key>` with the subscription key of your API Management instance. 
+You can test the API with the Visual Studio Code [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension using the following request. Replace `<your-api-management-service-name>` with the name of your API Management instance and `<your-subscription-key>` a valid subscription key of your API Management instance. 
 
 ```http
 POST https://<your-api-management-service-name>.azure-api.net/echo HTTP/1.1
