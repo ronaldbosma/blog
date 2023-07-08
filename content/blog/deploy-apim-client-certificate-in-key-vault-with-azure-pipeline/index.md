@@ -31,9 +31,11 @@ jobs:
 - job: deploy
   variables:
     azureServiceConnection: '<your-azure-service-connection>'
+    resourceGroupName: '<your-resource-group-name>'
     keyVaultName: '<your-key-vault-name>'
     clientCertificateName: '<client-certificate-name>'
     clientCertificatePassword: '<client-certificate-password>' # Should be a secret variable
+    apiManagementServiceName: '<your-api-management-service-name>'
 ```
 
 The `clientCertificateName` variable will be used as the name of the certificate in Key Vault. The `clientCertificatePassword` variable will be used to import the certificate with its private key. Normally this would be a secret in e.g. a variable group, but for the sake of this example, I've put it directly in the pipeline.
@@ -68,7 +70,7 @@ We can access the path to the secure file using the `$(clientCertificate.secureF
 
 Now that we've stored the client certificate in the Secure files library, we can import it into Key Vault. Since I use Bicep to create most of my Azure resources, I wanted to import the client certificate using Bicep. Unfortunately, Bicep only supports adding secrets and keys, not certificates. We can however use the Azure CLI or PowerShell as described on [Tutorial: Import a certificate in Azure Key Vault](https://learn.microsoft.com/en-us/azure/key-vault/certificates/tutorial-import-certificate?tabs=azure-cli).
 
-We can use the `AzureCLI` task as follows to import the certificate.
+We can use the [az keyvault certificate import](https://learn.microsoft.com/nl-nl/cli/azure/keyvault/certificate?view=azure-cli-latest#az-keyvault-certificate-import) command in combination with the [AzureCLI](https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/azure-cli-v2?view=azure-pipelines) task to import the certificate. See the example below:
 
 ```yaml
 - task: AzureCLI@2
@@ -122,6 +124,7 @@ The pipeline should now run successfully and the client certificate should be im
 ![Imported Client Certificate](../../../static/images/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/imported-client-certificate.png)
 
 > If the role 'Key Vault Certificates Officer' has to much permissions for your scenario, you can create a custom role with the required permissions. See [Azure custom roles](https://learn.microsoft.com/en-us/azure/role-based-access-control/custom-roles) for more information.
+
 
 ### Pipeline Template
 
