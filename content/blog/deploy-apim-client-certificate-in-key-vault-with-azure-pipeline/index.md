@@ -16,6 +16,7 @@ For this solution to work, you'll need an Azure API Management instance and a Ke
 
 I've created a Bicep script that creates the required resources and a PowerShell script to run it. You can find them [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/prerequisites/README.md).
 
+You'll also need a client certificate to use in API Management. You can use your own or use the self-signed certificate [my-sample-client-certificate.pfx](https://github.com/ronaldbosma/blog-code-examples/blob/master/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/client-certificates/README.md).
 
 ### Azure Pipeline
 
@@ -41,7 +42,7 @@ The `clientCertificateName` variable will be used as the name of the certificate
 
 The client certificate has a private key that needs to be protected. We can protect it by storing the certificate in the Secure files library of Azure DevOps. Secure files are encrypted and can only be used in a pipeline by referencing them in a task. See [Secure files](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/secure-files?view=azure-devops&tabs=yaml) for more information.
 
-Click on the Library menu item under Pipelines and open the Secure files tab. Upload your secure file. The result should look like the following image:
+Click on the Library menu item under Pipelines and open the Secure files tab. Upload your certificate. The result should look like the following image:
 
 ![Secure Files - Client Certificate](../../../static/images/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/secure-files-client-certificate.png)
 
@@ -51,7 +52,7 @@ You'll also need to give your pipeline permission to access the secure file. Fol
 1. Click the 'Pipeline permissions' button
 1. Add your pipeline
 
-In our pipeline, we can reference the secure file using the [DownloadSecureFile](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/download-secure-file?view=azure-devops) task. The task will download the certificate in the `$(Agent.TempDirectory)` directory. See the example below:
+In our pipeline, we can access the secure file using the [DownloadSecureFile](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/download-secure-file?view=azure-devops) task. The task will download the certificate in the `$(Agent.TempDirectory)` directory. See the example below:
 
 ```yaml
 - task: DownloadSecureFile@1
