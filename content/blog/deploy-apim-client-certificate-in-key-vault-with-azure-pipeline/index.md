@@ -10,6 +10,9 @@ Azure API Management is a powerful service that enables you to expose, secure, a
 
 On [Secure backend services using client certificate authentication in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates) Microsoft already gives a good explanation on how to configure mTLS in Azure API Management. In this blog post, we'll focus on how to automate the process using an Azure Pipeline.
 
+> TODO: explain the setup. No access to key vault, use secure file, ... 
+>       if cert already in key vault, skip to...
+
 ### Prerequisites
 
 For this solution to work, you'll need an Azure API Management instance and a Key Vault. The can give the API Management instance access to the Key Vault by enable RBAC Authorization and assigning the API Management identity the 'Key Vault Secrets User' role. See [Secure backend services using client certificate authentication in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates) for a detailed explanation.
@@ -39,6 +42,8 @@ jobs:
 ```
 
 The `clientCertificateName` variable will be used as the name of the certificate in Key Vault. The `clientCertificatePassword` variable will be used to import the certificate with its private key. Normally this would be a secret in e.g. a variable group, but for the sake of this example, I've put it directly in the pipeline.
+
+>TODO: if cert already in key vault, skip to...
 
 #### Secure File
 
