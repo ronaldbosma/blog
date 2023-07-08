@@ -132,13 +132,15 @@ The pipeline should now run successfully and the client certificate should be im
 
 #### Use Client Certificate in API Management
 
+Now that we have imported the client certificate in Key Vault it's time to use it in API Management. We'll be using [Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview?tabs=bicep) to do the following:
 
+- Create a certificate in API Management that references the client certificate in Key Vault.
+- Create a backend that uses the certificate.
+- Create an API that uses the backend.
+
+We'll need a couple of parameters to make the Bicep script reusable. Create a `main.bicep` file and add the following snippet:
 
 ```bicep
-//=============================================================================
-// Parameters
-//=============================================================================
-
 @description('The name of the Key Vault that contains the client certificate')
 param keyVaultName string
 
@@ -149,11 +151,9 @@ param clientCertificateName string
 param apiManagementServiceName string
 ```
 
-```bicep
-//=============================================================================
-// Existing resources
-//=============================================================================
+The script assumes that the Key Vault, client certificate and API Management Service already exist. We can reference them using the `existing` keyword using the following sample.
 
+```bicep
 resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' existing = {
   name: keyVaultName
 }
@@ -168,14 +168,9 @@ resource apiManagementService 'Microsoft.ApiManagement/service@2022-08-01' exist
 }
 ```
 
+Now we can create the certificate in API Management that references the client certificate in Key Vault. We'll use the [Microsoft.ApiManagement/service/certificates](https://learn.microsoft.com/en-us/azure/templates/microsoft.apimanagement/service/certificates?pivots=deployment-language-bicep) resource type. The `secretUri` property of the `clientCertificateSecret` is used to create the reference to the client certificate in Key Vault.
+
 ```bicep
-//=============================================================================
-// Resources
-//=============================================================================
-
-
-// Create client certificate in API Management that references Key Vault
-
 resource clientCertificate 'Microsoft.ApiManagement/service/certificates@2022-08-01' = {
   name: 'my-sample-client-certificate'
   parent: apiManagementService
@@ -187,9 +182,8 @@ resource clientCertificate 'Microsoft.ApiManagement/service/certificates@2022-08
 }
 ```
 
+To use the certificate we create a backend and pass in the `id` of the `clientCertificate` resources we just created. 
 ```bicep
-// Create the backend to the external Echo API
-
 resource echoBackend 'Microsoft.ApiManagement/service/backends@2022-08-01' = {
   name: 'echo-backend'
   parent: apiManagementService
@@ -209,9 +203,14 @@ resource echoBackend 'Microsoft.ApiManagement/service/backends@2022-08-01' = {
 }
 ```
 
-```bicep
-// Create the API that uses the echo backend
+> The API http://echoapi.cloudapp.net/api that we're calling doesn't really validate the certificate, but this is not a problem for the demo.
 
+Finally, we create an API with a POST operation. We also set an API level policy so all operations use the `echo-backend`.
+
+```bicep
+
+
+```bicep
 resource echoApi 'Microsoft.ApiManagement/service/apis@2022-08-01' = {
   name: 'echo-api'
   parent: apiManagementService
@@ -247,6 +246,46 @@ resource echoApi 'Microsoft.ApiManagement/service/apis@2022-08-01' = {
 }
 ```
 
+A full version of the `main.bicep` file can be found [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/sample/main.bicep).
+
+The last thing we need to do is to deploy the Bicep script from our pipeline. We can use the [AzureCLI](https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/deploy/azure-cli?view=azure-devops) task to do this. See the example below. Replace `<folder-with-bicep-file>` with the path to the folder that contains the `main.bicep` file.
+
+```yaml
+- task: AzureCLI@2
+  displayName: 'Deploy Bicep Template'
+  inputs:
+    azureSubscription: '${{ variables.azureServiceConnection }}'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az deployment group create `
+        --name 'apim-client-cert-sample-deployment' `
+        --resource-group '$(resourceGroupName)' `
+        --template-file '<folder-with-bicep-file>/main.bicep' `
+        --parameters keyVaultName='$(keyVaultName)' `
+                     clientCertificateName='$(clientCertificateName)' `
+                     apiManagementServiceName='$(apiManagementServiceName)' `
+        --verbose
+```
+
+After executing the pipeline you should have a Certificate in your API Management instance like the following image.
+
+![API Management Certificate](../../../static/images/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/apim-certificate.png)
+
+The backend should also be configured to use the certificate as shown below.
+
+![Backend with Client Certificate](../../../static/images/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/backend-with-client-certificate.png.png)
+
+You can test the API with the Visual Studio Code [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension using the following request. Replace `<your-api-management-service-name>` with the name of your API Management instance and `<your-subscription-key>` with the subscription key of your API Management instance. 
+
+```http
+POST https://<your-api-management-service-name>.azure-api.net/echo HTTP/1.1
+Ocp-Apim-Subscription-Key: <your-subscription-key>
+
+{
+    "foo": "bar"
+}
+```
 
 ### Other stuff
 
