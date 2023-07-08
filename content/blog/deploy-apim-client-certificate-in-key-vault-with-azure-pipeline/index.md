@@ -116,7 +116,9 @@ az role assignment create `
     --scope "/subscriptions/<your-subscription-id>/resourcegroups/<your-resource-group-name>/providers/microsoft.keyvault/vaults/<your-key-vault-name>"
 ```
 
-The pipeline should now run successfully.
+The pipeline should now run successfully and the client certificate should be imported into Key Vault as show below.
+
+![Imported Client Certificate](../../../static/images/deploy-apim-client-certificate-in-key-vault-with-azure-pipeline/imported-client-certificate.png)
 
 > If the role 'Key Vault Certificates Officer' has to much permissions for your scenario, you can create a custom role with the required permissions. See [Azure custom roles](https://learn.microsoft.com/en-us/azure/role-based-access-control/custom-roles) for more information.
 
