@@ -126,7 +126,23 @@ The pipeline should now run successfully and the client certificate should be im
 > If the role 'Key Vault Certificates Officer' has to much permissions for your scenario, you can create a custom role with the required permissions. See [Azure custom roles](https://learn.microsoft.com/en-us/azure/role-based-access-control/custom-roles) for more information.
 
 
-### Pipeline Template
+#### Use Client Certificate in API Management
+
+
+
+### Other stuff
+
+#### Don't import Client Certificate if it already exists
+
+>TODO: every import creates a new version in key vault even though the certificate is the same. Check by thumbprint if it already exists.
+
+```powershell
+$pwd = ConvertTo-SecureString -String "<your-client-certificate-password" -Force -AsPlainText
+$cert = Get-PfxCertificate -FilePath .\my-sample-client-certificate.pfx -Password $pwd
+$cert.Thumbprint
+```
+
+#### Pipeline Template
 
 >TODO: describe template multi environment setup
 
