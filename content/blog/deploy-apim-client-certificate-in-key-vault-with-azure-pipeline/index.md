@@ -101,7 +101,7 @@ Using the [az keyvault certificate import](https://learn.microsoft.com/nl-nl/cli
         --password '$(clientCertificatePassword)'
 ```
 
-It's important to note that in Key Vault a secret and a certificate can not have the same name. If you try to import a certificate with the same name as an existing secret, you'll get an error.
+It's important to note that when you import a certificate, an addressable key and secret are also created with the same name. If you try to import a new certificate with the same name as an existing secret, you'll get an error. See [About Azure Key Vault certificates](https://learn.microsoft.com/en-us/azure/key-vault/certificates/about-certificates) for more information.
 
 If you execute the pipeline now, you might get the following error:
 
