@@ -31,7 +31,7 @@ The insights I share are based on my own experience and inspired by other source
 
 The classis test pyramid, as show in the image below, has three levels: UI, Service and Unit.
 
-![Test Pyramid](../../../static/images/where-to-position-specflow-in-the-test-pyramid/test-pyramid.png)
+![Test Pyramid](../../../../../images/where-to-position-specflow-in-the-test-pyramid/test-pyramid.png)
 
 The higher the level in the pyramid, the higher the integration and coverage of your tests. But tests will also be slower and more fragile. The lower the level in the pyramid, the higher the isolation, speed, and stability of your tests. The coverage per test will be lower though.
 
@@ -45,7 +45,7 @@ UI tests are end-to-end tests that interact with the system under test through t
 
 Everything in the following diagram is included in the scope of a UI test.
 
-![UI Tests Scope](../../../static/images/where-to-position-specflow-in-the-test-pyramid/ui-tests-scope.png)
+![UI Tests Scope](../../../../../images/where-to-position-specflow-in-the-test-pyramid/ui-tests-scope.png)
 
 In our example we have a separate UI that uses two internal APIs that are part of our system. Both APIs have their own database. The UI and the Order API also communicate with a ZIP Code API of an external third party.
 
@@ -71,7 +71,7 @@ Service tests skip the UI and talk directly to the underlying services. They int
 
 The scope of these tests can cover a single service or a combination of multiple services as shown in the following diagram.
 
-![Service Test Scope](../../../static/images/where-to-position-specflow-in-the-test-pyramid/service-tests-scope.png)
+![Service Test Scope](../../../../../images/where-to-position-specflow-in-the-test-pyramid/service-tests-scope.png)
 
 When testing the Product API in our example, the scope would only be the Product API and its database. The Order API has more dependencies, so a test interacting with the Order API would also cover parts of the Product and ZIP Code API.
 
@@ -105,7 +105,7 @@ As the classic test pyramid suggest, the bulk of your tests would normally be on
 
 Considering the three levels of the classic test pyramid in relation to automating Gherkin scenarios, the scope of a unit test is often to narrow. Gherkin scenarios typically describe functionality that is implemented through the collaboration of multiple classes and methods. With proper focus, these scenarios tend to cover functionality within a single service or API, making the scope of UI and service tests too broad. Therefore, I introduce an additional level in the test pyramid, as depicted below.
 
-![Test Pyramid Extended](../../../static/images/where-to-position-specflow-in-the-test-pyramid/test-pyramid-extended.png)
+![Test Pyramid Extended](../../../../../images/where-to-position-specflow-in-the-test-pyramid/test-pyramid-extended.png)
 
 #### Component Tests
 
@@ -115,7 +115,7 @@ For me, a component test is executed in-process, like a unit test, but it covers
 
 The diagram below illustrates the general structure of a (.NET) Web API. The entry point is a _Controller_ that defines operations on the API. It communicates with application logic through a _Service_ class. Database interaction is handled by an ORM like Entity Framework, abstracted away with the _Repository_ pattern.
 
-![Component Test Scope](../../../static/images/where-to-position-specflow-in-the-test-pyramid/component-tests-scope.png)
+![Component Test Scope](../../../../../images/where-to-position-specflow-in-the-test-pyramid/component-tests-scope.png)
 
 Because a component test can be as large or small as you define your component's size, it can either cover all parts shown in the diagram above or subset.
 
@@ -135,17 +135,17 @@ I find the component test level ideal for automating most Gherkin scenarios. The
 
 When you automate most of your scenarios at the component level, the need for having a lot of unit tests decreases. The test pyramid will become a test tree as shown in the image below.
 
-![Test Tree](../../../static/images/where-to-position-specflow-in-the-test-pyramid/test-tree.png)
+![Test Tree](../../../../../images/where-to-position-specflow-in-the-test-pyramid/test-tree.png)
 
 When I automate scenarios with SpecFlow I use the scope illustrated in the diagram below. As you can see, I tend to skip the Controller and include the database.
 
-![SpecFlow Component Test Scope](../../../static/images/where-to-position-specflow-in-the-test-pyramid/specflow-component-tests-scope.png)
+![SpecFlow Component Test Scope](../../../../../images/where-to-position-specflow-in-the-test-pyramid/specflow-component-tests-scope.png)
 
 #### Why I skip the Controller
 
 It is not uncommon for an API to support multiple versions of a contract or different protocols, like REST and gRPC. This would result in multiple Controllers, that all use the same application or business logic, as displayed below.
 
-![Multiple Controllers](../../../static/images/where-to-position-specflow-in-the-test-pyramid/multiple-controllers.png)
+![Multiple Controllers](../../../../../images/where-to-position-specflow-in-the-test-pyramid/multiple-controllers.png)
 
 Which Controller would you use to automate your Gherkin scenario? Or would you duplicate the scenarios and implement them on every Controller?
 
