@@ -211,7 +211,7 @@ public void GivenTheBooks(IEnumerable<Book> books)
   _repositoryStub.Setup(r => r.GetBookByEAN(It.IsAny<string>()))
                  .Returns((string ean) => books.FirstOrDefault(b => b.EAN == ean));
 
-  // More stubs can follow...
+  // More calls to the stub...
 }
 ```
 
