@@ -20,7 +20,11 @@ Topics covered in this series:
 - Deploying client certificates in Key Vault with Azure Pipeline 2/2
 
 
-### Self-signed certificates
+### Prerequisites
+
+This first section will cover the prerequisites required before we can start validating client certificates in Azure API Management.
+
+#### Self-signed certificates
 
 First things first. We need some certificates. Using [Generate and export certificates for point-to-site using PowerShell](https://learn.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-certificates-point-to-site) as a guide, I created the following three of certificates.
 
@@ -30,7 +34,7 @@ As you can see, we have one root CA certificate. Underneath it are two intermedi
 
 I've created the script [generate-client-certificates.ps](https://github.com/ronaldbosma/blog-code-examples/blob/master/apim-client-certificate-series/00-self-signed-certificates/generate-client-certificates.ps1) to generate this certificate tree using PowerShell. It also exports all certificates in base64 encoded X.509 (.cer) files and additionally exports the client certificates with their private keys in PFX (.pfx) files. The results can be found in [this](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/00-self-signed-certificates/certificates) folder.
 
-### Deploy API Management
+#### Deploy API Management
 
 Next, we need an API Management instance. We'll be deploying everything using Bicep and the Azure CLI. The following script contains the bare minimum to create an API Management instance using Bicep. Save it in a file called `main.bicep`.
 
@@ -70,9 +74,9 @@ resource apiManagementService 'Microsoft.ApiManagement/service@2022-08-01' = {
 }
 ```
 
-As you can see, we're creating a Developer tier API Management instance. Normally for demos, I'd use the Consumption tier because it's cheap and rolled out quickly. However, the Consumption tier does not support CA certificates, which we'll need later on.
+As you can see, we're creating a Developer tier API Management instance. Normally for demos I'd use the Consumption tier because it's cheap and rolled out quickly. However, the Consumption tier does not support CA certificates, which we'll need later on.
 
-Use the following command to deploy the API Management instance. Replace the placeholders with your values. Note that this will take a while to complete (about ~30 minutes).
+Use the following command to deploy the API Management instance. Replace the `<placeholders>` with your values. This will take a while to complete (about ~30 minutes).
 
 ```powershell
 az deployment group create `
@@ -84,4 +88,111 @@ az deployment group create `
                  publisherName='<your-name>' `
     --verbose
 ```
+
+#### Deploy API
+
+Once the API Management instance is deployed, we can create an API. The following Bicep creates an API called `client-cert-api` with two operations. Add it to the end of the `main.bicep`.
+
+```bicep
+// Client Cert API
+resource clientCertApi 'Microsoft.ApiManagement/service/apis@2022-08-01' = {
+  name: 'client-cert-api'
+  parent: apiManagementService
+  properties: {
+    displayName: 'Client Cert API'
+    path: 'client-cert'
+    protocols: [ 
+      'https' 
+    ]
+    subscriptionRequired: false
+  }
+}
+
+
+// Operation to validate client certificate using validate-client-certificate policy
+resource validateUsingPolicy 'Microsoft.ApiManagement/service/apis/operations@2022-08-01' = {
+  name: 'validate-using-policy'
+  parent: clientCertApi
+  properties: {
+    displayName: 'Validate (using policy)'
+    description: 'Validates client certificate using validate-client-certificate policy'
+    method: 'GET'
+    urlTemplate: '/validate-using-policy'
+  }
+
+  resource policies 'policies' = {
+    name: 'policy'
+    properties: {
+      format: 'rawxml'
+      value: loadTextContent('./validate-using-policy.operation.cshtml') 
+    }
+  }
+}
+
+
+// Operation to validate client certificate using context.Request.Certificate property
+resource validateUsingContext 'Microsoft.ApiManagement/service/apis/operations@2022-08-01' = {
+  name: 'validate-using-context'
+  parent: clientCertApi
+  properties: {
+    displayName: 'Validate (using context)'
+    description: 'Validates client certificate using the context.Request.Certificate property'
+    method: 'GET'
+    urlTemplate: '/validate-using-context'
+  }
+
+  resource policies 'policies' = {
+    name: 'policy'
+    properties: {
+      format: 'rawxml'
+      value: loadTextContent('./validate-using-context.operation.cshtml') 
+    }
+  }
+}
+```
+
+There are some things to take note off. First, I did not make the subscription key required to make testing the API as simple as possible.
+
+Second, both operations will load their respective policies from an XML file. Create a `validate-using-policy.operation.cshtml` and `validate-using-context.operation.cshtml` and add the following XML to both files.
+
+  > The `.cshtml` extension is recognized by the [Azure API Management Extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-apimanagement) and you get some intellisense support on policies.
+
+```xml
+<policies>
+    <inbound>
+        <base />
+        <return-response>
+            <set-status code="200" />
+            <set-body>@(context.Request.Certificate?.ToString())</set-body>
+        </return-response>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <set-header name="ErrorSource" exists-action="override">
+            <value>@(context.LastError.Source)</value>
+        </set-header>
+        <set-header name="ErrorReason" exists-action="override">
+            <value>@(context.LastError.Reason)</value>
+        </set-header>
+        <set-header name="ErrorMessage" exists-action="override">
+            <value>@(context.LastError.Message)</value>
+        </set-header>
+        <base />
+    </on-error>
+</policies>
+```
+
+We haven't configured any backend to forward requests to, so this policy will ensures that a `200 OK` response is always returned. By using the `context.Request.Certificate?.ToString()` policy expression, it will also include any details about a provided client certificate in the response body.
+
+Finally, in the `on-error` section, we're setting some headers to return information about any errors that might occur. This will provide additional information about why a request failed.
+
+> In a real-world scenario, you might not want to disclose this information to your clients. Instead, you would connect API Management to Application Insights so errors can be logged.
+
+Now redeploy the Bicep template using the previously provided Azure CLI command. This should take less than a minute to complete.
+
 
