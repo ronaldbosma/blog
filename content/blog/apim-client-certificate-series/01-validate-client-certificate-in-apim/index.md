@@ -30,3 +30,58 @@ As you can see, we have one root CA certificate. Underneath it are two intermedi
 
 I've created the script [generate-client-certificates.ps](https://github.com/ronaldbosma/blog-code-examples/blob/master/apim-client-certificate-series/00-self-signed-certificates/generate-client-certificates.ps1) to generate this certificate tree using PowerShell. It also exports all certificates in base64 encoded X.509 (.cer) files and additionally exports the client certificates with their private keys in PFX (.pfx) files. The results can be found in [this](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/00-self-signed-certificates/certificates) folder.
 
+### Deploy API Management
+
+Next, we need an API Management instance. We'll be deploying everything using Bicep and the Azure CLI. The following script contains the bare minimum to create an API Management instance using Bicep. Save it in a file called `main.bicep`.
+
+```bicep
+//=============================================================================
+// Parameters
+//=============================================================================
+
+@description('The name of the API Management Service that will be created')
+param apiManagementServiceName string
+
+@description('Location to use for all resources')
+param location string = resourceGroup().location
+
+@description('The email address of the owner of the API Management service')
+param publisherEmail string
+
+@description('The name of the owner of the API Management service')
+param publisherName string
+
+//=============================================================================
+// Resources
+//=============================================================================
+
+// API Management
+resource apiManagementService 'Microsoft.ApiManagement/service@2022-08-01' = {
+  name: apiManagementServiceName
+  location: location
+  sku: {
+    name: 'Developer'
+    capacity: 1
+  }
+  properties: {
+    publisherEmail: publisherEmail
+    publisherName: publisherName
+  }
+}
+```
+
+As you can see, we're creating a Developer tier API Management instance. Normally for demos, I'd use the Consumption tier because it's cheap and rolled out quickly. However, the Consumption tier does not support CA certificates, which we'll need later on.
+
+Use the following command to deploy the API Management instance. Replace the placeholders with your values. Note that this will take a while to complete (about ~30 minutes).
+
+```powershell
+az deployment group create `
+    --name "deploy-$(Get-Date -Format "yyyyMMdd-HHmmss")" `
+    --resource-group '<your-resource-group>' `
+    --template-file './main.bicep' `
+    --parameters apiManagementServiceName='<your-api-management-instance-name>' `
+                 publisherEmail='<your-email>' `
+                 publisherName='<your-name>' `
+    --verbose
+```
+
