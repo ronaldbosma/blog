@@ -226,12 +226,12 @@ To use the certificates, we'll need to update the user settings in Visual Studio
 - Add the following configuration to the settings file. 
 
   ```json
-      "rest-client.certificates": {
-          "<your-api-management-instance-name>.azure-api.net": {
-              "pfx": "<path-to-certificates>/dev-client-01.pfx",
-              "passphrase": "P@ssw0rd"
-          }
-      },
+  "rest-client.certificates": {
+      "<your-api-management-instance-name>.azure-api.net": {
+          "pfx": "<path-to-certificates>/dev-client-01.pfx",
+          "passphrase": "P@ssw0rd"
+      }
+  }
   ```
   
 - Replace `<your-api-management-instance-name>` with your API Management instance name and `<path-to-certificates>` with the path to the folder with certificates. 
