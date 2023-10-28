@@ -24,7 +24,9 @@ Topics covered in this series:
 
 In this first post, we'll cover the basics of how to validate client certificates in API Management. We'll deploy both API Management and an API using Bicep. We'll also have a look at how to upload CA certificates and client certificates. in API Management.
 
-If your interested in how to configure all this through the Azure Portal, have a look at [How to secure APIs using client certificate authentication in API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates-for-clients).
+This post provides a step by step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/01-validate-client-certificate-in-apim).
+
+If you want to know how to configure all of this through the Azure Portal, have a look at [How to secure APIs using client certificate authentication in API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates-for-clients).
 
 ### Prerequisites
 
@@ -420,8 +422,10 @@ After redeploying the Bicep template, call the `validate-using-context` operatio
 
 ### Conclusion
 
-In this post, we've covered the basics of how to validate client certificates in API Management. As you've seen, there are two ways to validate a client certificate. You can either use the `validate-client-certificate` policy or the `context.Request.Certificate` property. Both have their advantages and disadvantages.
+In this post, we've covered the basics of how to validate client certificates in API Management. As you've seen, there are two ways to validate a client certificate. You can either use the `validate-client-certificate` policy or the `context.Request.Certificate` property.
 
 Using Bicep in combination with the Azure CLI is a great way to automate the deployment of resources, like API Management and its APIs, to Azure. It also provides an easy way to deploy your CA and client certificates to API Management.
+
+The end result of this blog post can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/01-validate-client-certificate-in-apim).
 
 In the next post we'll cover how to validate a client certificate in API Management when it's sitting behind an Azure Application Gateway.
