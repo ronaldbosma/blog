@@ -9,7 +9,7 @@ draft: true
 
 This blog post is the start of a series on how to work with client certificates in Azure API Management. In the series, I'll cover both the validation of client certificates in API Management and how to connect to backends using client certificates. 
 
-While Azure's official documentation provides excellent guidance on setting up client certificates via the Azure Portal, this series takes it a step further. We'll dive into utilizing Bicep for Infrastructure as Code (IaC) and other essential tools to automate the entire deployment process.
+While Azure's official documentation provides excellent guidance on setting up client certificates via the Azure Portal, this series takes it a step further. We'll dive into utilizing Bicep for Infrastructure as Code (IaC) and other essential tools, like the Azure CLI, to automate the entire deployment process.
 
 Topics covered in this series:
 
@@ -19,6 +19,9 @@ Topics covered in this series:
 - Deploying client certificates in Key Vault with Azure Pipeline 1/2
 - Deploying client certificates in Key Vault with Azure Pipeline 2/2
 
+In this first post, we'll cover the basics of how to validate client certificates in Azure API Management. We'll deploy both API Management and API using Bicep. We'll also have a look at how to upload CA certificates and client certificates.
+
+If your interested in how to configure all this from the Azure Portal, have a look at [How to secure APIs using client certificate authentication in API Management].
 
 ### Prerequisites
 
@@ -259,3 +262,4 @@ Click on the `Send Request` link again in the `test.http` file. You should now g
 [Thumbprint]
   5E7FC1A1F7AD302EDFBFB0B87C5AF2A299B72858
 ```
+
