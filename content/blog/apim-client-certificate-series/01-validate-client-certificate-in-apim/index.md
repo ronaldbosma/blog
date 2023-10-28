@@ -14,11 +14,11 @@ While Azure's official documentation provides excellent guidance on setting up c
 
 Topics covered in this series:
 
-- Validate client certificates in API Management
-- Validate client certificates in API Management when its behind an Application Gateway
-- Connection to backends using client certificates
-- Deploying client certificates in Key Vault with Azure Pipeline 1/2
-- Deploying client certificates in Key Vault with Azure Pipeline 2/2
+1. Validate client certificates in API Management _**(current)**_
+1. Validate client certificates in API Management when its behind an Application Gateway _(coming soon)_
+1. Connection to backends using client certificates _(coming soon)_
+1. Deploying client certificates in Key Vault with Azure Pipeline 1/2 _(coming soon)_
+1. Deploying client certificates in Key Vault with Azure Pipeline 2/2 _(coming soon)_
 
 ### Intro
 
