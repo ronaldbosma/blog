@@ -21,7 +21,7 @@ Topics covered in this series:
 
 In this first post, we'll cover the basics of how to validate client certificates in Azure API Management. We'll deploy both API Management and API using Bicep. We'll also have a look at how to upload CA certificates and client certificates.
 
-If your interested in how to configure all this from the Azure Portal, have a look at [How to secure APIs using client certificate authentication in API Management].
+If your interested in how to configure all this from the Azure Portal, have a look at [How to secure APIs using client certificate authentication in API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates-for-clients).
 
 ### Prerequisites
 
@@ -29,7 +29,9 @@ This first section will cover the prerequisites required before we can start val
 
 #### Self-signed certificates
 
-First things first. We need some certificates. Using [Generate and export certificates for point-to-site using PowerShell](https://learn.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-certificates-point-to-site) as a guide, I created the following three of certificates.
+First things first. We need some certificates. In this demo we'll be using self-signed certificates, but 
+
+Using [Generate and export certificates for point-to-site using PowerShell](https://learn.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-certificates-point-to-site) as a guide, I created the following three of certificates.
 
 ![Self-signed certificates](../../../../static/images/apim-client-certificate-series/self-signed-certificates.png)
 
@@ -262,4 +264,94 @@ Click on the `Send Request` link again in the `test.http` file. You should now g
 [Thumbprint]
   5E7FC1A1F7AD302EDFBFB0B87C5AF2A299B72858
 ```
+
+### Validate client certificate using policy
+
+The first way to validate a client certificate is by using the [validate-client-certificate policy](https://learn.microsoft.com/en-us/azure/api-management/validate-client-certificate-policy). 
+
+Open the `validate-using-policy.operation.cshtml` file and add the following policy in the `inbound` section between the `base` and `return-response` policy.
+
+```xml
+<validate-client-certificate 
+    validate-revocation="false" 
+    validate-trust="false" 
+    validate-not-before="true" 
+    validate-not-after="true" 
+    ignore-error="false">
+  <identities>
+    <identity subject="CN=Client 01" />
+  </identities>
+</validate-client-certificate>
+```
+
+This policy will validate the client certificate against the provided identities. In this case, we're only allowing certificates with subject `CN=Client 01`. We're also validating that the certificate is valid at the time of the request.
+
+After redeploying this change, we can retest the API. Click 'Send Request' to call the `validate-using-policy` operation. It should still succeed because we're passing a valid client certificate.
+
+Now configure a different client certificate in your user settings, for example `dev-client-02.pfx`, and call the operation again. You should get a `401 Unauthorized` response with the following details.
+
+```
+HTTP/1.1 401 Unauthorized
+ErrorSource: validate-client-certificate
+ErrorReason: ClientCertificateIdentityNotMatched
+ErrorMessage: Certificate does not match any of allowed identities.
+
+{
+  "statusCode": 401,
+  "message": "Invalid client certificate"
+}
+```
+
+As you can see in the `ErrorMessage` response header, the certificate does not match any of the allowed identities. This is because we're only allowing certificates with the `CN=Client 01` subject.
+
+#### Validate certificate chain
+
+We've been using the client certificates for the development environment. If you would use the test environment version (e.g. `tst-client-01.pfx`) you should get a `401 Unauthorized` response. However, a `200 OK` is returned with the current configuration, because we're not validating the certificate chain.
+
+On the `validate-client-certificate` policy, change the value of the `validate-trust` attribute to `true` and redeploy the change. Now you'll get the following `401 Unauthorized` response when calling the `validate-using-policy` operation, which indicates that the certificate chain of the client certificate could not be validated.
+
+```
+HTTP/1.1 401 Unauthorized
+ErrorSource: validate-client-certificate
+ErrorReason: ClientCertificateNotTrusted
+ErrorMessage: A certificate chain could not be built to a trusted root authority.
+
+{
+  "statusCode": 401,
+  "message": "Invalid client certificate"
+}
+```
+
+You'll get this error for both the `dev-client-01.pfx` and `tst-client-01.pfx` client certificate though. To accept the dev environment certificate again, we'll need to upload the corresponding CA certificates to API Management so the certificate chain can be validated.
+
+Open the `main.bicep` and locate the `apiManagementService` resource. Add the following configuration to the `properties` section. This will upload the root CA certificate to the `Root` certificate store and the intermediate CA certificate to the `CertificateAuthority` certificate store.
+
+```bicep
+certificates: [
+  {
+    encodedCertificate: loadTextContent('./certificates/root-ca.without-markers.cer')
+    storeName: 'Root'
+  }
+  {
+    encodedCertificate: loadTextContent('./certificates/dev-intermediate-ca.without-markers.cer')
+    storeName: 'CertificateAuthority'
+  }
+]
+```
+
+This snippet will load the certificates from the corresponding `.cer` files. If you're using your own, change the paths to the files. 
+
+The value of `encodedCertificate` should be a base64 representation of the certificate without the private key. You can get this when you choose the `Base-64 encoded X.509 (.CER)` option when exporting the certificate from the Certificate Manager (Windows). The result is a file that should look like this.
+
+```
+-----BEGIN CERTIFICATE-----
+MIIDCDCCAfCgAwIBAgIQTA+cOPepk41ICdLhY7AUwDANBgkqhkiG9w0BAQsFADAeMRwwGgYDVQQD
+............................................................................
+uLmEJRy8HbiC5HLkKWlQSmJEbXcNw3P8sEgub0/SblXOSV7gYSos
+-----END CERTIFICATE-----
+```
+
+If you use this exported file directly, the deployment of API Management will fail with the following error: `Invalid parameter: The certificate's data file format associated with Intermediates must be a Base64-encoded .pfx file`. To prevent this, remove the `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----` markers from the `.cer` file.
+
+Now redeploy the Bicep template. This can take up to ~15 minutes to complete. After the deployment is finished, you can test the API again. You should now get a `200 OK` response for the `dev-client-01.pfx` client certificate. When using the `tst-client-01.pfx`, a `401 Unauthorized` response is returned.
 
