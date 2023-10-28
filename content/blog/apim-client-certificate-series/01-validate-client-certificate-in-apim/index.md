@@ -1,9 +1,10 @@
 ---
-title: "Validate client certificates in Azure API Management"
+title: "Validate client certificates in API Management"
 date: 2023-10-27T00:00:00+02:00
 publishdate: 2023-10-27T00:00:00+02:00
 lastmod: 2023-10-27T00:00:00+02:00
 tags: [ "Azure", "API Management", "Bicep", "Client Certificates", "Infra as Code", "Security" ]
+summary: "This blog post is the start of a series on how to work with client certificates in Azure API Management. While Azure's official documentation provides excellent guidance on setting up client certificates via the Azure Portal, we'll dive into utilizing Bicep and the Azure CLI, to automate the entire deployment process. In this first post, we'll cover the basics of how to validate client certificates in API Management."
 draft: true
 ---
 
@@ -13,8 +14,8 @@ While Azure's official documentation provides excellent guidance on setting up c
 
 Topics covered in this series:
 
-- Validate client certificates in Azure API Management
-- Using mTLS with an Azure Application Gateway and API Management
+- Validate client certificates in API Management
+- Validate client certificates in API Management when its behind an Application Gateway
 - Connection to backends using client certificates
 - Deploying client certificates in Key Vault with Azure Pipeline 1/2
 - Deploying client certificates in Key Vault with Azure Pipeline 2/2
