@@ -37,8 +37,10 @@ If you want to know how to configure all of this through the Azure Portal, have 
 - [Test API](#test-api)
 - [Validate client certificate using policy](#validate-client-certificate-using-policy)
   - [Validate certificate chain](#validate-certificate-chain)
+  - [Upload CA certificates](#upload-ca-certificates)
 - [Validate client certificate using the context](#validate-client-certificate-using-the-context)
   - [Validate against uploaded client certificates](#validate-against-uploaded-client-certificates)
+  - [Upload client certificate](#upload-client-certificate)
 - [Conclusion](#conclusion)
 
 ### Prerequisites
@@ -343,7 +345,11 @@ ErrorMessage: A certificate chain could not be built to a trusted root authority
 
 You'll get this error for both the `dev-client-01.pfx` and `tst-client-01.pfx` client certificate though. We're using self-signed certificates, so to accept the dev environment certificate again, we'll need to upload the corresponding CA certificates to API Management.
 
-Open the `main.bicep` and locate the `apiManagementService` resource. Add the following configuration to the `properties` section. This will upload the root CA certificate to the `Root` certificate store and the intermediate CA certificate to the `CertificateAuthority` certificate store.
+#### Upload CA certificates
+
+See [How to add a custom CA certificate in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-ca-certificates) for an explanation on how to upload CA certificates to API Management through the Azure Portal.
+
+To upload the CA certificates using Bicep, open the `main.bicep` and locate the `apiManagementService` resource. Add the following configuration to the `properties` section. This will upload the root CA certificate to the `Root` certificate store and the intermediate CA certificate to the `CertificateAuthority` certificate store.
 
 ```bicep
 certificates: [
@@ -413,6 +419,10 @@ Open the `validate-using-context.operation.cshtml` file, locate the `choose` pol
 This snippet will check the thumbprint of the provided client certificate against the thumbprints of the uploaded certificates.
 
 After redeploying the change, call the `validate-using-context` operation to test the change. You should get a `401 Unauthorized` response, because we haven't uploaded any client certificates yet.
+
+#### Upload client certificate
+
+The documentation on [How to secure APIs using client certificate authentication in API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates-for-clients) describes how to upload a `pfx` client certificate to API Management using the Azure Portal. We'll do the same using Bicep. And because we're only validating the thumbprint, we don't need the private key, so we can upload a `.cer` file instead.
 
 Open the `main.bicep` and add the following resource. It will upload the `dev-client-01.cer` client certificate to API Management.
 
