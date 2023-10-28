@@ -196,3 +196,60 @@ Finally, in the `on-error` section, we're setting some headers to return informa
 Now redeploy the Bicep template using the previously provided Azure CLI command. This should take less than a minute to complete.
 
 
+### Test API
+
+I like to use the [REST Client extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) to test my API's. It allows me to quickly test APIs without having to leave my IDE.
+
+> In this section I'll describe how to call the API with a client certificate using the extension. If you want to use Postman instead, you can follow the instructions in the following article: [Adding client certificates in Postman](https://learning.postman.com/docs/sending-requests/certificates/#adding-client-certificates). 
+> 
+> You can also call the API directly from the browser. You'll need to upload the client certificate with private key to your personal certificate store first. Then, when you browse to the full url of the API operation, you'll get a popup to select a client certificate. 
+
+To use the extension, create a file called `test.http` and add the following content. Replace `<your-api-management-instance-name>` with your API Management instance name.
+
+```http
+# Configure your host name
+@apimHostname = <your-api-management-instance-name>.azure-api.net
+
+### Validates client certificate using validate-client-certificate policy
+GET https://{{apimHostname}}/client-cert/validate-using-policy
+
+### Validates client certificate using the context.Request.Certificate property
+GET https://{{apimHostname}}/client-cert/validate-using-context
+```
+
+When you open the file, you'll see a `Send Request` link above each request. Clicking it will send the request to the configured host. The response will be displayed in the output window. This should be a `200 OK`. We haven't configured a client certificate yet, so the response body will be empty.
+
+You can use your own certificates or download mine from [certificates](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/00-self-signed-certificates/certificates).
+
+To use the certificates, we'll need to update the user settings in Visual Studio Code as described [here](https://github.com/Huachao/vscode-restclient#ssl-client-certificates). Open the  Command Palette (`Ctrl+Shift+P`) and choose `Preferences: Open User Settings (JSON)`. Add the following configuration to the settings file. Replace `<your-api-management-instance-name>` with your API Management instance name and `<path-to-certificates>` with the path to the folder with certificates. Don't forget to change the passphrase if you've used your own certificates.
+
+```json
+    "rest-client.certificates": {
+        "<your-api-management-instance-name>.azure-api.net": {
+            "pfx": "<path-to-certificates>/dev-client-01.pfx",
+            "passphrase": "P@ssw0rd"
+        }
+    },
+```
+
+Click on the `Send Request` link again. You should now get a `200 OK` response with the details of the client certificate in the response body. It should look something like this.
+
+```
+[Subject]
+  CN=Client 01
+
+[Issuer]
+  CN=APIM Sample DEV Intermediate CA
+
+[Serial Number]
+  790CE8EEE5F01997408E859972D94A9E
+
+[Not Before]
+  10/27/2023 9:05:11 AM
+
+[Not After]
+  10/27/2024 9:15:11 AM
+
+[Thumbprint]
+  5E7FC1A1F7AD302EDFBFB0B87C5AF2A299B72858
+```
