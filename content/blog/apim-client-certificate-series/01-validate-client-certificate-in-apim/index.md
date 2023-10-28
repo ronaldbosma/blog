@@ -151,11 +151,11 @@ resource validateUsingContext 'Microsoft.ApiManagement/service/apis/operations@2
 }
 ```
 
-There are some things to take note off. First, I did not make the subscription key required to make testing the API as simple as possible.
+There are some things to take note off. First, I did not make the subscription key required to make testing the API as simple as possible. (This is not recommended for production scenarios.)
 
 Second, both operations will load their respective policies from an XML file. Create a `validate-using-policy.operation.cshtml` and `validate-using-context.operation.cshtml` and add the following XML to both files.
 
-  > The `.cshtml` extension is recognized by the [Azure API Management Extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-apimanagement) and you get some intellisense support on policies.
+  > The `.cshtml` extension is recognized by the [Azure API Management Extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-apimanagement) and among other things gives you some intellisense support on policies.
 
 ```xml
 <policies>
@@ -187,26 +187,26 @@ Second, both operations will load their respective policies from an XML file. Cr
 </policies>
 ```
 
-We haven't configured any backend to forward requests to, so this policy will ensures that a `200 OK` response is always returned. By using the `context.Request.Certificate?.ToString()` policy expression, it will also include any details about a provided client certificate in the response body.
+We haven't configured any backend to forward requests to, so the `return-response` policy will ensures that a `200 OK` response is always returned. By using the `context.Request.Certificate?.ToString()` policy expression, it will also include any details about a provided client certificate in the response body.
 
 Finally, in the `on-error` section, we're setting some headers to return information about any errors that might occur. This will provide additional information about why a request failed.
 
-> In a real-world scenario, you might not want to disclose this information to your clients. Instead, you would connect API Management to Application Insights so errors can be logged.
+> In a real-world scenario, you might not want to disclose this information to your clients. Instead, you would connect API Management to Application Insights so errors will be logged there.
 
 Now redeploy the Bicep template using the previously provided Azure CLI command. This should take less than a minute to complete.
 
 
 ### Test API
 
-I like to use the [REST Client extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) to test my API's. It allows me to quickly test APIs without having to leave my IDE.
+After deploying the API, we can do a first test. I like to use the [REST Client extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=humao.rest-client). It allows me to quickly test APIs without having to leave my IDE.
 
 > In this section I'll describe how to call the API with a client certificate using the extension. If you want to use Postman instead, you can follow the instructions in the following article: [Adding client certificates in Postman](https://learning.postman.com/docs/sending-requests/certificates/#adding-client-certificates). 
 > 
 > You can also call the API directly from the browser. You'll need to upload the client certificate with private key to your personal certificate store first. Then, when you browse to the full url of the API operation, you'll get a popup to select a client certificate. 
 
-To use the extension, create a file called `test.http` and add the following content. Replace `<your-api-management-instance-name>` with your API Management instance name.
+Create a file called `test.http` and add the following content. Replace `<your-api-management-instance-name>` with your API Management instance name.
 
-```http
+```
 # Configure your host name
 @apimHostname = <your-api-management-instance-name>.azure-api.net
 
@@ -217,22 +217,28 @@ GET https://{{apimHostname}}/client-cert/validate-using-policy
 GET https://{{apimHostname}}/client-cert/validate-using-context
 ```
 
-When you open the file, you'll see a `Send Request` link above each request. Clicking it will send the request to the configured host. The response will be displayed in the output window. This should be a `200 OK`. We haven't configured a client certificate yet, so the response body will be empty.
+When you open the file in Visual Studio Code, you'll see a `Send Request` link above each request. Clicking it will send the request to the API. The response will be displayed in the output window. This should be a `200 OK` with and empty response body, because we haven't configured a client certificate yet.
 
-You can use your own certificates or download mine from [certificates](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/00-self-signed-certificates/certificates).
+You can use your own certificates or download samples from [certificates](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/00-self-signed-certificates/certificates).
 
-To use the certificates, we'll need to update the user settings in Visual Studio Code as described [here](https://github.com/Huachao/vscode-restclient#ssl-client-certificates). Open the  Command Palette (`Ctrl+Shift+P`) and choose `Preferences: Open User Settings (JSON)`. Add the following configuration to the settings file. Replace `<your-api-management-instance-name>` with your API Management instance name and `<path-to-certificates>` with the path to the folder with certificates. Don't forget to change the passphrase if you've used your own certificates.
+To use the certificates, we'll need to update the user settings in Visual Studio Code as described [here](https://github.com/Huachao/vscode-restclient#ssl-client-certificates).
+- Open the  Command Palette (`Ctrl+Shift+P`) and choose `Preferences: Open User Settings (JSON)`.
+- Add the following configuration to the settings file. 
 
-```json
-    "rest-client.certificates": {
-        "<your-api-management-instance-name>.azure-api.net": {
-            "pfx": "<path-to-certificates>/dev-client-01.pfx",
-            "passphrase": "P@ssw0rd"
-        }
-    },
-```
+  ```json
+      "rest-client.certificates": {
+          "<your-api-management-instance-name>.azure-api.net": {
+              "pfx": "<path-to-certificates>/dev-client-01.pfx",
+              "passphrase": "P@ssw0rd"
+          }
+      },
+  ```
+  
+- Replace `<your-api-management-instance-name>` with your API Management instance name and `<path-to-certificates>` with the path to the folder with certificates. 
+- Don't forget to change the passphrase if you're using your own certificates.
+- Save the changes.
 
-Click on the `Send Request` link again. You should now get a `200 OK` response with the details of the client certificate in the response body. It should look something like this.
+Click on the `Send Request` link again in the `test.http` file. You should now get a `200 OK` response with the details of the client certificate in the response body. It should look something like this.
 
 ```
 [Subject]
