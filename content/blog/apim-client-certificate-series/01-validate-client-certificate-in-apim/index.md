@@ -284,9 +284,9 @@ Open the `validate-using-policy.operation.cshtml` file and add the following pol
 </validate-client-certificate>
 ```
 
-This policy will validate the client certificate against the provided identities. In this case, we're only allowing certificates with subject `CN=Client 01`. We're also validating that the certificate is valid at the time of the request.
+This policy will validate the client certificate against the provided identities. In this case, we're only allowing certificates with subject `CN=Client 01` (see [the documentation](https://learn.microsoft.com/en-us/azure/api-management/validate-client-certificate-policy) for more options). We're also validating that the certificate is valid at the time of the request.
 
-After redeploying this change, we can retest the API. Click 'Send Request' to call the `validate-using-policy` operation. It should still succeed because we're passing a valid client certificate.
+After redeploying this change, we can retest the API. Click `Send Request` to call the `validate-using-policy` operation. It should still succeed because we're passing a valid client certificate.
 
 Now configure a different client certificate in your user settings, for example `dev-client-02.pfx`, and call the operation again. You should get a `401 Unauthorized` response with the following details.
 
@@ -355,3 +355,59 @@ If you use this exported file directly, the deployment of API Management will fa
 
 Now redeploy the Bicep template. This can take up to ~15 minutes to complete. After the deployment is finished, you can test the API again. You should now get a `200 OK` response for the `dev-client-01.pfx` client certificate. When using the `tst-client-01.pfx`, a `401 Unauthorized` response is returned.
 
+### Validate client certificate using the context
+
+The second option to validate a client certificate is by using the `context.Request.Certificate` property. This property contains the client certificate that was used to call the API.
+
+Open the `validate-using-context.operation.cshtml` policy file and add the following snippet in the `inbound` section between the `base` and `return-response` policy.
+
+```xml
+<choose>
+    <when condition="@(context.Request.Certificate == null || context.Request.Certificate.Subject != "CN=Client 01" || !context.Request.Certificate.VerifyNoRevocation())" >
+        <return-response>
+            <set-status code="401" reason="Invalid client certificate" />
+        </return-response>
+    </when>
+</choose>
+```
+
+This snippet will check that a client certificates was provided and that it has the expected subject. It also checks the certificate chain against the CA certificates we've uploaded earlier using the `VerifyNoRevocation` operation. If you also want to check the revocation status, you can use the `Verify()` operation instead.
+
+After deploying the change, call the `validate-using-policy` operation to test the change. Try different client certificates to see the response.
+
+#### Upload client certificate
+
+It's also possible to check the client certificate against certificates upload to API Management. These can be accessed using the `context.Deployment.Certificates` property.
+
+Open the `validate-using-context.operation.cshtml` file and replace the current `choose` policy with the following snippet. It will check the thumbprint of the provided client certificate against the thumbprints of the uploaded certificates.
+
+```xml
+<choose>
+    <when condition="@(context.Request.Certificate == null || !context.Request.Certificate.VerifyNoRevocation() || !context.Deployment.Certificates.Any(c => c.Value.Thumbprint == context.Request.Certificate.Thumbprint))" >
+        <return-response>
+            <set-status code="401" reason="Invalid client certificate" />
+        </return-response>
+    </when>
+</choose>
+```
+
+After redeploying the change, call the `validate-using-policy` operation to test the change. You should get a `401 Unauthorized` response, because we haven't uploaded any client certificates yet.
+
+Open the `main.bicep` and add the following resource. It will upload the `dev-client-01.cer` client certificate to API Management.
+
+```bicep
+// Add client certificate for 'Dev Client 01'
+resource devClient01Certificate 'Microsoft.ApiManagement/service/certificates@2022-08-01' = {
+  name: 'dev-client-01'
+  parent: apiManagementService
+  properties: {
+    data: loadTextContent('./certificates/dev-client-01.without-markers.cer')
+  }
+}
+```
+
+Similar to the CA certificates, the value of the `data` property should be base64 (no private key necessary) without the `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----` markers.
+
+Note that we can't use the `certificates` property on the API Management resources, because that's only used for specifying CA certificates.
+
+After redeploying the Bicep template, call the `validate-using-policy` operation again. You should now get a `200 OK` response for the `dev-client-01.pfx` client certificate, but a `401 Unauthorized` response for the `dev-client-02.pfx` client certificate.
