@@ -22,11 +22,24 @@ Topics covered in this series:
 
 ### Intro
 
-In this first post, we'll cover the basics of how to validate client certificates in API Management. We'll deploy both API Management and an API using Bicep. We'll also have a look at how to upload CA certificates and client certificates. in API Management.
+In this first post, we'll cover the basics of how to validate client certificates in API Management. We'll deploy both API Management and an API using Bicep. We'll also have a look at how to upload CA certificates and client certificates in API Management.
 
 This post provides a step by step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/01-validate-client-certificate-in-apim).
 
 If you want to know how to configure all of this through the Azure Portal, have a look at [How to secure APIs using client certificate authentication in API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates-for-clients).
+
+### Table of Contents
+
+- [Prerequisites](#prerequisites)
+  - [Self-signed certificates](#self-signed-certificates)
+  - [Deploy API Management](#deploy-api-management)
+  - [Deploy API](#deploy-api)
+- [Test API](#test-api)
+- [Validate client certificate using policy](#validate-client-certificate-using-policy)
+  - [Validate certificate chain](#validate-certificate-chain)
+- [Validate client certificate using the context](#validate-client-certificate-using-the-context)
+  - [Validate against uploaded client certificates](#validate-against-uploaded-client-certificates)
+- [Conclusion](#conclusion)
 
 ### Prerequisites
 
@@ -381,7 +394,7 @@ This snippet will check that a client certificates was provided and that it has 
 
 After deploying the change, call the `validate-using-context` operation to test the change. Try different client certificates to see the response.
 
-#### Upload client certificate
+#### Validate against uploaded client certificates
 
 It's also possible to check the client certificate against certificates uploaded to API Management. These can be accessed using the `context.Deployment.Certificates` property.
 
