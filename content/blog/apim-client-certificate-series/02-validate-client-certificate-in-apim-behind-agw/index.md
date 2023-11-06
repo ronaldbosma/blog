@@ -19,13 +19,26 @@ Topics covered in this series:
 1. Deploying client certificates in Key Vault with Azure Pipeline 1/2 _(coming soon)_
 1. Deploying client certificates in Key Vault with Azure Pipeline 2/2 _(coming soon)_
 
+### Intro
+
+In this second post we build upon the solution of the previous post. We'll deploy API Management behind an Application Gateway and configure the Application Gateway to validate client certificates. We'll also configure the Application Gateway to forward the client certificate to API Management for further validation.
+
+This post provides a step by step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw).
+
+### Table of Contents
+
+- [Prerequisites](#prerequisites)
+  - [Virtual Network](#virtual-network)
+  - [Deploy API Management in virtual network](#deploy-api-management-in-virtual-network)
+
+
 ### Prerequisites
 
-Use the result of the previous post as a starting point. You can find the code [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/01-validate-client-certificate-in-apim) and the self-signed certificates [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/00-self-signed-certificates).
+This first section will cover the prerequisites for this post. Use the result of the previous post as a starting point. You can find the code [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/01-validate-client-certificate-in-apim) and the self-signed certificates [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/00-self-signed-certificates).
 
 #### Virtual Network
 
-First off, we'll need a virtual network. Open the `main.bicep` from the previous post and add the following bicep:
+First off, we'll need a virtual network for the Application Gateway. Open the `main.bicep` from the previous post and add the following bicep:
 
 ```bicep
 // Virtual Network
@@ -64,13 +77,13 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-05-01' = {
 }
 ```
 
-This snippet will create a basis virtual network with two subnets. One for the Application Gateway and one for API Management. It will also create a reference to the created subnets, so we can use their id's later on.
+This Bicep will create a basic virtual network with two subnets. One for the Application Gateway and one for API Management. It will also create a reference to the created subnets, so we can use their IDs later on.
 
-This is enough for purposes of this demo, but in a real-world scenario you probably want to add more security measures.
+This configuration is enough for the demo, but in a real-world scenario you probably want to add more security measures.
 
 #### Deploy API Management in virtual network
 
-Step two is to deploy API Management inside the virtual network. Locate the `apiManagementService` resources and add the following code to the properties section:
+Step two is to deploy API Management inside the virtual network. Locate the `apiManagementService` resource and add the following code to the properties section:
 
 ```bicep
 virtualNetworkType: 'Internal'
