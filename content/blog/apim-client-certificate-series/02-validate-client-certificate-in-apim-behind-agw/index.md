@@ -339,6 +339,174 @@ GET https://apim-sample.dev/status-0123456789abcdef
 
 This request will call the `/status-0123456789abcdef` endpoint, which is a default endpoint you can use to test if API Management is reachable. If everything is configured correctly, you should get a `200 OK` response.
 
+### Add mTLS listener to Application Gateway
+
+#### Port
+
+Add the following to the `frontendPorts` array:
+
+```bicep
+{
+  name: 'port-mtls'
+  properties: {
+    port: 50001
+  }
+}
+```
+
+#### Trusted Certificates
+
+The the following bicep to the `properties` section of the `applicationGateway` resource. Replace `<path-to-certificates>` with the path to the certificate.
+
+```bicep
+trustedClientCertificates: [
+  {
+    name: 'intermediate-ca-with-root-ca'
+    properties: {
+      data: loadTextContent('<path-to-certificates>/dev-intermediate-ca-with-root-ca.cer')
+    }
+  }
+]
+```
+
+The root CA certificate must be marked as root certificate. 
+
+
+#### SSL Profile
+
+The the following bicep to the `properties` section of the `applicationGateway` resource.
+
+```bicep
+sslProfiles: [
+  {
+    name: 'mtls-ssl-profile'
+    properties: {
+      clientAuthConfiguration: {
+        // By setting verifyClientCertIssuerDN to true the intermediate CA is also checked, not just the Root CA.
+        // See https://learn.microsoft.com/en-us/azure/application-gateway/mutual-authentication-overview?tabs=powershell#verify-client-certificate-dn
+        verifyClientCertIssuerDN: true
+      }
+      trustedClientCertificates: [
+        {
+          id: resourceId('Microsoft.Network/applicationGateways/trustedClientCertificates', applicationGatewayName, 'intermediate-ca-with-root-ca')
+        }
+      ]
+    }
+  }
+]
+```
+
+If we don't set `verifyClientCertIssuerDN` to true, only the root CA certificate will be checked. In our example, this would mean that a client certificate created by `CN=APIM Sample TST Intermediate CA` would be accepted, even though we've uploaded the other intermediate certificate `CN=APIM Sample DEV Intermediate CA`. By setting `verifyClientCertIssuerDN` to true, the intermediate certificate will also be checked and only certificates created by `CN=APIM Sample DEV Intermediate CA` will be accepted.
+
+#### mTLS Listener
+
+Add the following to the `httpListeners` array:
+
+```bicep
+{
+  name: 'mtls-listener'
+  properties: {
+    protocol: 'Https'
+    hostName: 'apim-sample.dev'
+    frontendIPConfiguration: {
+      id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', applicationGatewayName, 'agw-public-frontend-ip')
+    }
+    frontendPort: {
+      id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', applicationGatewayName, 'port-mtls')
+    }
+    sslCertificate: {
+      id: resourceId('Microsoft.Network/applicationGateways/sslCertificates', applicationGatewayName, 'agw-ssl-certificate')
+    }
+    sslProfile: {
+      id: resourceId('Microsoft.Network/applicationGateways/sslProfiles', applicationGatewayName, 'mtls-ssl-profile')
+    }
+  }
+}
+```
+
+#### Routing Rule
+
+Add the following to the `requestRoutingRules` array:
+
+```bicep
+{
+  name: 'apim-mtls-routing-rule'
+  properties: {
+    priority: 30
+    ruleType: 'Basic'
+    httpListener: {
+      id: resourceId('Microsoft.Network/applicationGateways/httpListeners', applicationGatewayName, 'mtls-listener')
+    }
+    backendAddressPool: {
+      id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', applicationGatewayName, 'apim-gateway-backend-pool')
+    }
+    backendHttpSettings: {
+      id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', applicationGatewayName, 'apim-gateway-backend-settings')
+    }
+  }
+}
+```
+
+#### Test mTLS
+
+Add the following snippet to your `.http` file. Try sending the requests.
+
+```
+### Test that API Management can be reached
+
+GET https://apim-sample.dev:50001/status-0123456789abcdef
+
+
+### Validates client certificate using validate-client-certificate policy
+
+GET https://apim-sample.dev:50001/client-cert/validate-using-policy
+
+
+### Validates client certificate using the context.Request.Certificate property
+
+GET https://apim-sample.dev:50001/client-cert/validate-using-context
+```
+
+All request will fail with a response similar to the one below because we haven't configured the REST Client extension to send a client certificate yet.
+
+```
+HTTP/1.1 400 Bad Request
+Server: Microsoft-Azure-Application-Gateway/v2
+
+<html>
+<head><title>400 No required SSL certificate was sent</title></head>
+<body>
+<center><h1>400 Bad Request</h1></center>
+<center>No required SSL certificate was sent</center>
+<hr><center>Microsoft-Azure-Application-Gateway/v2</center>
+</body>
+</html>
+```
+
+To send a client certificate, we'll need to update the user settings in Visual Studio Code as described [here](https://github.com/Huachao/vscode-restclient#ssl-client-certificates).
+
+- Open the  Command Palette (`Ctrl+Shift+P`) and choose `Preferences: Open User Settings (JSON)`.
+- Add the following configuration to the settings file.  
+  _(If you've followed along with the previous post, the `rest-client.certificates` section should already exist.)_
+
+  ```json
+  "rest-client.certificates": {
+    "apim-sample.dev:50001": {
+      "pfx": "<path-to-certificates>/dev-client-01.pfx",
+      "passphrase": "P@ssw0rd"
+    }
+  }
+  ```
+  
+- Don't forget to change the passphrase if you're using your own certificates.
+- Save the changes.
+
+Now if you send the request to `/status-0123456789abcdef` it should succeed. If you use a client certificate from another intermediate CA like `tst-client-01.pfx`, a `400 Bad Request` is returned again.
+
+The calls to `/client-cert/validate-using-policy` and `/client-cert/validate-using-context` still fail, even when a valid client certificate is passed. They both return a `401`. The reason for this is that the client certificate is not sent to API Management. The Application Gateway terminates the mTLS session as described on [Overview of TLS termination and end to end TLS with Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/ssl-overview). This means that we can't use the `validate-client-certificate` policy or the `context.Request.Certificate` property.
+
+
+
 
 ### Other
 
