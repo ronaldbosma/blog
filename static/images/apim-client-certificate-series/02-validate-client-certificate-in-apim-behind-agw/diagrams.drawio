@@ -1,0 +1,205 @@
+<mxfile host="Electron" modified="2023-11-06T12:10:50.762Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.6.5 Chrome/114.0.5735.243 Electron/25.3.1 Safari/537.36" etag="7IjKhARPsFHRVHvhsCG0" version="21.6.5" type="device" pages="2">
+  <diagram name="https-configuration" id="nnF7B84ou2V4BzsaCrNe">
+    <mxGraphModel dx="1434" dy="836" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-1" value="Frontend IP" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="260" y="110" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fillColor=#dae8fc;strokeColor=#000000;" edge="1" parent="1" source="ombFc_7SyiKIRVlL8Szp-2" target="ombFc_7SyiKIRVlL8Szp-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;fillColor=#dae8fc;strokeColor=#000000;" edge="1" parent="1" source="ombFc_7SyiKIRVlL8Szp-2" target="ombFc_7SyiKIRVlL8Szp-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fillColor=#dae8fc;strokeColor=#000000;" edge="1" parent="1" source="ombFc_7SyiKIRVlL8Szp-2" target="ombFc_7SyiKIRVlL8Szp-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-2" value="Http Listener&lt;br&gt;&lt;i&gt;(https-listener)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="260" y="200" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-3" value="Frontend Port&lt;br&gt;&lt;i&gt;(port-https: 443)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="100" y="280" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-4" value="SSL Certificate&lt;br&gt;&lt;i&gt;(https://apim-sample.dev)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="400" y="280" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fillColor=#dae8fc;strokeColor=#000000;" edge="1" parent="1" source="ombFc_7SyiKIRVlL8Szp-8" target="ombFc_7SyiKIRVlL8Szp-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="ombFc_7SyiKIRVlL8Szp-8" target="ombFc_7SyiKIRVlL8Szp-11">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="320" y="460" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="k7onPZ8qB0VhN30JxSub-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="ombFc_7SyiKIRVlL8Szp-8" target="ombFc_7SyiKIRVlL8Szp-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-8" value="Routing Rule&lt;br&gt;&lt;i&gt;(apim-https-routing-rule)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="250" y="360" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-21" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="ombFc_7SyiKIRVlL8Szp-20" target="ombFc_7SyiKIRVlL8Szp-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-20" value="The public IP address" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="110" y="90" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-23" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="ombFc_7SyiKIRVlL8Szp-22" target="ombFc_7SyiKIRVlL8Szp-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-22" value="Listens on public IP with port 443 &lt;br&gt;and SSL certificate" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="56.25" y="160" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-25" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="ombFc_7SyiKIRVlL8Szp-24" target="ombFc_7SyiKIRVlL8Szp-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-24" value="Connects front-end to backend traffic" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="60" y="370" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-27" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="ombFc_7SyiKIRVlL8Szp-26" target="ombFc_7SyiKIRVlL8Szp-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-26" value="Backend to API Management instance" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="90" y="560" width="125" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-29" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="ombFc_7SyiKIRVlL8Szp-28" target="ombFc_7SyiKIRVlL8Szp-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-28" value="Settings for backend traffic: port, timeout, etc." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="450" y="560" width="102.5" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-11" value="Backend Pool&lt;br&gt;&lt;i&gt;(api management gateway)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="100" y="470" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-12" value="Backend Settings&lt;br&gt;&lt;i&gt;(https, port: 443)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="380" y="470" width="160" height="50" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="https-and-mtls-configuration" id="WzAzrXyLaiVkVlJ25JcA">
+    <mxGraphModel dx="1434" dy="836" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="9YXzF_Ixa6va2uAWQ830-0" />
+        <mxCell id="9YXzF_Ixa6va2uAWQ830-1" parent="9YXzF_Ixa6va2uAWQ830-0" />
+        <mxCell id="9YXzF_Ixa6va2uAWQ830-2" value="Frontend IP" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;textOpacity=50;fillOpacity=50;strokeOpacity=50;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="370" y="110" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="9YXzF_Ixa6va2uAWQ830-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fillColor=#dae8fc;strokeColor=#000000;fillOpacity=50;strokeOpacity=50;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="9YXzF_Ixa6va2uAWQ830-6" target="9YXzF_Ixa6va2uAWQ830-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="9YXzF_Ixa6va2uAWQ830-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;fillColor=#dae8fc;strokeColor=#000000;opacity=50;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="9YXzF_Ixa6va2uAWQ830-6" target="9YXzF_Ixa6va2uAWQ830-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="9YXzF_Ixa6va2uAWQ830-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fillColor=#dae8fc;strokeColor=#000000;entryX=0.25;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;opacity=50;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="9YXzF_Ixa6va2uAWQ830-6" target="9YXzF_Ixa6va2uAWQ830-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="9YXzF_Ixa6va2uAWQ830-6" value="Http Listener&lt;br&gt;&lt;i&gt;(https-listener)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fillOpacity=50;strokeOpacity=50;textOpacity=50;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="223.75" y="200" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="9YXzF_Ixa6va2uAWQ830-7" value="Frontend Port&lt;br&gt;&lt;i&gt;(port-https: 443)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fillOpacity=50;strokeOpacity=50;textOpacity=50;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="98.75" y="280" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="9YXzF_Ixa6va2uAWQ830-8" value="SSL Certificate&lt;br&gt;&lt;i&gt;(https://apim-sample.dev)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;textOpacity=50;fillOpacity=50;strokeOpacity=50;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="360" y="280" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="9YXzF_Ixa6va2uAWQ830-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fillColor=#dae8fc;strokeColor=#000000;fillOpacity=50;strokeOpacity=50;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="9YXzF_Ixa6va2uAWQ830-11" target="9YXzF_Ixa6va2uAWQ830-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="9YXzF_Ixa6va2uAWQ830-11" target="SVcead-ReP7Hfpd3xCVE-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zfucZ96kO_Zn-B6u9igZ-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;opacity=50;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="9YXzF_Ixa6va2uAWQ830-11" target="9YXzF_Ixa6va2uAWQ830-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zfucZ96kO_Zn-B6u9igZ-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;opacity=50;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="9YXzF_Ixa6va2uAWQ830-11" target="9YXzF_Ixa6va2uAWQ830-15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="9YXzF_Ixa6va2uAWQ830-11" value="Routing Rule&lt;br&gt;&lt;i&gt;(apim-https-routing-rule)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fillOpacity=50;strokeOpacity=50;textOpacity=50;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="213.75" y="360" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.75;exitDx=0;exitDy=0;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="SVcead-ReP7Hfpd3xCVE-0" target="SVcead-ReP7Hfpd3xCVE-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="SVcead-ReP7Hfpd3xCVE-0" target="SVcead-ReP7Hfpd3xCVE-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="SVcead-ReP7Hfpd3xCVE-0" target="9YXzF_Ixa6va2uAWQ830-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.75;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="SVcead-ReP7Hfpd3xCVE-0" target="9YXzF_Ixa6va2uAWQ830-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-0" value="Http Listener&lt;br&gt;&lt;i&gt;(mtls-listener)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="510" y="200" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-1" value="Frontend Port&lt;br&gt;&lt;i&gt;(port-mtls: 50001)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="620" y="280" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="SVcead-ReP7Hfpd3xCVE-2" target="SVcead-ReP7Hfpd3xCVE-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-2" value="SSL Profile" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="800" y="280" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-3" value="Trusted Certificate&lt;br&gt;&lt;i&gt;(intermediate &amp;amp; root CA)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="800" y="360" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="SVcead-ReP7Hfpd3xCVE-9" target="SVcead-ReP7Hfpd3xCVE-0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="SVcead-ReP7Hfpd3xCVE-9" target="SVcead-ReP7Hfpd3xCVE-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zfucZ96kO_Zn-B6u9igZ-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="SVcead-ReP7Hfpd3xCVE-9" target="9YXzF_Ixa6va2uAWQ830-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zfucZ96kO_Zn-B6u9igZ-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="SVcead-ReP7Hfpd3xCVE-9" target="9YXzF_Ixa6va2uAWQ830-15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-9" value="Routing Rule&lt;br&gt;&lt;i&gt;(apim-mtls-routing-rule)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="500" y="360" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-12" value="Rewrite Rule&lt;br&gt;&lt;i&gt;(default-rewrite-rules)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="111.25" y="460" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-13" value="Rewrite Rules&lt;br&gt;&lt;i&gt;(mtls-rewrite-rules)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="600" y="460" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-17" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="SVcead-ReP7Hfpd3xCVE-16" target="SVcead-ReP7Hfpd3xCVE-13">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="732.181818181818" y="590" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-16" value="Add client certificate&lt;br&gt;in X-ARR-ClientCert request header" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="605" y="550" width="130" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-19" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="SVcead-ReP7Hfpd3xCVE-18" target="SVcead-ReP7Hfpd3xCVE-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-18" value="Remove&amp;nbsp;&lt;br&gt;X-ARR-ClientCert request header" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="126.25" y="540" width="110" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-21" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="SVcead-ReP7Hfpd3xCVE-20" target="SVcead-ReP7Hfpd3xCVE-0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-20" value="Listens on public IP &lt;br&gt;with port 50001&lt;br&gt;and SSL certificate&lt;br&gt;and expects client certificate" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="657" y="120" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-23" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="9YXzF_Ixa6va2uAWQ830-1" source="SVcead-ReP7Hfpd3xCVE-22" target="SVcead-ReP7Hfpd3xCVE-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-22" value="The intermediate &amp;amp; &lt;br&gt;root CA certificates&lt;br&gt;against which to validate the client certificate" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="807" y="460" width="133" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="9YXzF_Ixa6va2uAWQ830-14" value="Backend Pool&lt;br&gt;&lt;i&gt;(api management gateway)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;textOpacity=50;fillOpacity=50;strokeOpacity=50;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="350" y="500" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="9YXzF_Ixa6va2uAWQ830-15" value="Backend Settings&lt;br&gt;&lt;i&gt;(https, port: 443)&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;textOpacity=50;fillOpacity=50;strokeOpacity=50;" vertex="1" parent="9YXzF_Ixa6va2uAWQ830-1">
+          <mxGeometry x="350" y="560" width="160" height="50" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
