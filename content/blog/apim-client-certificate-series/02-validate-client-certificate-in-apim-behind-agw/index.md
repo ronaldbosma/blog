@@ -23,7 +23,7 @@ Topics covered in this series:
 
 In this second post we build upon the solution of the previous post. We'll deploy API Management behind an Application Gateway and configure the Application Gateway to validate client certificates. We'll also configure the Application Gateway to forward the client certificate to API Management for further validation.
 
-This post provides a step by step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw).
+This post provides a step by step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). _(Note that the deployment will take up to 45 minutes, because API Management will be deployed inside a virtual network.)_
 
 ### Table of Contents
 
@@ -31,6 +31,7 @@ This post provides a step by step guide. If you're interested in the end result,
   - [Virtual Network](#virtual-network)
   - [Deploy API Management in virtual network](#deploy-api-management-in-virtual-network)
   - [Public IP address](#public-ip-address)
+  - [Deploy Application Gateway](#deploy-application-gateway)
 
 
 ### Prerequisites
@@ -128,3 +129,164 @@ resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2023-05-01' = {
 }
 ```
 
+#### Deploy Application Gateway
+
+Now we can deploy the Application Gateway. We'll start with an https listener before implementing mTLS. Add the following bicep to the `main.bicep` file:
+
+```bicep
+var applicationGatewayName = 'agw-validate-client-certificate'
+
+// Application Gateway
+resource applicationGateway 'Microsoft.Network/applicationGateways@2023-05-01' = {
+  name: applicationGatewayName
+  location: location
+  properties: {
+    sku: {
+      name: 'Standard_v2'
+      tier: 'Standard_v2'
+    }
+    enableHttp2: false
+    autoscaleConfiguration: {
+      minCapacity: 0
+      maxCapacity: 2
+    }
+
+    gatewayIPConfigurations: [
+      {
+        name: 'agw-subnet-ip-config'
+        properties: {
+          subnet: {
+            id: virtualNetwork::agwSubnet.id
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+##### Frontend
+
+```bicep
+frontendIPConfigurations: [
+  {
+    name: 'agw-public-frontend-ip'
+    properties: {
+      publicIPAddress: {
+        id: publicIPAddress.id
+      }
+    }
+  }
+]
+
+frontendPorts: [
+  {
+    name: 'port-https'
+    properties: {
+      port: 443
+    }
+  }
+]
+
+sslCertificates: [
+  {
+    name: 'agw-ssl-certificate'
+    properties: {
+      data: loadFileAsBase64('./ssl-cert.apim-sample.dev.pfx')
+      password: 'P@ssw0rd'
+    }
+  }
+]
+
+httpListeners: [
+  {
+    name: 'https-listener'
+    properties: {
+      protocol: 'Https'
+      hostName: 'apim-sample.dev'
+      frontendIPConfiguration: {
+        id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', applicationGatewayName, 'agw-public-frontend-ip')
+      }
+      frontendPort: {
+        id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', applicationGatewayName, 'port-https')
+      }
+      sslCertificate: {
+        id: resourceId('Microsoft.Network/applicationGateways/sslCertificates', applicationGatewayName, 'agw-ssl-certificate')
+      }
+    }
+  }
+]
+```
+
+##### SSL Certificate
+
+```powershell
+# Settings
+$dnsName = '<your-dns-name>' # e.g. 'apim-sample.dev
+$plainTextPassword = '<your-password>'
+
+# Create self-signed certificate
+$params = @{
+    DnsName = $dnsName
+    CertStoreLocation = 'Cert:\CurrentUser\My'
+}
+$sslCertificate = New-SelfSignedCertificate @params
+
+# Export the certificate with private key as .pfx file
+$certificatePassword = ConvertTo-SecureString -String $plainTextPassword -Force -AsPlainText
+$currentScriptPath = $MyInvocation.MyCommand.Path | Split-Path -Parent
+Export-PfxCertificate -Cert $sslCertificate -FilePath "$currentScriptPath/ssl-cert.apim-sample.dev.pfx" -Password $certificatePassword
+```
+
+##### Backend
+
+```bicep
+backendAddressPools: [
+  {
+    name: 'apim-gateway-backend-pool'
+    properties: {
+      backendAddresses: [
+        {
+            fqdn: '${apiManagementServiceName}.azure-api.net'
+        }
+      ]
+    }
+  }
+]
+
+backendHttpSettingsCollection: [
+  {
+    name: 'apim-gateway-backend-settings'
+    properties: {
+      port: 443
+      protocol: 'Https'
+      cookieBasedAffinity: 'Disabled'
+      pickHostNameFromBackendAddress: true
+      requestTimeout: 20
+    }
+  }
+]
+```
+
+##### Request routing rule
+
+```bicep
+requestRoutingRules: [
+  {
+    name: 'apim-https-routing-rule'
+    properties: {
+      priority: 10
+      ruleType: 'Basic'
+      httpListener: {
+        id: resourceId('Microsoft.Network/applicationGateways/httpListeners', applicationGatewayName, 'https-listener')
+      }
+      backendAddressPool: {
+        id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', applicationGatewayName, 'apim-gateway-backend-pool')
+      }
+      backendHttpSettings: {
+        id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', applicationGatewayName, 'apim-gateway-backend-settings')
+      }
+    }
+  }
+]
+```
