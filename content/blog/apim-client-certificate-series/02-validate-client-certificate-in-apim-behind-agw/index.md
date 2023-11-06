@@ -30,6 +30,7 @@ This post provides a step by step guide. If you're interested in the end result,
 - [Prerequisites](#prerequisites)
   - [Virtual Network](#virtual-network)
   - [Deploy API Management in virtual network](#deploy-api-management-in-virtual-network)
+  - [Public IP address](#public-ip-address)
 
 
 ### Prerequisites
@@ -105,5 +106,25 @@ az deployment group create `
                  publisherEmail='<your-email>' `
                  publisherName='<your-name>' `
     --verbose
+```
+
+#### Public IP address
+
+For the Application Gateway we'll need a public IP address. Add the following bicep to the `main.bicep` file:
+
+```bicep
+// Public IP address
+resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2023-05-01' = {
+  name: 'pip-validate-client-certificate'
+  location: location
+  sku: {
+    name: 'Standard'
+  }
+  properties: {
+    publicIPAddressVersion: 'IPv4'
+    publicIPAllocationMethod: 'Static'
+    idleTimeoutInMinutes: 4
+  }
+}
 ```
 
