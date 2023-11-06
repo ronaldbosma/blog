@@ -131,7 +131,9 @@ resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2023-05-01' = {
 
 #### Deploy Application Gateway
 
-Now we can deploy the Application Gateway. We'll start with an https listener before implementing mTLS. Add the following bicep to the `main.bicep` file:
+Now we can deploy the Application Gateway. We'll start with an https listener before implementing mTLS. 
+
+Add the following bicep to the `main.bicep` file:
 
 ```bicep
 var applicationGatewayName = 'agw-validate-client-certificate'
@@ -254,6 +256,25 @@ backendAddressPools: [
   }
 ]
 
+probes: [
+  {
+    name: 'apim-gateway-probe'
+    properties: {
+      pickHostNameFromBackendHttpSettings: true
+      interval: 30
+      timeout: 30
+      path: '/status-0123456789abcdef'
+      protocol: 'Https'
+      unhealthyThreshold: 3
+      match: {
+        statusCodes: [
+          '200-399'
+        ]
+      }
+    }
+  }
+]
+
 backendHttpSettingsCollection: [
   {
     name: 'apim-gateway-backend-settings'
@@ -263,6 +284,9 @@ backendHttpSettingsCollection: [
       cookieBasedAffinity: 'Disabled'
       pickHostNameFromBackendAddress: true
       requestTimeout: 20
+      probe: {
+        id: resourceId('Microsoft.Network/applicationGateways/probes', applicationGatewayName, 'apim-gateway-probe')
+      }
     }
   }
 ]
