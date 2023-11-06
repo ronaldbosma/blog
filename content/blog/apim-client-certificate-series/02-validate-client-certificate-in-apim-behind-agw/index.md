@@ -32,7 +32,7 @@ This post provides a step by step guide. If you're interested in the end result,
   - [Deploy API Management in virtual network](#deploy-api-management-in-virtual-network)
   - [Public IP address](#public-ip-address)
   - [Deploy Application Gateway](#deploy-application-gateway)
-
+- [Test API](#test-api)
 
 ### Prerequisites
 
@@ -321,21 +321,23 @@ Deploy the Application Gateway using the Azure CLI command you've used before. T
 
 ### Test API
 
-The app gateway can be reached on `https://apim-sample.dev`. However, because we've used a self-signed certificate and `apim-sample.dev` is not a registered domain, you'll have to update your hosts file to be able to reach the Application Gateway.
+The Application Gateway can be reached on `https://apim-sample.dev`. However, because we've used a self-signed certificate and `apim-sample.dev` is not a registered domain, you'll have to update your hosts file to be able to reach the Application Gateway.
 
-Locate the public IP address resource, opent it and copy the IP address. Open your hosts file (`C:\Windows\System32\drivers\etc\hosts` on Windows, `/private/etc/hosts` on Mac or `/etc/hosts` on Linux) and add the following line, replacing `<your-public-ip-address>` with the IP address you copied.
+Locate the public IP address resource in the Azure Portal, open it and copy the IP address. Open your hosts file (`C:\Windows\System32\drivers\etc\hosts` on Windows, `/private/etc/hosts` on Mac or `/etc/hosts` on Linux) and add the following line, replacing `<your-public-ip-address>` with the IP address you copied.
 
 ```
 <your-public-ip-address> apim-sample.dev
 ```
 
-
+Now you can test if everything is configured correctly. Save the following snippet in an `.http` file and open it in Visual Studio Code with the [REST Client extension](https://marketplace.visualstudio.com/items?itemName=humao.rest-client). Click the `Send Request` link to send the request.
 
 ```
 ### Test that API Management can be reached (/status-0123456789abcdef is a default endpoint you can use)
 
 GET https://apim-sample.dev/status-0123456789abcdef
 ```
+
+This request will call the `/status-0123456789abcdef` endpoint, which is a default endpoint you can use to test if API Management is reachable. If everything is configured correctly, you should get a `200 OK` response.
 
 
 ### Other
