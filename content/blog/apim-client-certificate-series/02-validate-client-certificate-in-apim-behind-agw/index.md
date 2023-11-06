@@ -25,6 +25,9 @@ In this second post we build upon the solution of the previous post. We'll deplo
 
 This post provides a step by step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). _(Note that the deployment will take up to 45 minutes, because API Management will be deployed inside a virtual network.)_
 
+> TODO: app gateway config works for app services too.
+
+
 ### Table of Contents
 
 - [Prerequisites](#prerequisites)
@@ -506,6 +509,112 @@ Now if you send the request to `/status-0123456789abcdef` it should succeed. If 
 The calls to `/client-cert/validate-using-policy` and `/client-cert/validate-using-context` still fail, even when a valid client certificate is passed. They both return a `401`. The reason for this is that the client certificate is not sent to API Management. The Application Gateway terminates the mTLS session as described on [Overview of TLS termination and end to end TLS with Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/ssl-overview). This means that we can't use the `validate-client-certificate` policy or the `context.Request.Certificate` property.
 
 
+### Forward client certificate to API Management
+
+Using a rewrite rule, we can access the client certificate through the `client_certificate` server variable. We can then forward the client certificate to API Management using a header. See [Rewrite HTTP headers and URL with Application Gateway - Mutual authentication server variables](https://learn.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers-url#mutual-authentication-server-variables) for more information.
+
+We'll use `X-ARR-ClientCert` as the name for the header. This is a common name that is also used in similar scenarios. Azure App Services for example uses this header to pass a client certificate to an app like an ASP.NET Web API. _(See [Configure TLS mutual authentication for Azure App Service - Access client certificate](https://learn.microsoft.com/en-us/azure/app-service/app-service-web-configure-tls-mutual-auth?tabs=azurecli#access-client-certificate) for more details if you're interested in this scenario._)
+
+To forward the client certificate, add the following Bicep to the `properties` section of the `applicationGateway` resource:
+
+```bicep
+rewriteRuleSets: [
+  {
+    name: 'mtls-rewrite-rules'
+    properties: {
+      rewriteRules: [
+        {
+          ruleSequence: 100
+          conditions: []
+          name: 'Add Client certificate to HTTP header'
+          actionSet: {
+            requestHeaderConfigurations: [
+              {
+                headerName: 'X-ARR-ClientCert'
+                headerValue: '{var_client_certificate}'
+              }
+            ]
+            responseHeaderConfigurations: []
+          }
+        }
+      ]
+    }
+  }
+]
+```
+
+Locate the `apim-mtls-routing-rule` routing rule and add a reference to the new `mtls-rewrite-rules` rewrite rule set using the following Bicep.
+
+```bicep
+rewriteRuleSet: {
+  id: resourceId('Microsoft.Network/applicationGateways/rewriteRuleSets', applicationGatewayName, 'mtls-rewrite-rules')
+}
+```
+
+To test that the client certificate is forwarded to API Management, we'll add a new operation. First, create a file called `validate-from-agw.operation.cshtml` and add the following policies. This will return a `200 OK` with the passed client certificate in the response body. If no client certificate was forwarded, the text `No client certificate passed` will be returned.
+
+```xml
+<policies>
+    <inbound>
+        <base />
+        <return-response>
+            <set-status code="200" />
+            <set-body>@(context.Request.Headers.GetValueOrDefault("X-ARR-ClientCert", "No client certificate passed"))</set-body>
+        </return-response>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>
+```
+
+Add the following Bicep so the new operation is deployed to the `clientCertApi` API.
+
+```bicep
+// Operation to validate client certificate received from Application Gateway
+resource validateFromAppGateway 'Microsoft.ApiManagement/service/apis/operations@2022-08-01' = {
+  name: 'validate-from-agw'
+  parent: clientCertApi
+  properties: {
+    displayName: 'Validate (from AGW)'
+    description: 'Validates client certificate received from Application Gateway'
+    method: 'GET'
+    urlTemplate: '/validate-from-agw'
+  }
+
+  resource policies 'policies' = {
+    name: 'policy'
+    properties: {
+      format: 'rawxml'
+      value: loadTextContent('./validate-from-agw.operation.cshtml') 
+    }
+  }
+}
+```
+
+Deploy the changes. After the deployment, use the following request to test the ne operation. 
+
+```
+### mTLS (should return the X-ARR-ClientCert header value and certificate details)
+
+GET https://apim-sample.dev:50001/client-cert/validate-from-agw
+```
+
+The result should look similar to the response below (I've truncated the response body). 
+
+```
+HTTP/1.1 200 OK
+
+-----BEGIN%20CERTIFICATE-----%0AMIIDRTCCAi.....6Zdlr9V53Q%3D%3D%0A-----END%20CERTIFICATE-----%0A
+```
+
+The response body is the value of the `X-ARR-ClientCert` header. The value is the `Base-64 encoded X.509 (.CER)` representation of the client certificate without the private key. Special characters, like the white spaces, are URL encoded.
 
 
 ### Other
