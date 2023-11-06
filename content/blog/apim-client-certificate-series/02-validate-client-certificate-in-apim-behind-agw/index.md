@@ -249,7 +249,7 @@ backendAddressPools: [
     properties: {
       backendAddresses: [
         {
-            fqdn: '${apiManagementServiceName}.azure-api.net'
+            ipAddress: apiManagementService.properties.privateIPAddresses[0]
         }
       ]
     }
@@ -282,7 +282,7 @@ backendHttpSettingsCollection: [
       port: 443
       protocol: 'Https'
       cookieBasedAffinity: 'Disabled'
-      pickHostNameFromBackendAddress: true
+      hostName: '${apiManagementServiceName}.azure-api.net'
       requestTimeout: 20
       probe: {
         id: resourceId('Microsoft.Network/applicationGateways/probes', applicationGatewayName, 'apim-gateway-probe')
@@ -319,14 +319,23 @@ requestRoutingRules: [
 
 Deploy the Application Gateway using the Azure CLI command you've used before. The deployment will take about 5-7 minutes to complete.
 
+### Test API
 
-Locate the public IP address resource and copy the IP address. Open your hosts file (`C:\Windows\System32\drivers\etc\hosts` on Windows, `/private/etc/hosts` on Mac or `/etc/hosts` on Linux) and add the following line, replacing `<your-public-ip-address>` with the IP address you copied.
+The app gateway can be reached on `https://apim-sample.dev`. However, because we've used a self-signed certificate and `apim-sample.dev` is not a registered domain, you'll have to update your hosts file to be able to reach the Application Gateway.
+
+Locate the public IP address resource, opent it and copy the IP address. Open your hosts file (`C:\Windows\System32\drivers\etc\hosts` on Windows, `/private/etc/hosts` on Mac or `/etc/hosts` on Linux) and add the following line, replacing `<your-public-ip-address>` with the IP address you copied.
 
 ```
 <your-public-ip-address> apim-sample.dev
 ```
 
 
+
+```
+### Test that API Management can be reached (/status-0123456789abcdef is a default endpoint you can use)
+
+GET https://apim-sample.dev/status-0123456789abcdef
+```
 
 
 ### Other
