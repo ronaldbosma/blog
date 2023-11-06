@@ -314,3 +314,33 @@ requestRoutingRules: [
   }
 ]
 ```
+
+##### Deploy
+
+Deploy the Application Gateway using the Azure CLI command you've used before. The deployment will take about 5-7 minutes to complete.
+
+
+Locate the public IP address resource and copy the IP address. Open your hosts file (`C:\Windows\System32\drivers\etc\hosts` on Windows, `/private/etc/hosts` on Mac or `/etc/hosts` on Linux) and add the following line, replacing `<your-public-ip-address>` with the IP address you copied.
+
+```
+<your-public-ip-address> apim-sample.dev
+```
+
+
+
+
+### Other
+
+If you deploy this solution to an Azure subscription with limited credits, take note that both the virtual network and application gateway are not cheap. It's best to remove everything after you're done. If you want to keep the solution around a little longer, you can stop the Application Gateway. This will stop the billing.
+
+To stop the Application Gateway, use the following Azure CLI command:
+
+```powershell
+az network application-gateway stop --name 'agw-validate-client-certificate' --resource-group '<your-resource-group>'
+```
+
+And you can start it again with the following Azure CLI command:
+
+```powershell
+az network application-gateway start --name 'agw-validate-client-certificate' --resource-group '<your-resource-group>'
+```
