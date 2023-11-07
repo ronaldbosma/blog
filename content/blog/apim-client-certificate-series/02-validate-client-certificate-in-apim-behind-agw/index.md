@@ -357,6 +357,8 @@ Add the following to the `frontendPorts` array:
 }
 ```
 
+In this demo we haven't configured any NSG rules. If you have stricter configuration, you might also need to allow inbound traffic on port `50001`.
+
 #### Trusted Certificates
 
 The the following bicep to the `properties` section of the `applicationGateway` resource. Replace `<path-to-certificates>` with the path to the certificate.
