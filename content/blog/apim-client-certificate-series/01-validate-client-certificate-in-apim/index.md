@@ -3,30 +3,26 @@ title: "Validate client certificates in API Management"
 date: 2023-10-27T00:00:00+02:00
 publishdate: 2023-10-27T00:00:00+02:00
 lastmod: 2023-10-27T00:00:00+02:00
-tags: [ "Azure", "API Management", "Bicep", "Client Certificates", "Infra as Code", "Security" ]
-summary: "This blog post is the start of a series on how to work with client certificates in Azure API Management. While Azure's official documentation provides excellent guidance on setting up client certificates via the Azure Portal, we'll dive into utilizing Bicep and the Azure CLI, to automate the entire deployment process. In this first post, we'll cover the basics of how to validate client certificates in API Management."
+tags: [ "Azure", "API Management", "Bicep", "Client Certificates", "Infra as Code", "mTLS", "Security" ]
+summary: "This blog post is the start of a series on how to work with client certificates in Azure API Management. While Azure's official documentation provides excellent guidance on setting up client certificates via the Azure Portal, we'll dive into utilizing Bicep and the Azure CLI, to automate the process. In this first post, we'll cover the basics of how to validate client certificates in API Management."
 draft: true
 ---
 
 This blog post is the start of a series on how to work with client certificates in Azure API Management. In the series, I'll cover both the validation of client certificates in API Management and how to connect to backends using client certificates. 
 
-While Azure's official documentation provides excellent guidance on setting up client certificates via the Azure Portal, this series takes it a step further. We'll dive into utilizing Bicep and other essential tools, like the Azure CLI, to automate the entire deployment process.
+While Azure's official documentation provides excellent guidance on setting up client certificates via the Azure Portal, this series takes it a step further. We'll dive into utilizing Bicep and other essential tools, like the Azure CLI, to automate the process.
 
 Topics covered in this series:
 
 1. Validate client certificates in API Management _**(current)**_
 1. Validate client certificates in API Management when its behind an Application Gateway _(coming soon)_
-1. Connection to backends using client certificates _(coming soon)_
-1. Deploying client certificates in Key Vault with Azure Pipeline 1/2 _(coming soon)_
-1. Deploying client certificates in Key Vault with Azure Pipeline 2/2 _(coming soon)_
+1. Connect to backends using client certificates _(coming soon)_
 
 ### Intro
 
-In this first post, we'll cover the basics of how to validate client certificates in API Management. We'll deploy both API Management and an API using Bicep. We'll also have a look at how to upload CA certificates and client certificates in API Management.
+In this first post, we'll cover the basics of how to validate client certificates in API Management. We'll deploy both API Management and an API using Bicep. We'll also have a look at how to upload both CA and client certificates in API Management.
 
-This post provides a step by step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/01-validate-client-certificate-in-apim).
-
-If you want to know how to configure all of this through the Azure Portal, have a look at [How to secure APIs using client certificate authentication in API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates-for-clients).
+This post provides a step by step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/01-validate-client-certificate-in-apim). If you want to know how to configure all of this through the Azure Portal, have a look at [How to secure APIs using client certificate authentication in API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates-for-clients).
 
 ### Table of Contents
 
@@ -100,9 +96,9 @@ resource apiManagementService 'Microsoft.ApiManagement/service@2022-08-01' = {
 }
 ```
 
-As you can see, we're creating a Developer tier API Management instance. Normally for demos I'd use the Consumption tier because it's cheap and rolled out quickly. However, the Consumption tier does not support CA certificates, which we'll need later on.
+As you can see, we're creating a Developer tier API Management instance. Normally for demos, I'd use the Consumption tier because it's cost-effective and can be rolled out quickly. However, the Consumption tier does not support CA certificates, which we'll need later on.
 
-Save the Bicep in a file called `main.bicep`. Then, use the following command to deploy the API Management instance. Replace the `<placeholders>` with your values. The deployment will take a while to complete (about ~30 minutes).
+Save the Bicep in a file called `main.bicep` and use the following command to deploy the API Management instance. Replace the `<placeholders>` with your values. The deployment will take a while to complete (about ~30 minutes).
 
 ```powershell
 az deployment group create `
@@ -117,7 +113,7 @@ az deployment group create `
 
 #### Deploy API
 
-Once the API Management instance is deployed, we can create an API. The following Bicep creates an API called `client-cert-api` with two operations. Add it to the end of the `main.bicep`.
+After deploying the API Management instance, we can proceed to create an API. The following Bicep code creates an API named `client-cert-api` with two operations. Please add this code to the end of the `main.bicep` file.
 
 ```bicep
 // Client Cert API
@@ -177,11 +173,11 @@ resource validateUsingContext 'Microsoft.ApiManagement/service/apis/operations@2
 }
 ```
 
-There are some things to take note off. First, I did not make the subscription key required to make testing the API as simple as possible. (This is not recommended for production scenarios.)
+There are a few important points to note. Firstly, I did not make the subscription key required to simplify testing the API as much as possible. Please be aware that this is not recommended for production scenarios.
 
-Second, both operations will load their respective policies from an XML file we'll need to create. Create two failes called `validate-using-policy.operation.cshtml` and `validate-using-context.operation.cshtml`. Add the following XML to both files.
+Secondly, both operations will load their respective policies from an XML file that we'll need to create. Please create two files named `validate-using-policy.operation.cshtml` and `validate-using-context.operation.cshtml`. Add the following XML to both files.
 
-  > The `.cshtml` extension is recognized by the [Azure API Management Extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-apimanagement). Among other things, this extension gives you some intellisense support on policies.
+  > The `.cshtml` extension is recognized by the [Azure API Management Extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-apimanagement). Among other things, this extension gives you intellisense support on policies.
 
 ```xml
 <policies>
@@ -213,22 +209,22 @@ Second, both operations will load their respective policies from an XML file we'
 </policies>
 ```
 
-We haven't configured any backend to forward requests to, so the `return-response` policy will ensures that a `200 OK` response is always returned. By using the `context.Request.Certificate?.ToString()` policy expression, it will also include any details about a provided client certificate in the response body.
+We haven't configured any backend to forward requests to, so the `return-response` policy ensures that a `200 OK` response is always returned. By utilizing the `context.Request.Certificate?.ToString()` policy expression, any details about a provided client certificate will be included in the response body.
 
-Finally, in the `on-error` section, we're setting some headers to return information about the last error that occurred. This will provide additional information about why a request failed.
+Additionally, in the `on-error` section, we're configuring headers to provide information about the last error that occurred. This offers additional insights into why a request failed.
 
-> In a real-world scenario, you might not want to disclose this error information to your clients. Instead, you would connect API Management to Application Insights so errors will be logged there.
+> In a real-world scenario, it might not be advisable to disclose detailed error information to clients. Instead, consider connecting API Management to Application Insights to log errors there.
 
-Now redeploy the Bicep template using the previously provided Azure CLI command. This should take less than a minute to complete.
+Now, redeploy the Bicep template using the previously provided Azure CLI command. This process should take less than a minute to complete.
 
 
 ### Test API
 
-After deploying the API, we can do a first test. I like to use the [REST Client extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=humao.rest-client). It allows me to quickly test APIs without having to leave my IDE.
+After deploying the API, we can do a first test. I prefer to use the [REST Client extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=humao.rest-client). It allows me to quickly test APIs without having to leave my IDE.
 
-> In this section I'll describe how to call the API with a client certificate using the extension. If you want to use Postman instead, you can follow the instructions in the following article: [Adding client certificates in Postman](https://learning.postman.com/docs/sending-requests/certificates/#adding-client-certificates). 
+> In this section, I'll explain how to call the API with a client certificate using the extension. If you want to use Postman instead, you can follow the instructions in the following article: [Adding client certificates in Postman](https://learning.postman.com/docs/sending-requests/certificates/#adding-client-certificates). 
 > 
-> You can also call the API directly from the browser. You'll need to upload the client certificate with private key to your personal certificate store first. Then, when you browse to the full url of the API operation, you'll get a popup to select a client certificate. 
+> You can also call the API directly from the browser. You'll need to upload the client certificate with private key to your personal certificate store first. Then, when you browse to the full url of the API operation, a popup will appear where you can select a client certificate. 
 
 Create a file called `test.http` and add the following content. Replace `<your-api-management-instance-name>` with your API Management instance name.
 
@@ -243,11 +239,12 @@ GET https://{{apimHostname}}/client-cert/validate-using-policy
 GET https://{{apimHostname}}/client-cert/validate-using-context
 ```
 
-When you open the file in Visual Studio Code, you'll see a `Send Request` link above both requests. Clicking it will send the request to the API. The response will be displayed in the output window. This should be a `200 OK` with and empty response body for both operation, because we haven't configured a client certificate yet.
+When you open the file in Visual Studio Code, you'll see a `Send Request` link above both requests. Clicking it will send the request to the API. The response will be displayed in the output window. This should be a `200 OK` with and empty response body for both operation since we haven't configured a client certificate yet.
 
 You can use your own certificates or download samples from [certificates](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/00-self-signed-certificates/certificates).
 
-To use the certificates, we'll need to update the user settings in Visual Studio Code as described [here](https://github.com/Huachao/vscode-restclient#ssl-client-certificates).
+To use the certificates, we'll need to update the user settings in Visual Studio Code. (See the [GitHub documentation](https://github.com/Huachao/vscode-restclient#ssl-client-certificates) for more details.)
+
 - Open the  Command Palette (`Ctrl+Shift+P`) and choose `Preferences: Open User Settings (JSON)`.
 - Add the following configuration to the settings file. 
 
@@ -261,10 +258,10 @@ To use the certificates, we'll need to update the user settings in Visual Studio
   ```
   
 - Replace `<your-api-management-instance-name>` with your API Management instance name and `<path-to-certificates>` with the path to the folder with certificates. 
-- Don't forget to change the passphrase if you're using your own certificates.
+- Don't forget to change the passphrase and/or certificate filename if you're using your own certificates.
 - Save the changes.
 
-Click on the `Send Request` link again in the `test.http` file. You should now get a `200 OK` response with the details of the client certificate in the response body. It should look something like this.
+Click on the `Send Request` link again in the `test.http` file. You should now receive a `200 OK` response with the details of the client certificate in the response body. It should look something like this.
 
 ```
 [Subject]
@@ -290,7 +287,7 @@ Click on the `Send Request` link again in the `test.http` file. You should now g
 
 The first way to validate a client certificate is by using the [validate-client-certificate policy](https://learn.microsoft.com/en-us/azure/api-management/validate-client-certificate-policy). 
 
-Open the `validate-using-policy.operation.cshtml` file and add the following policy in the `inbound` section between the `base` and `return-response` policy.
+Open the `validate-using-policy.operation.cshtml` file and add the following policy to the `inbound` section between the `base` and `return-response` policies.
 
 ```xml
 <validate-client-certificate 
@@ -305,11 +302,11 @@ Open the `validate-using-policy.operation.cshtml` file and add the following pol
 </validate-client-certificate>
 ```
 
-This policy will validate the client certificate against the provided identities. In this case, we're only allowing certificates with subject `CN=Client 01`. We're also validating that the certificate is valid at the time of the request. See [the documentation](https://learn.microsoft.com/en-us/azure/api-management/validate-client-certificate-policy) for more options.
+This policy will validate the client certificate against the provided identities. In this case, we're only allowing certificates with subject `CN=Client 01`. We also ensure that the certificate is valid at the time of the request. See [the documentation](https://learn.microsoft.com/en-us/azure/api-management/validate-client-certificate-policy) for more options.
 
 After redeploying this change, we can retest the API. Click `Send Request` to call the `validate-using-policy` operation. It should still succeed because we're passing a valid client certificate.
 
-Now configure a different client certificate in your user settings, for example `dev-client-02.pfx`, and call the operation again. You should get a `401 Unauthorized` response with the following details.
+Next, configure a different client certificate in your user settings, for example `dev-client-02.pfx`, and call the operation again. You should get a `401 Unauthorized` response with the following details.
 
 ```
 HTTP/1.1 401 Unauthorized
@@ -327,9 +324,9 @@ As you can see in the `ErrorMessage` response header, the certificate does not m
 
 #### Validate certificate chain
 
-We've been using the client certificates for the development environment. If you use the test environment version (e.g. `tst-client-01.pfx`) you should get a `401 Unauthorized` response. However, a `200 OK` is returned with the current configuration, because we're not validating the certificate chain.
+We've been using the client certificates for the development environment. If you use the test environment version (e.g. `tst-client-01.pfx`), you should get a `401 Unauthorized` response. However, with the current configuration, a `200 OK` is returned because we are not validating the certificate chain.
 
-Locate the `validate-client-certificate` policy. Change the value of the `validate-trust` attribute to `true` and redeploy the change. Now you'll get the following `401 Unauthorized` response when calling the `validate-using-policy` operation. It indicates that the certificate chain of the client certificate could not be validated.
+To fix this, locate the `validate-client-certificate` policy. Change the value of the `validate-trust` attribute to `true` and redeploy the change. Now you'll get the following `401 Unauthorized` response when calling the `validate-using-policy` operation again, indicating that the certificate chain of the client certificate could not be validated.
 
 ```
 HTTP/1.1 401 Unauthorized
@@ -343,13 +340,13 @@ ErrorMessage: A certificate chain could not be built to a trusted root authority
 }
 ```
 
-You'll get this error for both the `dev-client-01.pfx` and `tst-client-01.pfx` client certificate though. We're using self-signed certificates, so to accept the dev environment certificate again, we'll need to upload the corresponding CA certificates to API Management.
+You'll receive this error for both the `dev-client-01.pfx` and `tst-client-01.pfx` client certificate. We're using self-signed certificates, so to accept the dev environment certificate again, we'll need to upload the corresponding CA certificates to API Management.
 
 #### Upload CA certificates
 
-See [How to add a custom CA certificate in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-ca-certificates) for an explanation on how to upload CA certificates to API Management through the Azure Portal.
+See [How to add a custom CA certificate in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-ca-certificates) for guidance on how to upload CA certificates to API Management through the Azure Portal.
 
-To upload the CA certificates using Bicep, open the `main.bicep` and locate the `apiManagementService` resource. Add the following configuration to the `properties` section. This will upload the root CA certificate to the `Root` certificate store and the intermediate CA certificate to the `CertificateAuthority` certificate store.
+To achieve the same using Bicep, open the `main.bicep` file and locate the `apiManagementService` resource. Add the following configuration to the `properties` section. This will upload the root CA certificate to the `Root` certificate store and the intermediate CA certificate to the `CertificateAuthority` certificate store.
 
 ```bicep
 certificates: [
@@ -364,27 +361,29 @@ certificates: [
 ]
 ```
 
-This snippet will load the certificates from the corresponding `.cer` files. If you're using your own, change the paths to the files. 
+This snippet loads the certificates from the corresponding `.cer` files. If you're using your own, update the file paths accordingly.
 
-The value of the `encodedCertificate` property should be a base64 representation of the certificate without the private key. You can get this when you choose the `Base-64 encoded X.509 (.CER)` option when exporting the certificate from the Certificate Manager (Windows). The result is a file that should look like this.
+The value of the `encodedCertificate` property should be a base64 representation of the certificate without the private key. You can obtain this by selecting the `Base-64 encoded X.509 (.CER)` option when exporting the certificate from the Certificate Manager (Windows). The result is a file that should look like this.
 
 ```
 -----BEGIN CERTIFICATE-----
 MIIDCDCCAfCgAwIBAgIQTA+cOPepk41ICdLhY7AUwDANBgkqhkiG9w0BAQsFADAeMRwwGgYDVQQD
-............................................................................
+DBNBUElNIFNhbXBsZSBSb290IENBMB4XDTIzMTAyNzA5MDUxMFoXDTI2MTAyNzA5MTUxMFowHjEc
+............................... TRUNCATED ..................................
+OAp+KJ+8AHZ6Tb6PVSgZe+pIag7U+t+2U/msy0vRZvkDNpzrtz1AoFURpFNmERet95MOLxxyupd/
 uLmEJRy8HbiC5HLkKWlQSmJEbXcNw3P8sEgub0/SblXOSV7gYSos
 -----END CERTIFICATE-----
 ```
 
-If you use this exported file directly, the deployment of API Management will fail with the following error: `Invalid parameter: The certificate's data file format associated with Intermediates must be a Base64-encoded .pfx file`. To prevent this, remove the `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----` markers from the `.cer` file.
+If you use this exported file directly, the API Management deployment will fail with the following error: `Invalid parameter: The certificate's data file format associated with Intermediates must be a Base64-encoded .pfx file`. To avoid this, remove the `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----` markers from the `.cer` file.
 
-Now redeploy the Bicep template. This can take up to ~15 minutes to complete. After the deployment is finished, you can test the API again. You should now get a `200 OK` response for the `dev-client-01.pfx` client certificate. When using the `tst-client-01.pfx`, a `401 Unauthorized` response is returned.
+Now, redeploy the Bicep template. This can take up to ~15 minutes to complete. After the deployment is finished, you can test the API again. You should now get a `200 OK` response for the `dev-client-01.pfx` client certificate. When using the `tst-client-01.pfx`, a `401 Unauthorized` response is returned.
 
 ### Validate client certificate using the context
 
-The second option to validate a client certificate is by using the `context.Request.Certificate` property. This property contains the client certificate that was used to call the API.
+The second option to validate a client certificate is to use the `context.Request.Certificate` property in a policy expression. This property holds the client certificate that was used to call the API.
 
-Open the `validate-using-context.operation.cshtml` policy file and add the following snippet in the `inbound` section between the `base` and `return-response` policy.
+Open the `validate-using-context.operation.cshtml` policy file and add the following snippet in the `inbound` section between the `base` and `return-response` policies.
 
 ```xml
 <choose>
@@ -422,9 +421,9 @@ After redeploying the change, call the `validate-using-context` operation to tes
 
 #### Upload client certificate
 
-The documentation on [How to secure APIs using client certificate authentication in API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates-for-clients) describes how to upload a `pfx` client certificate to API Management using the Azure Portal. We'll do the same using Bicep. And because we're only validating the thumbprint, we don't need the private key, so we can upload a `.cer` file instead.
+The documentation on [How to secure APIs using client certificate authentication in API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates-for-clients) describes how to upload a `pfx` client certificate to API Management using the Azure Portal. We'll do the same using Bicep. Because we're only validating the thumbprint, we don't need the private key, so we can upload a `.cer` file instead.
 
-Open the `main.bicep` and add the following resource. It will upload the `dev-client-01.cer` client certificate to API Management.
+Open the `main.bicep` file and add the following resource. It will upload the `dev-client-01.cer` client certificate to API Management.
 
 ```bicep
 // Add client certificate for 'Dev Client 01'
@@ -437,18 +436,18 @@ resource devClient01Certificate 'Microsoft.ApiManagement/service/certificates@20
 }
 ```
 
-Similar to the CA certificates, the value of the `data` property should be base64 (no private key necessary). The `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----` markers should be removed.
+Similar to the CA certificates, the value of the `data` property should be base64. The `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----` markers should be removed.
 
-Note that we can't use the `certificates` property on the API Management resources. That property is only used for specifying CA certificates.
+Note that we can't use the `certificates` property on the API Management resources. That property is reserved for specifying CA certificates.
 
 After redeploying the Bicep template, call the `validate-using-context` operation again. You should now get a `200 OK` response for the uploaded `dev-client-01.pfx` client certificate, but a `401 Unauthorized` response for the `dev-client-02.pfx` client certificate.
 
 ### Conclusion
 
-In this post, we've covered the basics of how to validate client certificates in API Management. As you've seen, there are two ways to validate a client certificate. You can either use the `validate-client-certificate` policy or the `context.Request.Certificate` property.
+In this post, we've explored the basics of validating client certificates in API Management. As demonstrated, there are two ways to validate a client certificate. You can either use the `validate-client-certificate` policy or the `context.Request.Certificate` property.
 
-Using Bicep in combination with the Azure CLI is a great way to automate the deployment of resources, like API Management and its APIs, to Azure. It also provides an easy way to deploy your CA and client certificates to API Management.
+Using Bicep in combination with the Azure CLI is a great way to automate the deployment of resources, including API Management and its APIs, to Azure. It also provides an easy way to deploy your CA and client certificates to API Management.
 
 The end result of this blog post can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/01-validate-client-certificate-in-apim).
 
-In the next post we'll cover how to validate a client certificate in API Management when it's sitting behind an Azure Application Gateway.
+In the next post, we'll cover how to validate a client certificate in API Management when it's positioned behind an Azure Application Gateway.
