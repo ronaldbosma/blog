@@ -1,9 +1,9 @@
 ---
 title: "Validate client certificates in API Management when its behind an Application Gateway"
-date: 2023-11-06T00:00:00+02:00
-publishdate: 2023-11-06T00:00:00+02:00
-lastmod: 2023-11-06T00:00:00+02:00
-tags: [ "Azure", "API Management", "Bicep", "Client Certificates", "Infra as Code", "Security" ]
+date: 2024-02-02T12:00:00+01:00
+publishdate: 2024-02-02T12:00:00+01:00
+lastmod: 2024-02-02T12:00:00+01:00
+tags: [ "Azure", "API Management", "Application Gateway", "Bicep", "Client Certificates", "Infra as Code", "mTLS", "Security" ]
 draft: true
 ---
 
@@ -13,11 +13,9 @@ While Azure's official documentation provides excellent guidance on setting up c
 
 Topics covered in this series:
 
-1. Validate client certificates in API Management
+1. [Validate client certificates in API Management](/blog/2024/02/02/validate-client-certificates-in-api-management/)
 1. Validate client certificates in API Management when its behind an Application Gateway _**(current)**_
-1. Connection to backends using client certificates _(coming soon)_
-1. Deploying client certificates in Key Vault with Azure Pipeline 1/2 _(coming soon)_
-1. Deploying client certificates in Key Vault with Azure Pipeline 2/2 _(coming soon)_
+1. Connect to backends using client certificates _(coming soon)_
 
 ### Intro
 
