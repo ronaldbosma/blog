@@ -268,7 +268,7 @@ $certificatePassword = ConvertTo-SecureString -String $plainTextPassword -Force 
 Export-PfxCertificate -Cert $sslCertificate -FilePath "./ssl-cert.apim-sample.dev.pfx" -Password $certificatePassword
 ```
 
-If you've modified the certificate password, file path, or filename, be sure to update the Bicep code accordingly.
+If you've modified the certificate password, file path, or filename, be sure to update the Bicep code accordingly. See [the documentation](https://learn.microsoft.com/en-us/powershell/module/pki/new-selfsignedcertificate?view=windowsserver2022-ps) for more information about the `New-SelfSignedCertificate` commandlet.
 
 ##### Backend
 
@@ -328,7 +328,9 @@ The backend pool routes requests to backend servers. I've opted to use the priva
 
 The probe is used by the application gateway to monitor the health of all resources in a backend pool. In this case, we're using the `/status-0123456789abcdef` path, which is the default health endpoint provided by API Management.
 
-The backend HTTP settings section, among other things, defines the port and protocol to use, the backend hostname and the associated health probe.
+The backend HTTP settings section, among other things, defines the port and protocol to use, the backend hostname and the associated health probe. 
+
+It's important to note that the backend will use an SSL connection to communicate with API Management. However, it's currently not possible to use mTLS between the application gateway and a backend. Please refer to [the FAQ](https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-faq#is-mutual-authentication-available-between-application-gateway-and-its-backend-pools) for more details.
 
 ##### Request routing rule
 
