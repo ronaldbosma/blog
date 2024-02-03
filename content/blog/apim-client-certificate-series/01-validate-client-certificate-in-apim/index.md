@@ -458,4 +458,4 @@ Using Bicep in combination with the Azure CLI is a great way to automate the dep
 
 The end result of this blog post can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/01-validate-client-certificate-in-apim).
 
-In the next post, we'll cover how to validate a client certificate in API Management when it's positioned behind an Azure Application Gateway.
+Don't remove your deployed Azure resources yet! In the next post, we'll cover how to validate a client certificate in API Management when it's positioned behind an Azure Application Gateway. The solution provided in this post is a good starting point for the upcoming post.
