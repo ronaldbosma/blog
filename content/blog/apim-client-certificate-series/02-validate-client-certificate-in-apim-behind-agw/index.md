@@ -7,7 +7,7 @@ tags: [ "Azure", "API Management", "Application Gateway", "Bicep", "Client Certi
 draft: true
 ---
 
-This blog post is the second in a series on how to work with client certificates in Azure API Management. In the series, I'll cover both the validation of client certificates in API Management and how to connect to backends using client certificates. 
+This post is the second in a series on how to work with client certificates in Azure API Management. In the series, I'll cover both the validation of client certificates in API Management and how to connect to backends with mTLS (mutual TLS) using client certificates.
 
 While Azure's official documentation provides excellent guidance on setting up client certificates via the Azure Portal, this series takes it a step further. We'll dive into utilizing Bicep and other essential tools, like the Azure CLI, to automate the entire deployment process.
 
@@ -19,12 +19,11 @@ Topics covered in this series:
 
 ### Intro
 
-In this second post we build upon the solution of the previous post. We'll deploy API Management behind an Application Gateway and configure the Application Gateway to validate client certificates. We'll also configure the Application Gateway to forward the client certificate to API Management for further validation.
+In this second post we build upon the solution of [the previous post](/blog/2024/02/02/validate-client-certificates-in-api-management/). We'll deploy API Management behind an Application Gateway and configure the Application Gateway to validate client certificates. We'll also configure the Application Gateway to forward the client certificate to API Management for further validation.
 
-This post provides a step by step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). _(Note that the deployment will take up to 45 minutes, because API Management will be deployed inside a virtual network.)_
+This post provides a step-by-step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). _(Note that the deployment will take up to 45 minutes, because API Management will be deployed inside a virtual network.)_
 
-> TODO: app gateway config works for app services too.
-
+The application gateway configuration outlined in this post can also be used in other situations. For example, when you have ASP.NET APIs hosted in App Services.
 
 ### Table of Contents
 
@@ -41,7 +40,7 @@ This first section will cover the prerequisites for this post. Use the result of
 
 #### Virtual Network
 
-First off, we'll need a virtual network for the Application Gateway. Open the `main.bicep` from the previous post and add the following bicep:
+First, we'll need a virtual network for the Application Gateway. Open the `main.bicep` from the previous post and add the following bicep:
 
 ```bicep
 // Virtual Network
@@ -80,9 +79,9 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-05-01' = {
 }
 ```
 
-This Bicep will create a basic virtual network with two subnets. One for the Application Gateway and one for API Management. It will also create a reference to the created subnets, so we can use their IDs later on.
+This Bicep code will create a virtual network with two subnets: one for the Application Gateway and another for API Management. It will also create a reference to the created subnets, so we can use their IDs later on.
 
-This configuration is enough for the demo, but in a real-world scenario you probably want to add more security measures.
+This configuration is enough for this demo, but in a real-world scenario you probably want to add more security measures.
 
 #### Deploy API Management in virtual network
 
@@ -97,7 +96,7 @@ virtualNetworkConfiguration: {
 
 This will deploy API Management inside the virtual network and connect it to the subnet we created earlier. The `Internal` network type will make sure that API Management is not exposed to the internet.
 
-Deploying a new or existing API Management instance inside a virtual network takes about 45 minutes. So it's best to start the deployment now before proceeding. You can use the following Azure CLI command (same as previous post). Replace the `<placeholders>` with your values.
+Deploying a new or existing API Management instance inside a virtual network takes about **45 minutes**. So it's best to start the deployment now before proceeding. You can use the following Azure CLI command (same as previous post). Replace the `<placeholders>` with your values.
 
 ```powershell
 az deployment group create `
@@ -110,9 +109,16 @@ az deployment group create `
     --verbose
 ```
 
+ERROR:
+> The resource write operation failed to complete successfully, because it reached terminal provisioning state 'Failed'.
+> Code: ActivationFailed
+> Message: Unable to activate API service at this time. This could be temporary issue in the region. Please check https://aka.ms/azurestatus for any issues. If the issue persists after retry, please open a support case for your API management service using the Azure portal.
+
+
+
 #### Public IP address
 
-For the Application Gateway we'll need a public IP address. Add the following bicep to the `main.bicep` file:
+We'll need a public IP address for the Application Gateway. Add the following bicep to the `main.bicep` file:
 
 ```bicep
 // Public IP address
@@ -132,9 +138,9 @@ resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2023-05-01' = {
 
 #### Deploy Application Gateway
 
-Now we can deploy the Application Gateway. We'll start with an https listener before implementing mTLS. 
+Now we can configure the Application Gateway. We'll start with TLS before implementing mTLS. 
 
-Add the following bicep to the `main.bicep` file:
+Add the following Bicep to the `main.bicep` file to create an Application Gateway.
 
 ```bicep
 var applicationGatewayName = 'agw-validate-client-certificate'
@@ -168,7 +174,22 @@ resource applicationGateway 'Microsoft.Network/applicationGateways@2023-05-01' =
 }
 ```
 
+As you can see, the Application Gateway is deployed in its designated subnet.
+
+Next, we'll need to add several components to allow HTTPS traffic to the Application Gateway and route it to API Management. See the image below for a visual representation of the components that we'll be adding:
+
+![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-listener.png)
+
+The configuration consists of three components:
+1. The frontend (at the top) defines the IP address, specifies the protocol and port to use, and specifies the SSL certificate to use.
+2. The backend (bottom part) outlines where requests should be forwarded to, specifying the protocol and port to use, timeouts, etc.
+3. The routing rule in the middle connects the frontend and backend configurations.
+
+See [Application gateway components](https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-components) for more information about the different components.
+
 ##### Frontend
+
+Lets start with the frontend. Add the following Bicep code to the `properties` section of the Application Gateway:
 
 ```bicep
 frontendIPConfigurations: [
@@ -221,12 +242,19 @@ httpListeners: [
 ]
 ```
 
+As you can see, the frontend IP configuration is linked to the previously added public IP address. We'll be accepting traffic on the standard HTTPS port `443`, so we also configure an SSL certificate. The HTTP listener connects these parts together.
+
+> In a real world scenario, we would add the SSL certificate to Key Vault and link to it from the `sslCertificates` configuration. For demo purposes, we'll upload it directly to the Application Gateway. In the next post of this series, we'll explore how to upload a PFX certificate to Key Vault and use it.
+
+
 ##### SSL Certificate
+
+For this demo, I'm using a self-signed certificate. To create the SSL certificate, run the following PowerShell script in the same directory as your `main.bicep` file.
 
 ```powershell
 # Settings
-$dnsName = '<your-dns-name>' # e.g. 'apim-sample.dev
-$plainTextPassword = '<your-password>'
+$dnsName = 'apim-sample.dev'
+$plainTextPassword = 'P@ssw0rd'
 
 # Create self-signed certificate
 $params = @{
@@ -237,11 +265,14 @@ $sslCertificate = New-SelfSignedCertificate @params
 
 # Export the certificate with private key as .pfx file
 $certificatePassword = ConvertTo-SecureString -String $plainTextPassword -Force -AsPlainText
-$currentScriptPath = $MyInvocation.MyCommand.Path | Split-Path -Parent
-Export-PfxCertificate -Cert $sslCertificate -FilePath "$currentScriptPath/ssl-cert.apim-sample.dev.pfx" -Password $certificatePassword
+Export-PfxCertificate -Cert $sslCertificate -FilePath "./ssl-cert.apim-sample.dev.pfx" -Password $certificatePassword
 ```
 
+If you've modified the certificate password, file path, or filename, be sure to update the Bicep code accordingly.
+
 ##### Backend
+
+Next, we'll configure the backend. Add the following Bicep code to the `properties` section of the Application Gateway:
 
 ```bicep
 backendAddressPools: [
@@ -293,7 +324,15 @@ backendHttpSettingsCollection: [
 ]
 ```
 
+The backend pool routes requests to backend servers. I've opted to use the private IP address of the API Management instance. More options can be found [here](https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-components#backend-pools).
+
+The probe is used by the application gateway to monitor the health of all resources in a backend pool. In this case, we're using the `/status-0123456789abcdef` path, which is the default health endpoint provided by API Management.
+
+The backend HTTP settings section, among other things, defines the port and protocol to use, the backend hostname and the associated health probe.
+
 ##### Request routing rule
+
+The final step is to connect the frontend and backend. For this, we can use a request routing rule. Add the following Bicep code to the `properties` section of the Application Gateway:
 
 ```bicep
 requestRoutingRules: [
@@ -373,7 +412,6 @@ trustedClientCertificates: [
 ```
 
 The root CA certificate must be marked as root certificate. 
-
 
 #### SSL Profile
 
