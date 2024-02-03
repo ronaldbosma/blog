@@ -1,6 +1,6 @@
-<mxfile host="Electron" modified="2023-11-06T12:24:48.197Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.6.5 Chrome/114.0.5735.243 Electron/25.3.1 Safari/537.36" etag="q2cQ6d_x-QdIY7lehphg" version="21.6.5" type="device" pages="3">
+<mxfile host="Electron" modified="2024-02-03T10:30:59.093Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/23.0.2 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="IceA5C6UuAiSpry0orok" version="23.0.2" type="device" pages="3">
   <diagram id="92umCzuEfTtkd5vXm12c" name="overview">
-    <mxGraphModel dx="1418" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1434" dy="836" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -8,7 +8,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="app-gateway-https-listener" id="nnF7B84ou2V4BzsaCrNe">
-    <mxGraphModel dx="1418" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1434" dy="836" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -56,13 +56,13 @@
         <mxCell id="ombFc_7SyiKIRVlL8Szp-23" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" parent="1" source="ombFc_7SyiKIRVlL8Szp-22" target="ombFc_7SyiKIRVlL8Szp-2" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="ombFc_7SyiKIRVlL8Szp-22" value="Listens on public IP with port 443 &lt;br&gt;and SSL certificate" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-22" value="Listens on public IP with port 443 and &lt;br&gt;has SSL certificate" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="56.25" y="160" width="120" height="30" as="geometry" />
         </mxCell>
         <mxCell id="ombFc_7SyiKIRVlL8Szp-25" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" parent="1" source="ombFc_7SyiKIRVlL8Szp-24" target="ombFc_7SyiKIRVlL8Szp-8" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="ombFc_7SyiKIRVlL8Szp-24" value="Connects front-end to backend traffic" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+        <mxCell id="ombFc_7SyiKIRVlL8Szp-24" value="Connects frontend to backend traffic" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="60" y="370" width="110" height="30" as="geometry" />
         </mxCell>
         <mxCell id="ombFc_7SyiKIRVlL8Szp-27" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" parent="1" source="ombFc_7SyiKIRVlL8Szp-26" target="ombFc_7SyiKIRVlL8Szp-11" edge="1">
@@ -87,7 +87,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="app-gateway-https-and-mtls-listener" id="WzAzrXyLaiVkVlJ25JcA">
-    <mxGraphModel dx="1418" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1434" dy="836" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="9YXzF_Ixa6va2uAWQ830-0" />
         <mxCell id="9YXzF_Ixa6va2uAWQ830-1" parent="9YXzF_Ixa6va2uAWQ830-0" />
@@ -192,7 +192,7 @@
         <mxCell id="SVcead-ReP7Hfpd3xCVE-21" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" parent="9YXzF_Ixa6va2uAWQ830-1" source="SVcead-ReP7Hfpd3xCVE-20" target="SVcead-ReP7Hfpd3xCVE-0" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="SVcead-ReP7Hfpd3xCVE-20" value="Listens on public IP &lt;br&gt;with port 50001&lt;br&gt;and SSL certificate&lt;br&gt;and expects client certificate" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="9YXzF_Ixa6va2uAWQ830-1" vertex="1">
+        <mxCell id="SVcead-ReP7Hfpd3xCVE-20" value="Listens on public IP &lt;br&gt;with port 50001&lt;br&gt;and has SSL certificate&lt;br&gt;and expects client certificate" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="9YXzF_Ixa6va2uAWQ830-1" vertex="1">
           <mxGeometry x="657" y="120" width="170" height="70" as="geometry" />
         </mxCell>
         <mxCell id="SVcead-ReP7Hfpd3xCVE-23" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" parent="9YXzF_Ixa6va2uAWQ830-1" source="SVcead-ReP7Hfpd3xCVE-22" target="SVcead-ReP7Hfpd3xCVE-3" edge="1">
