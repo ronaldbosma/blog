@@ -33,6 +33,7 @@ The application gateway configuration outlined in this post can also be used in 
   - [Public IP address](#public-ip-address)
   - [Deploy Application Gateway](#deploy-application-gateway)
 - [Test API](#test-api)
+- [Add mTLS listener to Application Gateway](#add-mtls-listener-to-application-gateway)
 
 ### Prerequisites
 
