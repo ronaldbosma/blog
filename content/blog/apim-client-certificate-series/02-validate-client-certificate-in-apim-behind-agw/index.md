@@ -178,6 +178,7 @@ As you can see, the application gateway is deployed in its designated subnet.
 
 Next, we'll need to add several components to allow HTTPS traffic to the application gateway and route it to API Management. See the image below for a visual representation of the components that we'll be adding:
 
+![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-listener.png)
 ![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-listener.png)
 
 The configuration consists of three components:
@@ -383,6 +384,14 @@ This request will call the `/status-0123456789abcdef` endpoint, which is a defau
 
 ### Add mTLS listener to Application Gateway
 
+Scope of validation:  
+![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-agw-certificate-validation.png)
+![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-agw-certificate-validation.png)
+
+Components to deploy:  
+![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener.png)
+![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener.png)
+
 #### Port
 
 Add the following to the `frontendPorts` array:
@@ -440,6 +449,7 @@ sslProfiles: [
 ```
 
 If we don't set `verifyClientCertIssuerDN` to true, only the root CA certificate will be checked. In our example, this would mean that a client certificate created by `CN=APIM Sample TST Intermediate CA` would be accepted, even though we've uploaded the other intermediate certificate `CN=APIM Sample DEV Intermediate CA`. By setting `verifyClientCertIssuerDN` to true, the intermediate certificate will also be checked and only certificates created by `CN=APIM Sample DEV Intermediate CA` will be accepted.
+
 
 #### mTLS Listener
 
