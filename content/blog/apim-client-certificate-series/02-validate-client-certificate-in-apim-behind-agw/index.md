@@ -255,8 +255,8 @@ We'll need a public IP address for the application gateway. Add the following Bi
 
 ```bicep
 // Public IP address
-resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2023-05-01' = {
-  name: 'pip-validate-client-certificate'
+resource agwPublicIPAddress 'Microsoft.Network/publicIPAddresses@2023-05-01' = {
+  name: 'pip-agw-validate-client-certificate'
   location: location
   sku: {
     name: 'Standard'
@@ -331,7 +331,7 @@ frontendIPConfigurations: [
     name: 'agw-public-frontend-ip'
     properties: {
       publicIPAddress: {
-        id: publicIPAddress.id
+        id: agwPublicIPAddress.id
       }
     }
   }
