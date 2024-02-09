@@ -42,7 +42,7 @@ This first section will cover the prerequisites for this post. Use the result of
 
 We're going to deploy API Management inside a virtual network with the `internal` mode enabled, restricting access from external clients. To enable external access, we'll route traffic through an application gateway.
 
-[Multiple compute platforms](https://learn.microsoft.com/en-us/azure/api-management/compute-infrastructure) are available for API Management. Since we're opting for the Developer tier, we have the choice between versions `v1` and `v2`. However, `v1` will be retired in August 2024. Hence, for the purposes of this blog post, we'll be using `v2`. This does mean configuring additional resources for API Management to work inside the virtual network. See [the documentation](https://learn.microsoft.com/en-us/azure/api-management/api-management-using-with-internal-vnet?tabs=stv2#prerequisites) for a comparison between the prerequisites for `v1` and `v2`.
+[Multiple compute platforms](https://learn.microsoft.com/en-us/azure/api-management/compute-infrastructure) are available for API Management. Since we're opting for the Developer tier, we have the choice between versions `stv1` and `stv2`. However, `stv1` will be retired in August 2024. Hence, for the purposes of this blog post, we'll be using `stv2`. This does mean configuring additional resources for API Management to work inside the virtual network. See [the documentation](https://learn.microsoft.com/en-us/azure/api-management/api-management-using-with-internal-vnet?tabs=stv2#prerequisites) for a comparison between the prerequisites for `stv1` and `stv2`.
 
 
 > TODO: add a network image somewhere here...
@@ -54,7 +54,7 @@ One of the first prerequisites is an NSG (Network Security Group) to allow inbou
 Open the `main.bicep` from the previous post and add the following Bicep:
 
 ```bicep
-// API Management Network Security Group
+// Network Security Group for API Management subnet
 resource apimNSG 'Microsoft.Network/networkSecurityGroups@2023-09-01' = {
   name: 'nsg-apim-validate-client-certificate'
   location: location
