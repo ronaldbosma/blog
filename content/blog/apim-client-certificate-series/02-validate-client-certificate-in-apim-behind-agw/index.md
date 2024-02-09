@@ -499,7 +499,7 @@ Deploy the application gateway using the Azure CLI command you've used before. T
 
 The application gateway can be reached on `https://apim-sample.dev`. However, because we've used a self-signed certificate and `apim-sample.dev` is not a registered domain, you'll have to update your hosts file to be able to reach the application gateway.
 
-Locate the public IP address resource in the Azure Portal, open it and copy the IP address. Open your hosts file (`C:\Windows\System32\drivers\etc\hosts` on Windows, `/private/etc/hosts` on Mac or `/etc/hosts` on Linux) and add the following line, replacing `<your-public-ip-address>` with the IP address you copied.
+Locate the public IP address resource of the application gateway (`pip-agw-validate-client-certificate`) in the Azure Portal, open it and copy the IP address. Open your hosts file (`C:\Windows\System32\drivers\etc\hosts` on Windows, `/private/etc/hosts` on Mac or `/etc/hosts` on Linux) and add the following line, replacing `<your-public-ip-address>` with the IP address you copied.
 
 ```
 <your-public-ip-address> apim-sample.dev
@@ -514,6 +514,7 @@ GET https://apim-sample.dev/status-0123456789abcdef
 ```
 
 This request will call the `/status-0123456789abcdef` endpoint, which is a default endpoint you can use to test if API Management is reachable. If everything is configured correctly, you should get a `200 OK` response.
+
 
 ### Add mTLS listener to Application Gateway
 
