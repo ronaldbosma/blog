@@ -19,7 +19,7 @@ Topics covered in this series:
 
 ### Intro
 
-In this second post we build upon the solution of [the previous post](/blog/2024/02/02/validate-client-certificates-in-api-management/). We'll deploy API Management behind an application gateway and configure the application gateway to validate client certificates. We'll also configure the application gateway to forward the client certificate to API Management for further validation.
+In this second post we build upon the solution of [the previous post](/blog/2024/02/02/validate-client-certificates-in-api-management/). We'll deploy API Management inside a virtual network behind an application gateway and configure the application gateway to validate client certificates. We'll also configure the application gateway to forward the client certificate to API Management for further validation.
 
 This post provides a step-by-step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). _(Note that the deployment will take up to 45 minutes, because API Management will be deployed inside a virtual network.)_
 
@@ -28,6 +28,7 @@ The application gateway configuration outlined in this post can also be used in 
 ### Table of Contents
 
 - [Prerequisites](#prerequisites)
+  - [Network Security Group](#network-security-group)
   - [Virtual Network](#virtual-network)
   - [Deploy API Management in virtual network](#deploy-api-management-in-virtual-network)
   - [Public IP address](#public-ip-address)
@@ -39,9 +40,112 @@ The application gateway configuration outlined in this post can also be used in 
 
 This first section will cover the prerequisites for this post. Use the result of the previous post as a starting point. You can find the code [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/01-validate-client-certificate-in-apim) and the self-signed certificates [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/00-self-signed-certificates).
 
+We're going to deploy API Management inside a virtual network with the `internal` mode enabled, restricting access from external clients. To enable external access, we'll route traffic through an application gateway.
+
+[Multiple compute platforms](https://learn.microsoft.com/en-us/azure/api-management/compute-infrastructure) are available for API Management. Since we're opting for the Developer tier, we have the choice between versions `v1` and `v2`. However, `v1` will be retired in August 2024. Hence, for the purposes of this blog post, we'll be using `v2`. This does mean configuring additional resources for API Management to work inside the virtual network. See [the documentation](https://learn.microsoft.com/en-us/azure/api-management/api-management-using-with-internal-vnet?tabs=stv2#prerequisites) for a comparison between the prerequisites for `v1` and `v2`.
+
+
+> TODO: add a network image somewhere here...
+
+#### Network Security Group
+
+One of the first prerequisites is an NSG (Network Security Group) to allow inbound connectivity to API Management. The necessary rules that we'll be configuring can be found [here](https://learn.microsoft.com/en-us/azure/api-management/api-management-using-with-internal-vnet?tabs=stv2#configure-nsg-rules).
+
+Open the `main.bicep` from the previous post and add the following Bicep:
+
+```bicep
+// API Management Network Security Group
+resource apimNSG 'Microsoft.Network/networkSecurityGroups@2023-09-01' = {
+  name: 'nsg-apim-validate-client-certificate'
+  location: location
+  properties: {
+    securityRules: [
+      {
+        name: 'management-endpoint-for-azure-portal-and-powershell'
+        properties: {
+          access: 'Allow'
+          sourcePortRange: '*'
+          destinationPortRange: '3443'
+          direction: 'Inbound'
+          protocol: 'TCP'
+          sourceAddressPrefix: 'ApiManagement'
+          destinationAddressPrefix: 'VirtualNetwork'
+          priority: 110
+        }
+      }
+      {
+        name: 'azure-infrastructure-load-balancer'
+        properties: {
+          access: 'Allow'
+          sourcePortRange: '*'
+          destinationPortRange: '6390'
+          direction: 'Inbound'
+          protocol: 'TCP'
+          sourceAddressPrefix: 'AzureLoadBalancer'
+          destinationAddressPrefix: 'VirtualNetwork'
+          priority: 120
+        }
+      }
+      {
+        name: 'dependency-on-azure-storage'
+        properties: {
+          access: 'Allow'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          direction: 'Outbound'
+          protocol: 'TCP'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'Storage'
+          priority: 140
+        }
+      }
+      {
+        name: 'access-to-azure-sql-endpoints'
+        properties: {
+          access: 'Allow'
+          sourcePortRange: '*'
+          destinationPortRange: '1433'
+          direction: 'Outbound'
+          protocol: 'TCP'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'Sql'
+          priority: 150
+        }
+      }
+      {
+        name: 'access-to-azure-key-vault'
+        properties: {
+          access: 'Allow'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          direction: 'Outbound'
+          protocol: 'TCP'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'AzureKeyVault'
+          priority: 160
+        }
+      }
+      {
+        name: 'publish-diagnostics-logs-and-metrics-resource-health-and-application-insights'
+        properties: {
+          access: 'Allow'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          direction: 'Outbound'
+          protocol: 'TCP'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'AzureMonitor'
+          priority: 170
+        }
+      }
+    ]
+  }
+}
+```
+
 #### Virtual Network
 
-First, we'll need a virtual network for the application gateway. Open the `main.bicep` from the previous post and add the following Bicep:
+Next, we'll need a virtual network for the application gateway and API management. Add the following Bicep to the `main.bicep` file:
 
 ```bicep
 // Virtual Network
@@ -65,6 +169,9 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-05-01' = {
         name: 'snet-api-management'
         properties: {
           addressPrefix: '10.0.1.0/24'
+          networkSecurityGroup: {
+            id: apimNSG.id
+          }
         }
       }
     ]
@@ -80,24 +187,49 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-05-01' = {
 }
 ```
 
-This Bicep code will create a virtual network with two subnets: one for the application gateway and another for API Management. It will also create a reference to the created subnets, so we can use their IDs later on.
+This Bicep code will create a virtual network with two subnets: one for the application gateway and another for API Management. The latter is configured with the NSG. The code will also create a reference to the created subnets, so we can use their IDs later on.
 
 This configuration is enough for this demo, but in a real-world scenario you probably want to add more security measures.
 
+#### Public IP address for API Management
+
+To deploy API Management in a virtual network, it also requires a public IP address. The public IP address is only used for management operations, because we're going to deploy API Management in `internal` mode. Add the following Bicep to the `main.bicep` file:
+
+```bicep
+// API Management Public IP address
+resource apimPublicIPAddress 'Microsoft.Network/publicIPAddresses@2023-05-01' = {
+  name: 'pip-apim-validate-client-certificate'
+  location: location
+  sku: {
+    name: 'Standard'
+  }
+  properties: {
+    publicIPAddressVersion: 'IPv4'
+    publicIPAllocationMethod: 'Static'
+    idleTimeoutInMinutes: 4
+    dnsSettings: {
+      // The label you choose to use does not matter but a label is required if this resource will be assigned to an API Management service.
+      domainNameLabel: apiManagementServiceName
+    }
+  }
+}
+```
+
 #### Deploy API Management in virtual network
 
-Step two is to deploy API Management inside the virtual network. Locate the `apiManagementService` resource and add the following code to the properties section:
+We can now deploy API Management inside the virtual network. Locate the `apiManagementService` resource and add the following code to the properties section:
 
 ```bicep
 virtualNetworkType: 'Internal'
 virtualNetworkConfiguration: {
     subnetResourceId: virtualNetwork::apimSubnet.id
 }
+publicIpAddressId: apimPublicIPAddress.id
 ```
 
-This will deploy API Management inside the virtual network and connect it to the subnet we created earlier. The `Internal` network type will make sure that API Management is not exposed to the internet.
+This will deploy API Management inside the virtual network and connect it to the subnet we created earlier. The `Internal` network type will make sure that API Management is not exposed outside the virtual network. It also configures the public IP address created in the previous step.
 
-Deploying a new or existing API Management instance inside a virtual network takes about **45 minutes**. So it's best to start the deployment now before proceeding. You can use the following Azure CLI command (same as previous post). Replace the `<placeholders>` with your values.
+Deploying a new or existing API Management instance inside a virtual network can take up to **45 minutes**. So it's best to start the deployment now before proceeding. You can use the following Azure CLI command (same as previous post). Replace the `<placeholders>` with your values.
 
 ```powershell
 az deployment group create `
