@@ -776,7 +776,7 @@ rewriteRuleSet: {
 }
 ```
 
-To test if the client certificate is forwarded to API Management, we'll add a new operation. First, create a file called `validate-from-agw.operation.cshtml` and add the following policies. This will return a `200 OK` with the passed client certificate in the response body. If no client certificate is forwarded, the text `No client certificate passed` is be returned.
+To test if the client certificate is forwarded to API Management, we'll add a new operation to our API. First, create a file called `validate-from-agw.operation.cshtml` and add the following policies. This will return a `200 OK` with the forwarded client certificate in the response body. If no client certificate is forwarded, the text `No client certificate passed` is returned.
 
 ```xml
 <policies>
@@ -799,7 +799,7 @@ To test if the client certificate is forwarded to API Management, we'll add a ne
 </policies>
 ```
 
-Add the following Bicep so the new operation is deployed within the `clientCertApi` API.
+Add the following Bicep so the new operation is deployed within the existing `clientCertApi` API.
 
 ```bicep
 // Operation to validate client certificate received from Application Gateway
