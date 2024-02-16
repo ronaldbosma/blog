@@ -534,12 +534,12 @@ Add the following to the `frontendPorts` array:
 {
   name: 'port-mtls'
   properties: {
-    port: 50001
+    port: 53029
   }
 }
 ```
 
-In this demo we haven't configured any NSG rules. If you have stricter configuration, you might also need to allow inbound traffic on port `50001`.
+In this demo we haven't configured any NSG rules. If you have stricter configuration, you might also need to allow inbound traffic on port `53029`.
 
 #### Trusted Certificates
 
@@ -641,17 +641,17 @@ Add the following snippet to your `.http` file. Try sending the requests.
 ```
 ### Test that API Management can be reached
 
-GET https://apim-sample.dev:50001/status-0123456789abcdef
+GET https://apim-sample.dev:53029/status-0123456789abcdef
 
 
 ### Validates client certificate using validate-client-certificate policy
 
-GET https://apim-sample.dev:50001/client-cert/validate-using-policy
+GET https://apim-sample.dev:53029/client-cert/validate-using-policy
 
 
 ### Validates client certificate using the context.Request.Certificate property
 
-GET https://apim-sample.dev:50001/client-cert/validate-using-context
+GET https://apim-sample.dev:53029/client-cert/validate-using-context
 ```
 
 All request will fail with a response similar to the one below because we haven't configured the REST Client extension to send a client certificate yet.
@@ -678,7 +678,7 @@ To send a client certificate, we'll need to update the user settings in Visual S
 
   ```json
   "rest-client.certificates": {
-    "apim-sample.dev:50001": {
+    "apim-sample.dev:53029": {
       "pfx": "<path-to-certificates>/dev-client-01.pfx",
       "passphrase": "P@ssw0rd"
     }
@@ -787,7 +787,7 @@ Deploy the changes. After the deployment, use the following request to test the 
 ```
 ### mTLS (should return the X-ARR-ClientCert header value and certificate details)
 
-GET https://apim-sample.dev:50001/client-cert/validate-from-agw
+GET https://apim-sample.dev:53029/client-cert/validate-from-agw
 ```
 
 The result should look similar to the response below (I've truncated the response body). 
