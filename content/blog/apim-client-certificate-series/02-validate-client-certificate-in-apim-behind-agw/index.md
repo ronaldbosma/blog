@@ -37,6 +37,8 @@ The application gateway configuration outlined in this post can also be used in 
   - [Test Deployment](#test-deployment)
 - [Add mTLS listener to Application Gateway](#add-mtls-listener-to-application-gateway)
 - [Forward client certificate to API Management](#forward-client-certificate-to-api-management)
+- [Validate forwarded client certificate](#validate-forwarded-client-certificate)
+- [Plug the security hole](#plug-the-security-hole)
 
 ### Prerequisites
 
@@ -840,6 +842,15 @@ HTTP/1.1 200 OK
 ```
 
 The response body contains the value of the `X-ARR-ClientCert` header. The value is the `Base-64 encoded X.509 (.CER)` representation of the client certificate. This is the public part of the client certificate without the private key. Special characters, like the white spaces, are URL encoded.
+
+### Validate forwarded client certificate
+
+> TODO
+
+
+### Plug the security hole
+
+> TODO
 
 
 ### Other
