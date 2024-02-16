@@ -25,20 +25,24 @@ This post provides a step-by-step guide. If you're interested in the end result,
 
 The application gateway configuration outlined in this post can also be used in other situations. For example, when you have ASP.NET APIs hosted in App Services.
 
+
+> Mention TLS termination. Thats why we can't reuse the first post. Add image with certificate flow. See [Overview of TLS termination and end to end TLS with Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/ssl-overview)
+
+
 ### Table of Contents
 
 - [Prerequisites](#prerequisites)
-  - [Network Security Group](#network-security-group)
-  - [Virtual Network](#virtual-network)
   - [Deploy API Management in virtual network](#deploy-api-management-in-virtual-network)
-  - [Public IP address](#public-ip-address)
-  - [Deploy Application Gateway](#deploy-application-gateway)
-- [Test API](#test-api)
+  - [Deploy Application Gateway with TLS listener](#deploy-application-gateway-with-tls-listener)
+  - [Test Deployment](#test-deployment)
 - [Add mTLS listener to Application Gateway](#add-mtls-listener-to-application-gateway)
+
 
 ### Prerequisites
 
 This first section will cover the prerequisites for this post. Use the result of the previous post as a starting point. You can find the code [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/01-validate-client-certificate-in-apim) and the self-signed certificates [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/00-self-signed-certificates).
+
+#### Deploy API Management in virtual network
 
 We're going to deploy API Management inside a virtual network with the `internal` mode enabled, restricting access from external clients. To enable external access, we'll route traffic through an application gateway.
 
@@ -47,7 +51,8 @@ We're going to deploy API Management inside a virtual network with the `internal
 
 > TODO: add a network image somewhere here...
 
-#### Network Security Group
+
+##### Network Security Group
 
 One of the first prerequisites is an NSG (Network Security Group) to allow inbound connectivity to API Management. The necessary rules that we'll be configuring can be found [here](https://learn.microsoft.com/en-us/azure/api-management/api-management-using-with-internal-vnet?tabs=stv2#configure-nsg-rules).
 
@@ -143,7 +148,7 @@ resource apimNSG 'Microsoft.Network/networkSecurityGroups@2023-09-01' = {
 }
 ```
 
-#### Virtual Network
+##### Virtual Network
 
 Next, we'll need a virtual network for the application gateway and API management. Add the following Bicep to the `main.bicep` file:
 
@@ -191,7 +196,7 @@ This Bicep code will create a virtual network with two subnets: one for the appl
 
 This configuration is enough for this demo, but in a real-world scenario you probably want to add more security measures.
 
-#### Public IP address for API Management
+##### Public IP address for API Management
 
 To deploy API Management in a virtual network, it also requires a public IP address. The public IP address is only used for management operations, because we're going to deploy API Management in `internal` mode. Add the following Bicep to the `main.bicep` file:
 
@@ -215,7 +220,7 @@ resource apimPublicIPAddress 'Microsoft.Network/publicIPAddresses@2023-05-01' = 
 }
 ```
 
-#### Deploy API Management in virtual network
+##### Add API Management to virtual network
 
 We can now deploy API Management inside the virtual network. Locate the `apiManagementService` resource and add the following code to the properties section:
 
@@ -228,6 +233,8 @@ publicIpAddressId: apimPublicIPAddress.id
 ```
 
 This will deploy API Management inside the virtual network and connect it to the subnet we created earlier. The `Internal` network type will make sure that API Management is not exposed outside the virtual network. It also configures the public IP address created in the previous step.
+
+##### Deploy changes
 
 Deploying a new or existing API Management instance inside a virtual network can take up to **45 minutes**. So it's best to start the deployment now before proceeding. You can use the following Azure CLI command (same as previous post). Replace the `<placeholders>` with your values.
 
@@ -242,16 +249,13 @@ az deployment group create `
     --verbose
 ```
 
-ERROR:
-> The resource write operation failed to complete successfully, because it reached terminal provisioning state 'Failed'.
-> Code: ActivationFailed
-> Message: Unable to activate API service at this time. This could be temporary issue in the region. Please check https://aka.ms/azurestatus for any issues. If the issue persists after retry, please open a support case for your API management service using the Azure portal.
+#### Deploy Application Gateway with TLS listener
 
+Now we can configure the application gateway. We'll start with TLS (a.k.a. SSL) before implementing mTLS.
 
+##### Public IP address
 
-#### Public IP address
-
-We'll need a public IP address for the application gateway. Add the following Bicep to the `main.bicep` file:
+First, we'll need a public IP address for the application gateway. Add the following Bicep to the `main.bicep` file:
 
 ```bicep
 // Public IP address
@@ -269,11 +273,9 @@ resource agwPublicIPAddress 'Microsoft.Network/publicIPAddresses@2023-05-01' = {
 }
 ```
 
-#### Deploy Application Gateway
+##### Application Gateway
 
-Now we can configure the application gateway. We'll start with TLS before implementing mTLS. 
-
-Add the following Bicep to the `main.bicep` file to create an application gateway.
+To create a basic application gateway, add the following Bicep to the `main.bicep` file:
 
 ```bicep
 var applicationGatewayName = 'agw-validate-client-certificate'
@@ -309,14 +311,14 @@ resource applicationGateway 'Microsoft.Network/applicationGateways@2023-05-01' =
 
 As you can see, the application gateway is deployed in its designated subnet.
 
-Next, we'll need to add several components to allow HTTPS traffic to the application gateway and route it to API Management. See the image below for a visual representation of the components that we'll be adding:
+This will deploy an application gateway, but it won't do anything yet. We'll need to add several components to allow HTTPS traffic to the application gateway and route it to API Management. See the image below for a visual representation of the components that we'll be adding to the application gateway:
 
 ![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-listener.png)
 ![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-listener.png)
 
-The configuration consists of three components:
-1. The frontend (at the top) defines the IP address, specifies the protocol and port to use, and specifies the SSL certificate to use.
-2. The backend (bottom part) outlines where requests should be forwarded to, specifying the protocol and port to use, timeouts, etc.
+The configuration consists of three parts:
+1. The frontend (at the top) for incoming traffic defines the IP address, specifies the protocol and port to use, and specifies the SSL certificate to use.
+2. The backend (bottom part) for outing traffic outlines where requests should be forwarded to, specifying the protocol and port to use, timeouts, etc.
 3. The routing rule in the middle connects the frontend and backend configurations.
 
 See [Application gateway components](https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-components) for more information about the different components.
@@ -495,7 +497,8 @@ requestRoutingRules: [
 
 Deploy the application gateway using the Azure CLI command you've used before. The deployment will take about 5-7 minutes to complete.
 
-### Test API
+
+#### Test Deployment
 
 The application gateway can be reached on `https://apim-sample.dev`. However, because we've used a self-signed certificate and `apim-sample.dev` is not a registered domain, you'll have to update your hosts file to be able to reach the application gateway.
 
@@ -505,7 +508,7 @@ Locate the public IP address resource of the application gateway (`pip-agw-valid
 <your-public-ip-address> apim-sample.dev
 ```
 
-Now you can test if everything is configured correctly. Save the following snippet in an `.http` file and open it in Visual Studio Code with the [REST Client extension](https://marketplace.visualstudio.com/items?itemName=humao.rest-client). Click the `Send Request` link to send the request.
+Now you can test if everything is configured correctly. Save the following snippet in a new `.http` file and open it in Visual Studio Code with the [REST Client extension](https://marketplace.visualstudio.com/items?itemName=humao.rest-client). Click the `Send Request` link to send the request.
 
 ```
 ### Test that API Management can be reached (/status-0123456789abcdef is a default endpoint you can use)
@@ -518,32 +521,53 @@ This request will call the `/status-0123456789abcdef` endpoint, which is a defau
 
 ### Add mTLS listener to Application Gateway
 
-Scope of validation:  
+Now that we've validated that everything works correctly, we can add mTLS support. Before we proceed, it's good to understand how the application gateway performs client certificate validation. The application gateway does **not** have the capability to 'whitelist' individual client certificates. However, it can verify whether a client certificate was issued by a trusted certificate authority (CA).
+
+In our example, we only want to allow client certificates issued by `APIM Sample DEV Intermediate CA`. The figure below highlights which certificates we need to upload to the application gateway for this to work.
+
 ![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-agw-certificate-validation.png)
 ![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-agw-certificate-validation.png)
 
-Components to deploy:  
-![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener.png)
-![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener.png)
+When using a well-known certificate authority, it's important to note the following, as mentioned on [Overview of mutual authentication with Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/mutual-authentication-overview#certificates-supported-for-mutual-authentication):
 
-#### Port
+> "When issuing client certificates from well established certificate authorities, consider working with the certificate authority to see if an intermediate certificate can be issued for your organization to prevent inadvertent cross-organizational client certificate authentication."
 
-Add the following to the `frontendPorts` array:
 
-```bicep
-{
-  name: 'port-mtls'
-  properties: {
-    port: 53029
-  }
-}
+To add mTLS support, we can reuse some of the components that we've configured for the TLS listener, such as the SSL certificate and backend configuration. The figure below highlights the new components we'll need to add.
+
+![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-1.png)
+![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-1.png)
+
+As you can see, we'll add a second listener that accepts traffic on port `53029`. We'll also need to configure an SSL profile with trusted certificates to validate the client certificate and add a rule to route traffic to the API Management backend.
+
+Please note that in this scenario, we allow both TLS and mTLS traffic to the application gateway. This can be useful when you support multiple authentication methods. While some clients may support mTLS and use a client certificate for authentication, others may only support TLS and authenticate with a bearer token.
+
+#### Prepare certificate chain
+
+Because we're only allowing client certificates issued by a specific self-signed intermediate CA, we'll need to upload the complete certificate chain. The chain should be in a single `.cer` file and include all intermediate CAs and the root CA.
+
+You can use the sample [dev-intermediate-ca-with-root-ca.cer](https://github.com/ronaldbosma/blog-code-examples/blob/master/apim-client-certificate-series/00-self-signed-certificates/certificates/dev-intermediate-ca-with-root-ca.cer) or create your own. If you choose the latter, take the public part of all certificates in the chain and combine them in a single `.cer` file. The result should resemble the example below.
+
+```
+-----BEGIN CERTIFICATE-----
+MIIDOjCCAiKgAwIBAgIQZk5nkg3ljYVOM77uz5hVODANBgkqhkiG9w0BAQsFADAeMRwwGgYDVQQD
+DBNBUElNIFNhbXBsZSBSb290IENBMCAXDTI0MDIwMjA4Mzk0M1oYDzIwNzQwMjAyMDg0OTQzWjAq
+............................... TRUNCATED ..................................
+o6jtMJfs6GPOtG4nPSWkVt5rBwJ4d0DyXtEWeD+/I480AlzHcc5ouD9qIvxOEp8g7mqNiOgeTu3S
+SDaqFo055aIYM5iChX9twG3FSUc03YtgfuwlkeXEA+Q=
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+MIIDCjCCAfKgAwIBAgIQTnzUTsk8yb1GxOisPnNyQjANBgkqhkiG9w0BAQsFADAeMRwwGgYDVQQD
+DBNBUElNIFNhbXBsZSBSb290IENBMCAXDTI0MDIwMjA4Mzk0MloYDzIwNzQwMjAyMDg0OTQyWjAe
+............................... TRUNCATED ..................................
+3IDy7OcjtfLZkCstp18fS7yzk/+LmUOk2wUHJKl2PwfninaUA0m+k58fMZXYFZ80p/MFX8BpBLdQ
+tPq4cH7fgj/8rE8pMN4cCv/3SfpaDwgPdfHEOL5C+A7eVgY8jtp79JQ=
+-----END CERTIFICATE-----
 ```
 
-In this demo we haven't configured any NSG rules. If you have stricter configuration, you might also need to allow inbound traffic on port `53029`.
+#### SSL Profile with Trusted Certificate
 
-#### Trusted Certificates
-
-The the following Bicep to the `properties` section of the `applicationGateway` resource. Replace `<path-to-certificates>` with the path to the certificate.
+Now we can configure the SSL profile and upload the trusted certificates. Add the following Bicep to the `properties` section of the `applicationGateway` resource. Replace `<path-to-certificates>` with the path to your `.cer` file.
 
 ```bicep
 trustedClientCertificates: [
@@ -554,15 +578,7 @@ trustedClientCertificates: [
     }
   }
 ]
-```
 
-The root CA certificate must be marked as root certificate. 
-
-#### SSL Profile
-
-The the following Bicep to the `properties` section of the `applicationGateway` resource.
-
-```bicep
 sslProfiles: [
   {
     name: 'mtls-ssl-profile'
@@ -582,12 +598,27 @@ sslProfiles: [
 ]
 ```
 
-If we don't set `verifyClientCertIssuerDN` to true, only the root CA certificate will be checked. In our example, this would mean that a client certificate created by `CN=APIM Sample TST Intermediate CA` would be accepted, even though we've uploaded the other intermediate certificate `CN=APIM Sample DEV Intermediate CA`. By setting `verifyClientCertIssuerDN` to true, the intermediate certificate will also be checked and only certificates created by `CN=APIM Sample DEV Intermediate CA` will be accepted.
+Please note that the `verifyClientCertIssuerDN` property is set to `true`. By default, only the root CA certificate is checked. In our example, this means that a client certificate issued by `APIM Sample TST Intermediate CA` for the test environment would be accepted, even though we've uploaded the other intermediate certificate `APIM Sample DEV Intermediate CA` of the dev environment. By setting `verifyClientCertIssuerDN` to `true`, the intermediate certificate will also be checked and only certificates created by `APIM Sample DEV Intermediate CA` are accepted. You can find more details [here](https://learn.microsoft.com/en-us/azure/application-gateway/mutual-authentication-overview#verify-client-certificate-dn).
 
+
+#### mTLS Port
+
+Next, we'll need to configure a port. Because `443` is already in use, we'll configure port `53029`. Add the following to the `frontendPorts` array:
+
+```bicep
+{
+  name: 'port-mtls'
+  properties: {
+    port: 53029
+  }
+}
+```
+
+In this demo we haven't configured any NSG rules for the application gateway subnet. If you have a stricter configuration, you might also need to allow inbound traffic on port `53029`.
 
 #### mTLS Listener
 
-Add the following to the `httpListeners` array:
+The final step for the frontend configuration is to set up the listener itself. Add the following to the `httpListeners` array:
 
 ```bicep
 {
@@ -611,9 +642,11 @@ Add the following to the `httpListeners` array:
 }
 ```
 
+As you can see, we're reusing the frontend IP configuration and SSL certificate. The frontend port and SSL profile differ from the TLS listener.
+
 #### Routing Rule
 
-Add the following to the `requestRoutingRules` array:
+Finally, we need to connect the mTLS listener to the already existing backend. Add the following Bicep to the `requestRoutingRules` array:
 
 ```bicep
 {
@@ -633,6 +666,9 @@ Add the following to the `requestRoutingRules` array:
   }
 }
 ```
+
+This is all that's required for mTLS support. Now, deploy the changes using the Azure CLI command you've used before.
+
 
 #### Test mTLS
 
@@ -654,7 +690,7 @@ GET https://apim-sample.dev:53029/client-cert/validate-using-policy
 GET https://apim-sample.dev:53029/client-cert/validate-using-context
 ```
 
-All request will fail with a response similar to the one below because we haven't configured the REST Client extension to send a client certificate yet.
+All request will fail with a response similar to the one below, as we haven't configured the REST Client extension to send a client certificate yet.
 
 ```
 HTTP/1.1 400 Bad Request
@@ -670,7 +706,7 @@ Server: Microsoft-Azure-Application-Gateway/v2
 </html>
 ```
 
-To send a client certificate, we'll need to update the user settings in Visual Studio Code as described [here](https://github.com/Huachao/vscode-restclient#ssl-client-certificates).
+To use a client certificate, we'll need to update the user settings in Visual Studio Code. (See the [GitHub documentation](https://github.com/Huachao/vscode-restclient#ssl-client-certificates) for more details.)
 
 - Open the  Command Palette (`Ctrl+Shift+P`) and choose `Preferences: Open User Settings (JSON)`.
 - Add the following configuration to the settings file.  
@@ -688,9 +724,9 @@ To send a client certificate, we'll need to update the user settings in Visual S
 - Don't forget to change the passphrase if you're using your own certificates.
 - Save the changes.
 
-Now if you send the request to `/status-0123456789abcdef` it should succeed. If you use a client certificate from another intermediate CA like `tst-client-01.pfx`, a `400 Bad Request` is returned again.
+Now, if you send a request to `https://apim-sample.dev:53029/status-0123456789abcdef`, it should succeed. However, if you use a client certificate from another intermediate CA, such as `tst-client-01.pfx`, a `400 Bad Request` is returned as expected.
 
-The calls to `/client-cert/validate-using-policy` and `/client-cert/validate-using-context` still fail, even when a valid client certificate is passed. They both return a `401`. The reason for this is that the client certificate is not sent to API Management. The application gateway terminates the mTLS session as described on [Overview of TLS termination and end to end TLS with Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/ssl-overview). This means that we can't use the `validate-client-certificate` policy or the `context.Request.Certificate` property.
+The requests to `/client-cert/validate-using-policy` and `/client-cert/validate-using-context` continue to fail, despite providing a valid client certificate. Both endpoints return a `401` with the message `Client certificate missing`. The reason for the error is that the client certificate is not sent to API Management due to the application gateway terminating the TLS session. This means that we can't use the `validate-client-certificate` policy or the `context.Request.Certificate` property.
 
 
 ### Forward client certificate to API Management
