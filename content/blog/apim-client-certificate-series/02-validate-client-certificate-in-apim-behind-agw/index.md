@@ -19,14 +19,18 @@ Topics covered in this series:
 
 ### Intro
 
-In this second post we build upon the solution of [the previous post](/blog/2024/02/02/validate-client-certificates-in-api-management/). We'll deploy API Management inside a virtual network behind an application gateway and configure the application gateway to validate client certificates. We'll also configure the application gateway to forward the client certificate to API Management for further validation.
+In this second post we build upon the solution of [the previous post](/blog/2024/02/02/validate-client-certificates-in-api-management/). We'll deploy API Management inside a virtual network behind an application gateway and configure the application gateway to validate client certificates. We'll also configure the application gateway to forward the client certificate to API Management for further processing.
 
-This post provides a step-by-step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). _(Note that the deployment will take up to 45 minutes, because API Management will be deployed inside a virtual network.)_
+You can find an example of the communication flow in the figure below:
+
+![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-overview.png)
+![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-overview.png)
+
+Note that the application gateway terminate the TLS session, as described [here](https://learn.microsoft.com/en-us/azure/application-gateway/ssl-overview). This results in the client certificate not being sent to API Management, meaning we can't rely on the solution provided in the previous post to validate the client certificate. 
+
+This post provides a solution in the form of a step-by-step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). _(Please not that the deployment can take up to 45 minutes to complete.)_
 
 The application gateway configuration outlined in this post can also be used in other situations. For example, when you have ASP.NET APIs hosted in App Services.
-
-
-> Mention TLS termination. Thats why we can't reuse the first post. Add image with certificate flow. See [Overview of TLS termination and end to end TLS with Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/ssl-overview)
 
 
 ### Table of Contents
@@ -45,14 +49,14 @@ The application gateway configuration outlined in this post can also be used in 
 
 This first section will cover the prerequisites for this post. Use the result of the previous post as a starting point. You can find the code [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/01-validate-client-certificate-in-apim) and the self-signed certificates [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/00-self-signed-certificates).
 
+We're going to deploy API Management inside a virtual network with the `internal` mode enabled, restricting access from external clients. To enable external access, we'll route traffic through an application gateway. We'll configure two external endpoints: one for normal TLS and one for mTLS. You can find a visualization of the setup in the figure below.
+
+![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-network.png)
+![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-network.png)
+
 #### Deploy API Management in virtual network
 
-We're going to deploy API Management inside a virtual network with the `internal` mode enabled, restricting access from external clients. To enable external access, we'll route traffic through an application gateway.
-
-[Multiple compute platforms](https://learn.microsoft.com/en-us/azure/api-management/compute-infrastructure) are available for API Management. Since we're opting for the Developer tier, we have the choice between versions `stv1` and `stv2`. However, `stv1` will be retired in August 2024. Hence, for the purposes of this blog post, we'll be using `stv2`. This does mean configuring additional resources for API Management to work inside the virtual network. See [the documentation](https://learn.microsoft.com/en-us/azure/api-management/api-management-using-with-internal-vnet?tabs=stv2#prerequisites) for a comparison between the prerequisites for `stv1` and `stv2`.
-
-
-> TODO: add a network image somewhere here...
+Lets start by deployin API Management inside a virtual network. [Multiple compute platforms](https://learn.microsoft.com/en-us/azure/api-management/compute-infrastructure) are available for API Management. Since we're opting for the Developer tier, we have the choice between versions `stv1` and `stv2`. However, `stv1` will be retired in August 2024. So, for the purposes of this blog post, we'll be using `stv2`. This does mean configuring additional resources for API Management to work inside the virtual network. See [the documentation](https://learn.microsoft.com/en-us/azure/api-management/api-management-using-with-internal-vnet?tabs=stv2#prerequisites) for a comparison between the prerequisites for `stv1` and `stv2`.
 
 
 ##### Network Security Group
@@ -225,7 +229,7 @@ resource apimPublicIPAddress 'Microsoft.Network/publicIPAddresses@2023-05-01' = 
 
 ##### Add API Management to virtual network
 
-We can now deploy API Management inside the virtual network. Locate the `apiManagementService` resource and add the following code to the properties section:
+We can now deploy API Management inside the virtual network. Locate the `apiManagementService` resource and add the following Bicep to the `properties` section:
 
 ```bicep
 virtualNetworkType: 'Internal'
@@ -320,8 +324,8 @@ This will deploy an application gateway, but it won't do anything yet. We'll nee
 ![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-listener.png)
 
 The configuration consists of three parts:
-1. The frontend (at the top) for incoming traffic defines the IP address, specifies the protocol and port to use, and specifies the SSL certificate to use.
-2. The backend (bottom part) for outing traffic outlines where requests should be forwarded to, specifying the protocol and port to use, timeouts, etc.
+1. The frontend for incoming traffic at the top defines the IP address, specifies the protocol and port to use, and specifies the SSL certificate to use.
+2. The backend for outing traffic at the bottom defines where requests should be forwarded to, specifying the protocol and port to use, timeouts, etc.
 3. The routing rule in the middle connects the frontend and backend configurations.
 
 See [Application gateway components](https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-components) for more information about the different components.
@@ -468,7 +472,7 @@ The probe is used by the application gateway to monitor the health of all resour
 
 The backend HTTP settings section, among other things, defines the port and protocol to use, the backend hostname and the associated health probe. 
 
-It's important to note that the backend will use an SSL connection to communicate with API Management. However, it's currently not possible to use mTLS between the application gateway and a backend. Please refer to [the FAQ](https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-faq#is-mutual-authentication-available-between-application-gateway-and-its-backend-pools) for more details.
+It's important to note that the backend will use a normal TLS connection to communicate with API Management, because it's currently not possible to use mTLS between the application gateway and a backend. Please refer to [the FAQ](https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-faq#is-mutual-authentication-available-between-application-gateway-and-its-backend-pools) for more details.
 
 ##### Request routing rule
 
@@ -494,8 +498,6 @@ requestRoutingRules: [
   }
 ]
 ```
-
-##### Deploy
 
 Deploy the application gateway using the Azure CLI command you've used before. The deployment will take about 5-7 minutes to complete.
 
@@ -523,9 +525,9 @@ This request will call the `/status-0123456789abcdef` endpoint, which is a defau
 
 ### Add mTLS listener to Application Gateway
 
-Now that we've validated that everything works correctly, we can add mTLS support. Before we proceed, it's good to understand how the application gateway performs client certificate validation. The application gateway does **not** have the capability to 'whitelist' individual client certificates. However, it can verify whether a client certificate was issued by a trusted certificate authority (CA).
+Now that we've checked that everything works, we can add mTLS support. Before we proceed, it's good to understand how the application gateway performs client certificate validation. The application gateway does **not** have the capability to 'whitelist' individual client certificates. However, it can verify whether a client certificate was issued by a trusted certificate authority (CA).
 
-In our example, we only want to allow client certificates issued by `APIM Sample DEV Intermediate CA`. The figure below highlights which certificates we need to upload to the application gateway for this to work.
+We'll use the same [self-signed certificates](/blog/2024/02/02/validate-client-certificates-in-api-management/#self-signed-certificates) used in the previous post. In our example, we only want to allow client certificates issued by `APIM Sample DEV Intermediate CA` to be able to call the application gateway. The figure below highlights which certificates we need to upload for this to work.
 
 ![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-agw-certificate-validation.png)
 ![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-agw-certificate-validation.png)
@@ -540,9 +542,9 @@ To add mTLS support, we can reuse some of the components that we've configured f
 ![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-1.png)
 ![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-1.png)
 
-As you can see, we'll add a second listener that accepts traffic on port `53029`. We'll also need to configure an SSL profile with trusted certificates to validate the client certificate and add a rule to route traffic to the API Management backend.
+As you can see, we'll add a second listener that accepts traffic on port `53029`. We'll also need to configure an SSL profile with trusted certificates to validate the client certificate, and add a rule to route traffic to the API Management backend.
 
-Please note that in this scenario, we allow both TLS and mTLS traffic to the application gateway. This can be useful when you support multiple authentication methods. While some clients may support mTLS and use a client certificate for authentication, others may only support TLS and authenticate with a bearer token.
+Please note that in this scenario, we allow both TLS and mTLS traffic to the application gateway. This can be useful when you support multiple authentication methods. While some clients may support mTLS and use a client certificate for authentication, others may only support TLS and authenticate with for example a bearer token.
 
 #### Prepare certificate chain
 
@@ -600,12 +602,12 @@ sslProfiles: [
 ]
 ```
 
-Please note that the `verifyClientCertIssuerDN` property is set to `true`. By default, only the root CA certificate is checked. In our example, this means that a client certificate issued by `APIM Sample TST Intermediate CA` for the test environment would be accepted, even though we've uploaded the other intermediate certificate `APIM Sample DEV Intermediate CA` of the dev environment. By setting `verifyClientCertIssuerDN` to `true`, the intermediate certificate will also be checked and only certificates created by `APIM Sample DEV Intermediate CA` are accepted. You can find more details [here](https://learn.microsoft.com/en-us/azure/application-gateway/mutual-authentication-overview#verify-client-certificate-dn).
+Please note that the `verifyClientCertIssuerDN` property is set to `true`. By default, only the root CA certificate is checked. In our example, this would mean that a client certificate issued by `APIM Sample TST Intermediate CA` for the test environment would be accepted, even though we've only uploaded the other intermediate certificate `APIM Sample DEV Intermediate CA` of the development environment. By setting `verifyClientCertIssuerDN` to `true`, the intermediate certificate will also be checked and only certificates issued by `APIM Sample DEV Intermediate CA` are accepted. You can find more details [here](https://learn.microsoft.com/en-us/azure/application-gateway/mutual-authentication-overview#verify-client-certificate-dn).
 
 
 #### mTLS Port
 
-Next, we'll need to configure a port. Because `443` is already in use, we'll configure port `53029`. Add the following to the `frontendPorts` array:
+Next, we'll need to configure a port. Because `443` is already in use, we'll configure a second port. Add the following to the `frontendPorts` array:
 
 ```bicep
 {
@@ -674,7 +676,7 @@ This is all that's required for mTLS support. Now, deploy the changes using the 
 
 #### Test mTLS
 
-Add the following snippet to your `.http` file. Try sending the requests.
+To test the new changes, add the following snippet to your `.http` file. Try sending the requests.
 
 ```
 ### Test that API Management can be reached
@@ -692,7 +694,7 @@ GET https://apim-sample.dev:53029/client-cert/validate-using-policy
 GET https://apim-sample.dev:53029/client-cert/validate-using-context
 ```
 
-All request will fail with a response similar to the one below, as we haven't configured the REST Client extension to send a client certificate yet.
+All request will fail with a response similar to the one below, as we haven't configured the Visual Studio REST Client extension to send a client certificate yet.
 
 ```
 HTTP/1.1 400 Bad Request
@@ -726,14 +728,14 @@ To use a client certificate, we'll need to update the user settings in Visual St
 - Don't forget to change the passphrase if you're using your own certificates.
 - Save the changes.
 
-Now, if you send a request to `https://apim-sample.dev:53029/status-0123456789abcdef`, it should succeed. However, if you use a client certificate from another intermediate CA, such as `tst-client-01.pfx`, a `400 Bad Request` is returned as expected.
+Now, if you send a request to `https://apim-sample.dev:53029/status-0123456789abcdef`, it should succeed. If you use a client certificate from another intermediate CA, such as `tst-client-01.pfx`, a `400 Bad Request` should be returned.
 
-The requests to `/client-cert/validate-using-policy` and `/client-cert/validate-using-context` continue to fail, despite providing a valid client certificate. Both endpoints return a `401` with the message `Client certificate missing`. The reason for the error is that the client certificate is not sent to API Management due to the application gateway terminating the TLS session. This means that we can't use the `validate-client-certificate` policy or the `context.Request.Certificate` property. The next section will explain how to forward the certificate to API Management.
+The requests to `/client-cert/validate-using-policy` and `/client-cert/validate-using-context` continue to fail though, despite providing a valid client certificate. Both endpoints return a `401` with the message `Client certificate missing`. The reason for the error is that the client certificate is not sent to API Management due to the application gateway terminating the TLS session. This means that we can't use the `validate-client-certificate` policy or the `context.Request.Certificate` property that we used in the previous post. The next section will explain how to forward the certificate to API Management for further processing.
 
 
 ### Forward client certificate to API Management
 
-We can forward the provided client certificate to API Management in a header. Using a rewrite rule, we can access the client certificate with the `client_certificate` server variable and place it in the header. See [Rewrite HTTP headers and URL with Application Gateway - Mutual authentication server variables](https://learn.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers-url#mutual-authentication-server-variables) for more information on the available server variables.
+We can forward the provided client certificate to API Management in a header. Using a rewrite rule in the application gateway, we can access the client certificate with the `client_certificate` server variable and place it in the header. See [Rewrite HTTP headers and URL with Application Gateway - Mutual authentication server variables](https://learn.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers-url#mutual-authentication-server-variables) for more information on the available server variables.
 
 We'll use `X-ARR-ClientCert` as the header name. This is a common name that is also used in similar scenarios. For example, Azure App Services uses this header to pass a client certificate to an app like an ASP.NET Web API. _(See [Configure TLS mutual authentication for Azure App Service - Access client certificate](https://learn.microsoft.com/en-us/azure/app-service/app-service-web-configure-tls-mutual-auth?tabs=azurecli#access-client-certificate) for more details if you're interested in this scenario._)
 
@@ -841,13 +843,13 @@ HTTP/1.1 200 OK
 -----BEGIN%20CERTIFICATE-----%0AMIIDRTCCAi.....TRUNCATED.....6Zdlr9V53Q%3D%3D%0A-----END%20CERTIFICATE-----%0A
 ```
 
-The response body contains the value of the `X-ARR-ClientCert` header. The value is the `Base-64 encoded X.509 (.CER)` representation of the client certificate. This is the public part of the client certificate without the private key. Special characters, like the white spaces, are URL encoded.
+The response body contains the value of the `X-ARR-ClientCert` header. The value is the `Base-64 encoded X.509 (.CER)` representation of the client certificate. This is the public part of the client certificate without the private key. Special characters, like the whitespaces, are encoded.
 
 ### Validate client certificate in API Management
 
 The application gateway already performs a first check to verify that the client certificate is issued by the correct issuer. Further processing of the client certificate can be done within API Management using a policy expression.
 
-To verify the client certificate and ensure it matches one of the uploaded client certificates, open to the file `validate-from-agw.operation.cshtml` and update the `inbound` section with the following XML code:
+To verify the client certificate and ensure it matches one of the uploaded client certificates, open to the file `validate-from-agw.operation.cshtml` and update the `inbound` section with the following XML:
 
 ```csharp
 <inbound>
@@ -889,14 +891,15 @@ To verify the client certificate and ensure it matches one of the uploaded clien
 </inbound>
 ```
 
-The policy expression in the `when` condition is where the validation takes place. When the condition evaluates to true, a `200 OK` is returned, otherwise a `401 Unauthorized` is returned. The policy expression executes the following steps:
+The policy expression in the `when` condition validates the client certificate. When the condition evaluates to true, a `200 OK` is returned, otherwise a `401 Unauthorized` is returned. The policy expression executes the following steps:
 
 1. Store the value of the `X-ARR-ClientCert` header in a variable.
 1. Return `false` when the header is empty.
-1. Decode the string to replace characters like `%20` with white space.
-1. Remove the `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----` markers.
-1. Convert the resulting string into a `byte[]` array and instantiate the [X509Certificate2](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509certificate2?view=net-8.0) class. 
-1. Verify the certificate and verify if it matches any of the deployed client certificates.  
+1. If the header is not empty:
+   1. Decode the string to replace characters like `%20` with whitespace.
+   1. Remove the `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----` markers.
+   1. Convert the resulting string into a `byte[]` array and instantiate the [X509Certificate2](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509certificate2?view=net-8.0) class. 
+   1. Verify the certificate and check if it matches any of the deployed client certificates.  
 
 Since the `X509Certificate2` class is the same type as `context.Request.Certificate`, we can perform the same checks as shown in [the previous post](/blog/2024/02/02/validate-client-certificates-in-api-management/#validate-against-uploaded-client-certificates).
 
@@ -919,7 +922,7 @@ The HTTPS listener on port `443` does not forward a client certificate. So, send
 GET https://apim-sample.dev/client-cert/validate-from-agw
 ```
 
-This example returns the same response whether no certificate is supplied or an invalid client certificate is provided. A more comprehensive example can be found [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/api-management/validate-from-agw.operation.cshtml).
+The operation returns the same response whether no certificate is supplied or an invalid client certificate is provided. A more comprehensive example can be found [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/api-management/validate-from-agw.operation.cshtml).
 
 
 ### Plugging the security hole
@@ -933,11 +936,12 @@ GET https://apim-sample.dev/client-cert/validate-from-agw
 X-ARR-ClientCert: -----BEGIN%20CERTIFICATE-----%0AMIIDRzCCAi%2BgAwIBAgIQGbcu6oSk1L1IwgiS5l0LkjANBgkqhkiG9w0BAQsFADAq%0AMSgwJgYDVQQDDB9BUElNIFNhbXBsZSBERVYgSW50ZXJtZWRpYXRlIENBMCAXDTI0%0AMDIwMjA4Mzk0M1oYDzIwNzQwMjAyMDg0OTQzWjAUMRIwEAYDVQQDDAlDbGllbnQg%0AMDEwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDD7RihwDgTSI6NMvpG%0AUexk0YVzP43JXk5aJV4MlhijvqpypH%2FmBOci1Z%2F47TbrMk97UA3dDmkGuHxLMq8b%0AYjlmV2ZydXYq5PEZt07S%2FAz81qv0rxdvpJ%2Fo9Smwd82D63bVU4bxZN0oPLztcYjr%0AgoO6Xi1CtOO48cihC9VCcYJ0qmlu8IkXuGjbxuan34M9xgxUPR6%2FLggo%2BLO5rJiw%0AxZPtCv7Jnp0pp4ecDqo8ogUPj5u3Ju%2F54YO345rlGa8dcVCFZc%2Brxh19k2gUO2I2%0AgJxvxoGeQIoKnHwOR7%2BWOtcu2efzfM5LSgDKEj%2Fn7KUFAfC4qF6f78fvKCRCCfFD%0AUOm9AgMBAAGjfTB7MA4GA1UdDwEB%2FwQEAwIFoDAUBgNVHREEDTALgglDbGllbnQg%0AMDEwEwYDVR0lBAwwCgYIKwYBBQUHAwIwHwYDVR0jBBgwFoAUZL3oNXFrhkEdOq89%0AyRqgopB9oRswHQYDVR0OBBYEFMW457L8H%2FVvN12Gvsf58NqYcRYBMA0GCSqGSIb3%0ADQEBCwUAA4IBAQBcbUKU6mr7f0Eh%2BfXXB2EC%2B8%2BgzEvqy1%2F6rQJ1%2FiUWJ4Li9fzp%0AJzuEXi3H1MTIu3%2B9IAGHOvfEg%2BVvV5fezL6pOSk%2F0LTDv8XN0iJZH6Shqbqq7Xrn%0A8vT3gTPPN1dnfOxtgTnZyvABtO3Hkh8Zsg9Gdo4LL8M8IIrIayX7pGubeYcylV9W%0ASncfONgRKC2wWgoWjJ1dXwlpsb6ZY%2BlMqCfMA0xTdqPM3p3YxggqIYbvRnwA7qId%0A8kEuhbNW7IPNZwEG%2BB9MuweeuWYiEn7r7strODwlX%2FuuYXcc0N889fnlbw9%2FC2Sm%0AmxGt6Nou8lhYYpNSxKvU1oXpa%2Fp8wnh3CXNA%0A-----END%20CERTIFICATE-----%0A
 ```
 
-If you send this request, you'll receive a `200 OK` response, despite no mTLS connection being established with the application gateway. (Replace the header value with your own if you're using other client certificates.)
+If you send this request, you'll receive a `200 OK` response, despite no mTLS connection being established with the application gateway. _(Replace the header value with your own if you're using other client certificates.)_
 
-There are several ways to address this issue. If mTLS is required for all communication, configuring only an mTLS listener on the application gateway is one option. Another approach is removing the `X-ARR-ClientCert` header from requests sent to the HTTPS listener, ensuring that only the mTLS listener will send the header to API Management. This is the solution we'll implement.
+There are several ways to address this issue. If mTLS is required for all communication, configuring only an mTLS listener on the application gateway is the logical option. Another approach is removing the `X-ARR-ClientCert` header from requests sent to the HTTPS listener, ensuring that only the mTLS listener will send the header to API Management. This is the solution we'll implement.
 
-> For both approaches, it's crucial to ensure that API Management is exclusively accessible through the application gateway, with direct access being restricted. If there's a need to support direct access as well, the ideal approach would involve the application gateway authenticating itself to API Management using its own client certificate. However, as previously mentioned, this is currently [not possible](https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-faq#is-mutual-authentication-available-between-application-gateway-and-its-backend-pools).   
+> For both approaches, it's crucial to ensure that API Management is exclusively accessible through the application gateway, with direct access being restricted. If there's a need to support direct access as well, the ideal approach would involve the application gateway authenticating itself to API Management using for example its own client certificate and only relying solely on the `X-ARR-ClientCert` header in that scenario. However, as previously mentioned, this is currently [not possible](https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-faq#is-mutual-authentication-available-between-application-gateway-and-its-backend-pools).   
+>
 > As an alternative, consider adding multiple hostnames to API Management. Assign one hostname for exclusive access from the application gateway, while another can be used for other types of communication. Then, determine the authentication mechanism based on the hostname on which the request was received. Implementing this solution is beyond the scope of this post.
 
 To remove the `X-ARR-ClientCert` header from requests sent to the HTTPS listener, we'll introduce another rewrite rule. See the figure below.
@@ -990,9 +994,12 @@ GET https://apim-sample.dev/client-cert/validate-from-agw
 X-ARR-ClientCert: -----BEGIN%20CERTIFICATE-----%0AMIIDRzCCAi%2BgAwIBAgIQGbcu6oSk1L1IwgiS5l0LkjANBgkqhkiG9w0BAQsFADAq%0AMSgwJgYDVQQDDB9BUElNIFNhbXBsZSBERVYgSW50ZXJtZWRpYXRlIENBMCAXDTI0%0AMDIwMjA4Mzk0M1oYDzIwNzQwMjAyMDg0OTQzWjAUMRIwEAYDVQQDDAlDbGllbnQg%0AMDEwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDD7RihwDgTSI6NMvpG%0AUexk0YVzP43JXk5aJV4MlhijvqpypH%2FmBOci1Z%2F47TbrMk97UA3dDmkGuHxLMq8b%0AYjlmV2ZydXYq5PEZt07S%2FAz81qv0rxdvpJ%2Fo9Smwd82D63bVU4bxZN0oPLztcYjr%0AgoO6Xi1CtOO48cihC9VCcYJ0qmlu8IkXuGjbxuan34M9xgxUPR6%2FLggo%2BLO5rJiw%0AxZPtCv7Jnp0pp4ecDqo8ogUPj5u3Ju%2F54YO345rlGa8dcVCFZc%2Brxh19k2gUO2I2%0AgJxvxoGeQIoKnHwOR7%2BWOtcu2efzfM5LSgDKEj%2Fn7KUFAfC4qF6f78fvKCRCCfFD%0AUOm9AgMBAAGjfTB7MA4GA1UdDwEB%2FwQEAwIFoDAUBgNVHREEDTALgglDbGllbnQg%0AMDEwEwYDVR0lBAwwCgYIKwYBBQUHAwIwHwYDVR0jBBgwFoAUZL3oNXFrhkEdOq89%0AyRqgopB9oRswHQYDVR0OBBYEFMW457L8H%2FVvN12Gvsf58NqYcRYBMA0GCSqGSIb3%0ADQEBCwUAA4IBAQBcbUKU6mr7f0Eh%2BfXXB2EC%2B8%2BgzEvqy1%2F6rQJ1%2FiUWJ4Li9fzp%0AJzuEXi3H1MTIu3%2B9IAGHOvfEg%2BVvV5fezL6pOSk%2F0LTDv8XN0iJZH6Shqbqq7Xrn%0A8vT3gTPPN1dnfOxtgTnZyvABtO3Hkh8Zsg9Gdo4LL8M8IIrIayX7pGubeYcylV9W%0ASncfONgRKC2wWgoWjJ1dXwlpsb6ZY%2BlMqCfMA0xTdqPM3p3YxggqIYbvRnwA7qId%0A8kEuhbNW7IPNZwEG%2BB9MuweeuWYiEn7r7strODwlX%2FuuYXcc0N889fnlbw9%2FC2Sm%0AmxGt6Nou8lhYYpNSxKvU1oXpa%2Fp8wnh3CXNA%0A-----END%20CERTIFICATE-----%0A
 ```
 
+With this, the security vulnerability has been addressed.
+
+
 ### Conclusion
 
-In this post, we've explored the impact of validating a client certificate in API Management when it's behind an application gateway. There's quite a bit more involved than simply establishing an mTLS connection with API Management directly. Personally, I found the application gateway configuration to be rather complex at first, so I hope this post will help you on your journey.
+In this post, we've explored the impact of validating a client certificate in API Management when it's behind an application gateway. There's quite a bit more involved than simply establishing an mTLS connection with API Management directly. Personally, I found the application gateway configuration to be rather complex at first, so I hope this post will give you a solid start.
 
 The end result of this blog post can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw).
 
