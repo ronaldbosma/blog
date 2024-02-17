@@ -4,6 +4,7 @@ date: 2024-02-02T12:00:00+01:00
 publishdate: 2024-02-02T12:00:00+01:00
 lastmod: 2024-02-02T12:00:00+01:00
 tags: [ "Azure", "API Management", "Application Gateway", "Bicep", "Client Certificates", "Infra as Code", "mTLS", "Security" ]
+summary: "In this second post we expand on the solution of the previous post. We’ll deploy API Management inside a virtual network, positioning it behind an application gateway. We'll configure the application gateway with an mTLS listener to validate client certificates and forward them to API Management for further processing. This approach can also be used with other types of backends like an ASP.NET Web API."
 draft: true
 ---
 
@@ -19,7 +20,7 @@ Topics covered in this series:
 
 ### Intro
 
-In this second post we build upon the solution of [the previous post](/blog/2024/02/02/validate-client-certificates-in-api-management/). We'll deploy API Management inside a virtual network behind an application gateway and configure the application gateway to validate client certificates. We'll also configure the application gateway to forward the client certificate to API Management for further processing.
+In this second post we expand on the solution of the [the previous post](/blog/2024/02/02/validate-client-certificates-in-api-management/). We’ll deploy API Management inside a virtual network, positioning it behind an application gateway. We’ll configure the application gateway with an mTLS listener to validate client certificates and forward them to API Management for further processing.
 
 You can find an example of the communication flow in the figure below:
 
@@ -28,7 +29,8 @@ You can find an example of the communication flow in the figure below:
 
 Note that the application gateway terminate the TLS session, as described [here](https://learn.microsoft.com/en-us/azure/application-gateway/ssl-overview). This results in the client certificate not being sent to API Management, meaning we can't rely on the solution provided in the previous post to validate the client certificate. 
 
-This post provides a solution in the form of a step-by-step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). _(Please not that the deployment can take up to 45 minutes to complete.)_
+
+This post provides a solution in the form of a step-by-step guide, once again using Bicep for deploying all components to Azure. If you're interested in the final outcome, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). _(Please note that the deployment process may take up to 45 minutes to complete.)_
 
 The application gateway configuration outlined in this post can also be used in other situations. For example, when you have ASP.NET APIs hosted in App Services.
 
