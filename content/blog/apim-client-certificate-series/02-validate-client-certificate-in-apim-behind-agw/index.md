@@ -20,17 +20,17 @@ Topics covered in this series:
 
 ### Intro
 
-In this second post we expand on the solution of the [the previous post](/blog/2024/02/02/validate-client-certificates-in-api-management/). We’ll deploy API Management inside a virtual network, positioning it behind an application gateway. We’ll configure the application gateway with an mTLS listener to validate client certificates and forward them to API Management for further processing.
+In this second post, we expand on the solution introduced [the previous post](/blog/2024/02/02/validate-client-certificates-in-api-management/). We’ll deploy API Management inside a virtual network, positioning it behind an application gateway. Utilizing an application gateway (or similar resource) is a common approach because it can provide load balancing capabilities and enhanced control over inbound and outbound traffic. The Web Application Firewall (WAF) offers improved security by providing protection against common web-based attacks and vulnerabilities, such as SQL injection and cross-site scripting (XSS).
 
-You can find an example of the communication flow in the figure below:
+We’ll configure the application gateway with an mTLS listener to validate client certificates and forward them to API Management for further processing. You can find an example of the communication flow in the figure below:
 
 ![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-overview.png)
 ![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-overview.png)
 
-Note that the application gateway terminate the TLS session, as described [here](https://learn.microsoft.com/en-us/azure/application-gateway/ssl-overview). This results in the client certificate not being sent to API Management, meaning we can't rely on the solution provided in the previous post to validate the client certificate. 
+Note that the application gateway terminates the TLS session, as described [here](https://learn.microsoft.com/en-us/azure/application-gateway/ssl-overview). This results in the client certificate not being sent to API Management, meaning we can't rely on the options provided in the previous post to validate the client certificate. 
 
 
-This post provides a solution in the form of a step-by-step guide, once again using Bicep for deploying all components to Azure. If you're interested in the final outcome, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). _(Please note that the deployment process may take up to 45 minutes to complete.)_
+This post provides a solution in the form of a step-by-step guide, once again using Bicep for deploying all components to Azure. If you're interested in the final result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). _(Please note that the deployment process may take up to 30-45 minutes to complete.)_
 
 The application gateway configuration outlined in this post can also be used in other situations. For example, when you have ASP.NET APIs hosted in App Services.
 
@@ -245,7 +245,7 @@ This will deploy API Management inside the virtual network and connect it to the
 
 ##### Deploy changes
 
-Deploying a new or existing API Management instance inside a virtual network can take up to **45 minutes**. So it's best to start the deployment now before proceeding. You can use the following Azure CLI command (same as previous post). Replace the `<placeholders>` with your values.
+Deploying a new or existing API Management instance inside a virtual network can take up to **25-45 minutes**. So it's best to start the deployment now before proceeding. You can use the following Azure CLI command (same as previous post). Replace the `<placeholders>` with your values.
 
 ```powershell
 az deployment group create `
