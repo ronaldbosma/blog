@@ -58,7 +58,7 @@ We're going to deploy API Management inside a virtual network with the `internal
 
 #### Deploy API Management in virtual network
 
-Lets start by deployin API Management inside a virtual network. [Multiple compute platforms](https://learn.microsoft.com/en-us/azure/api-management/compute-infrastructure) are available for API Management. Since we're opting for the Developer tier, we have the choice between versions `stv1` and `stv2`. However, `stv1` will be retired in August 2024. So, for the purposes of this blog post, we'll be using `stv2`. This does mean configuring additional resources for API Management to work inside the virtual network. See [the documentation](https://learn.microsoft.com/en-us/azure/api-management/api-management-using-with-internal-vnet?tabs=stv2#prerequisites) for a comparison between the prerequisites for `stv1` and `stv2`.
+We'll start by deploying API Management inside a virtual network. Because API Management offers [multiple compute platforms](https://learn.microsoft.com/en-us/azure/api-management/compute-infrastructure), we need to decide which one to use. We're using the Developer tier, so we have the choice between versions `stv1` and `stv2`. However, `stv1` will be retired in August 2024. So, for the purposes of this blog post, we'll be using `stv2`. This does mean configuring additional resources for API Management to work inside the virtual network. See [the documentation](https://learn.microsoft.com/en-us/azure/api-management/api-management-using-with-internal-vnet?tabs=stv2#prerequisites) for a comparison between the prerequisites for `stv1` and `stv2`.
 
 
 ##### Network Security Group
