@@ -37,8 +37,9 @@ The application gateway configuration outlined in this post can also be used in 
   - [Test Deployment](#test-deployment)
 - [Add mTLS listener to Application Gateway](#add-mtls-listener-to-application-gateway)
 - [Forward client certificate to API Management](#forward-client-certificate-to-api-management)
-- [Validate forwarded client certificate](#validate-forwarded-client-certificate)
+- [Validate client certificate in API Management](#validate-client-certificate-in-api-management)
 - [Plugging the security hole](#plugging-the-security-hole)
+- [Conclusion](#conclusion)
 
 ### Prerequisites
 
@@ -842,7 +843,7 @@ HTTP/1.1 200 OK
 
 The response body contains the value of the `X-ARR-ClientCert` header. The value is the `Base-64 encoded X.509 (.CER)` representation of the client certificate. This is the public part of the client certificate without the private key. Special characters, like the white spaces, are URL encoded.
 
-### Validate forwarded client certificate
+### Validate client certificate in API Management
 
 The application gateway already performs a first check to verify that the client certificate is issued by the correct issuer. Further processing of the client certificate can be done within API Management using a policy expression.
 
@@ -936,7 +937,8 @@ If you send this request, you'll receive a `200 OK` response, despite no mTLS co
 
 There are several ways to address this issue. If mTLS is required for all communication, configuring only an mTLS listener on the application gateway is one option. Another approach is removing the `X-ARR-ClientCert` header from requests sent to the HTTPS listener, ensuring that only the mTLS listener will send the header to API Management. This is the solution we'll implement.
 
-> For both approaches, it's crucial to ensure that API Management is exclusively accessible through the application gateway, with direct access being restricted. If there's a need to support direct access as well, consider adding multiple hostnames to API Management. One hostname should be designated for exclusive access from the application gateway, while another can be used for other types of communication. Then, determine the authentication mechanism based on the hostname on which the request was received. Implementing this solution is beyond the scope of this post.
+> For both approaches, it's crucial to ensure that API Management is exclusively accessible through the application gateway, with direct access being restricted. If there's a need to support direct access as well, the ideal approach would involve the application gateway authenticating itself to API Management using its own client certificate. However, as previously mentioned, this is currently [not possible](https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-faq#is-mutual-authentication-available-between-application-gateway-and-its-backend-pools).   
+> As an alternative, consider adding multiple hostnames to API Management. Assign one hostname for exclusive access from the application gateway, while another can be used for other types of communication. Then, determine the authentication mechanism based on the hostname on which the request was received. Implementing this solution is beyond the scope of this post.
 
 To remove the `X-ARR-ClientCert` header from requests sent to the HTTPS listener, we'll introduce another rewrite rule. See the figure below.
 
@@ -990,8 +992,9 @@ X-ARR-ClientCert: -----BEGIN%20CERTIFICATE-----%0AMIIDRzCCAi%2BgAwIBAgIQGbcu6oSk
 
 ### Conclusion
 
+In this post, we've explored the impact of validating a client certificate in API Management when it's behind an application gateway. There's quite a bit more involved than simply establishing an mTLS connection with API Management directly. Personally, I found the application gateway configuration to be rather complex at first, so I hope this post will help you on your journey.
 
-
+The end result of this blog post can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw).
 
 **Final remark**:
 
