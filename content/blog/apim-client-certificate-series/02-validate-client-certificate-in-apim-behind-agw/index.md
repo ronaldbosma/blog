@@ -38,7 +38,7 @@ The application gateway configuration outlined in this post can also be used in 
 - [Add mTLS listener to Application Gateway](#add-mtls-listener-to-application-gateway)
 - [Forward client certificate to API Management](#forward-client-certificate-to-api-management)
 - [Validate forwarded client certificate](#validate-forwarded-client-certificate)
-- [Plug the security hole](#plug-the-security-hole)
+- [Plugging the security hole](#plugging-the-security-hole)
 
 ### Prerequisites
 
@@ -919,13 +919,75 @@ The TLS listener on port `443` does not forward a client certificate. So, sendin
 GET https://apim-sample.dev/client-cert/validate-from-agw
 ```
 
-As you may have noticed, this example returns the same response whether no certificate is supplied or an invalid client certificate is provided. A more comprehensive example can be found [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/api-management/validate-from-agw.operation.cshtml).
+This example returns the same response whether no certificate is supplied or an invalid client certificate is provided. A more comprehensive example can be found [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/api-management/validate-from-agw.operation.cshtml).
 
 
-### Plug the security hole
+### Plugging the security hole
 
-> TODO
+You may have noticed that a security vulnerability has been introduced. The `/validate-from-agw` operation relies on the presence of the `X-ARR-ClientCert` header to verify if a valid client certificate is provided. Since its a string in a header, an attacker could call the TLS listener and provide a valid value for the `X-ARR-ClientCert` header. See the example below.
 
+```
+### Fake a client certificate
+
+GET https://apim-sample.dev/client-cert/validate-from-agw
+X-ARR-ClientCert: -----BEGIN%20CERTIFICATE-----%0AMIIDRzCCAi%2BgAwIBAgIQGbcu6oSk1L1IwgiS5l0LkjANBgkqhkiG9w0BAQsFADAq%0AMSgwJgYDVQQDDB9BUElNIFNhbXBsZSBERVYgSW50ZXJtZWRpYXRlIENBMCAXDTI0%0AMDIwMjA4Mzk0M1oYDzIwNzQwMjAyMDg0OTQzWjAUMRIwEAYDVQQDDAlDbGllbnQg%0AMDEwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDD7RihwDgTSI6NMvpG%0AUexk0YVzP43JXk5aJV4MlhijvqpypH%2FmBOci1Z%2F47TbrMk97UA3dDmkGuHxLMq8b%0AYjlmV2ZydXYq5PEZt07S%2FAz81qv0rxdvpJ%2Fo9Smwd82D63bVU4bxZN0oPLztcYjr%0AgoO6Xi1CtOO48cihC9VCcYJ0qmlu8IkXuGjbxuan34M9xgxUPR6%2FLggo%2BLO5rJiw%0AxZPtCv7Jnp0pp4ecDqo8ogUPj5u3Ju%2F54YO345rlGa8dcVCFZc%2Brxh19k2gUO2I2%0AgJxvxoGeQIoKnHwOR7%2BWOtcu2efzfM5LSgDKEj%2Fn7KUFAfC4qF6f78fvKCRCCfFD%0AUOm9AgMBAAGjfTB7MA4GA1UdDwEB%2FwQEAwIFoDAUBgNVHREEDTALgglDbGllbnQg%0AMDEwEwYDVR0lBAwwCgYIKwYBBQUHAwIwHwYDVR0jBBgwFoAUZL3oNXFrhkEdOq89%0AyRqgopB9oRswHQYDVR0OBBYEFMW457L8H%2FVvN12Gvsf58NqYcRYBMA0GCSqGSIb3%0ADQEBCwUAA4IBAQBcbUKU6mr7f0Eh%2BfXXB2EC%2B8%2BgzEvqy1%2F6rQJ1%2FiUWJ4Li9fzp%0AJzuEXi3H1MTIu3%2B9IAGHOvfEg%2BVvV5fezL6pOSk%2F0LTDv8XN0iJZH6Shqbqq7Xrn%0A8vT3gTPPN1dnfOxtgTnZyvABtO3Hkh8Zsg9Gdo4LL8M8IIrIayX7pGubeYcylV9W%0ASncfONgRKC2wWgoWjJ1dXwlpsb6ZY%2BlMqCfMA0xTdqPM3p3YxggqIYbvRnwA7qId%0A8kEuhbNW7IPNZwEG%2BB9MuweeuWYiEn7r7strODwlX%2FuuYXcc0N889fnlbw9%2FC2Sm%0AmxGt6Nou8lhYYpNSxKvU1oXpa%2Fp8wnh3CXNA%0A-----END%20CERTIFICATE-----%0A
+```
+
+If you send this request, you'll receive a `200 OK` response, despite no mTLS connection being established with the application gateway.
+
+There are several ways to address this issue. If mTLS is required for all communication, configuring only an mTLS listener on the application gateway is one option. Another approach is removing the `X-ARR-ClientCert` header from requests sent to the TLS listener, ensuring that only the mTLS listener will send the header to API Management. This is the solution we'll implement.
+
+> For both approaches, it's crucial to ensure that API Management is exclusively accessible through the application gateway, with direct access being restricted. If there's a need to support direct access as well, consider adding multiple hostnames to API Management. One hostname should be designated for exclusive access from the application gateway, while another can be used for other types of communication. Then, determine the authentication mechanism based on the hostname on which the request was received. Implementing this solution is beyond the scope of this post.
+
+To remove the `X-ARR-ClientCert` header from requests sent to the TLS listener, we'll introduce another rewrite rule. See the figure below.
+
+![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-3.png)
+![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-3.png)
+
+Add the following Bicep to the `rewriteRuleSets` array of the application gateway:
+
+```bicep
+{
+  name: 'default-rewrite-rules'
+  properties: {
+    rewriteRules: [
+      {
+        ruleSequence: 100
+        conditions: []
+        name: 'Remove X-ARR-ClientCert HTTP header'
+        actionSet: {
+          requestHeaderConfigurations: [
+            // We need to remove the client certificate header from the default listener,
+            // to prevent clients from tricking APIM into thinking a successful mTLS connection was established.
+            {
+              headerName: 'X-ARR-ClientCert'
+              headerValue: ''
+            }
+          ]
+          responseHeaderConfigurations: []
+        }
+      }
+    ]
+  }
+}
+```
+
+To link the rewrite rule to the routing rule, locate the `apim-https-routing-rule` routing rule and add a reference to the new `default-rewrite-rules` rewrite rule set. Add the following Bicep to its `properties` section:
+
+```bicep
+rewriteRuleSet: {
+  id: resourceId('Microsoft.Network/applicationGateways/rewriteRuleSets', applicationGatewayName, 'default-rewrite-rules')
+}
+```
+
+After deployment, the following request should fail with a `401 Unauthorized` response.
+
+```
+### Fake a client certificate
+
+GET https://apim-sample.dev/client-cert/validate-from-agw
+X-ARR-ClientCert: -----BEGIN%20CERTIFICATE-----%0AMIIDRzCCAi%2BgAwIBAgIQGbcu6oSk1L1IwgiS5l0LkjANBgkqhkiG9w0BAQsFADAq%0AMSgwJgYDVQQDDB9BUElNIFNhbXBsZSBERVYgSW50ZXJtZWRpYXRlIENBMCAXDTI0%0AMDIwMjA4Mzk0M1oYDzIwNzQwMjAyMDg0OTQzWjAUMRIwEAYDVQQDDAlDbGllbnQg%0AMDEwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDD7RihwDgTSI6NMvpG%0AUexk0YVzP43JXk5aJV4MlhijvqpypH%2FmBOci1Z%2F47TbrMk97UA3dDmkGuHxLMq8b%0AYjlmV2ZydXYq5PEZt07S%2FAz81qv0rxdvpJ%2Fo9Smwd82D63bVU4bxZN0oPLztcYjr%0AgoO6Xi1CtOO48cihC9VCcYJ0qmlu8IkXuGjbxuan34M9xgxUPR6%2FLggo%2BLO5rJiw%0AxZPtCv7Jnp0pp4ecDqo8ogUPj5u3Ju%2F54YO345rlGa8dcVCFZc%2Brxh19k2gUO2I2%0AgJxvxoGeQIoKnHwOR7%2BWOtcu2efzfM5LSgDKEj%2Fn7KUFAfC4qF6f78fvKCRCCfFD%0AUOm9AgMBAAGjfTB7MA4GA1UdDwEB%2FwQEAwIFoDAUBgNVHREEDTALgglDbGllbnQg%0AMDEwEwYDVR0lBAwwCgYIKwYBBQUHAwIwHwYDVR0jBBgwFoAUZL3oNXFrhkEdOq89%0AyRqgopB9oRswHQYDVR0OBBYEFMW457L8H%2FVvN12Gvsf58NqYcRYBMA0GCSqGSIb3%0ADQEBCwUAA4IBAQBcbUKU6mr7f0Eh%2BfXXB2EC%2B8%2BgzEvqy1%2F6rQJ1%2FiUWJ4Li9fzp%0AJzuEXi3H1MTIu3%2B9IAGHOvfEg%2BVvV5fezL6pOSk%2F0LTDv8XN0iJZH6Shqbqq7Xrn%0A8vT3gTPPN1dnfOxtgTnZyvABtO3Hkh8Zsg9Gdo4LL8M8IIrIayX7pGubeYcylV9W%0ASncfONgRKC2wWgoWjJ1dXwlpsb6ZY%2BlMqCfMA0xTdqPM3p3YxggqIYbvRnwA7qId%0A8kEuhbNW7IPNZwEG%2BB9MuweeuWYiEn7r7strODwlX%2FuuYXcc0N889fnlbw9%2FC2Sm%0AmxGt6Nou8lhYYpNSxKvU1oXpa%2Fp8wnh3CXNA%0A-----END%20CERTIFICATE-----%0A
+```
 
 ### Other
 
@@ -937,7 +999,7 @@ To stop the application gateway, use the following Azure CLI command:
 az network application-gateway stop --name 'agw-validate-client-certificate' --resource-group '<your-resource-group>'
 ```
 
-And you can start it again with the following Azure CLI command:
+To start the application gateway again, use the following Azure CLI command:
 
 ```powershell
 az network application-gateway start --name 'agw-validate-client-certificate' --resource-group '<your-resource-group>'
