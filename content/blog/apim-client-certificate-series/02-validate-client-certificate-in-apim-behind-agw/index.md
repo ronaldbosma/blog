@@ -33,7 +33,7 @@ The application gateway configuration outlined in this post can also be used in 
 
 - [Prerequisites](#prerequisites)
   - [Deploy API Management in virtual network](#deploy-api-management-in-virtual-network)
-  - [Deploy Application Gateway with TLS listener](#deploy-application-gateway-with-tls-listener)
+  - [Deploy Application Gateway with HTTPS listener](#deploy-application-gateway-with-https-listener)
   - [Test Deployment](#test-deployment)
 - [Add mTLS listener to Application Gateway](#add-mtls-listener-to-application-gateway)
 - [Forward client certificate to API Management](#forward-client-certificate-to-api-management)
@@ -251,7 +251,7 @@ az deployment group create `
     --verbose
 ```
 
-#### Deploy Application Gateway with TLS listener
+#### Deploy Application Gateway with HTTPS listener
 
 Now we can configure the application gateway. We'll start with TLS (a.k.a. SSL) before implementing mTLS.
 
@@ -379,8 +379,7 @@ httpListeners: [
   }
 ]
 ```
-
-As you can see, the frontend IP configuration is linked to the previously added public IP address. We'll be accepting traffic on the standard HTTPS port `443`, so we also configure an SSL certificate. The HTTP listener connects these parts together.
+As you can see, the frontend IP configuration is linked to the previously added public IP address. We'll be accepting traffic on the standard HTTPS port `443`, so we also configure an SSL certificate. The HTTP listener connects these components together. We'll introduce a second listener when adding mTLS support, so we'll refer to this listener as the HTTPS listener for the remainder of this post.
 
 > In a real world scenario, we would add the SSL certificate to Key Vault and link to it from the `sslCertificates` configuration. For demo purposes, we'll upload it directly to the application gateway. In the next post of this series, we'll explore how to upload a PFX certificate to Key Vault and use it.
 
@@ -535,7 +534,7 @@ When using a well-known certificate authority, it's important to note the follow
 > "When issuing client certificates from well established certificate authorities, consider working with the certificate authority to see if an intermediate certificate can be issued for your organization to prevent inadvertent cross-organizational client certificate authentication."
 
 
-To add mTLS support, we can reuse some of the components that we've configured for the TLS listener, such as the SSL certificate and backend configuration. The figure below highlights the new components we'll need to add.
+To add mTLS support, we can reuse some of the components that we've configured for the HTTPS listener, such as the SSL certificate and backend configuration. The figure below highlights the new components we'll need to add.
 
 ![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-1.png)
 ![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-1.png)
@@ -644,7 +643,7 @@ The final step for the frontend configuration is to set up the listener itself. 
 }
 ```
 
-As you can see, we're reusing the frontend IP configuration and SSL certificate. The frontend port and SSL profile differ from the TLS listener.
+As you can see, we're reusing the frontend IP configuration and SSL certificate. The frontend port and SSL profile differ from the HTTPS listener.
 
 #### Routing Rule
 
@@ -911,7 +910,7 @@ GET https://apim-sample.dev:53029/client-cert/validate-from-agw
 
 If you have configured `dev-client-01.pfx` as the client certificate, you should receive a `200 OK` response, because this certificate has been uploaded into the API Management client certificate store. However, when calling `/validate-from-agw` with the other development client certificate, `dev-client-02.pfx`, a `401` response with reason `Invalid client certificate` should be returned.
 
-The TLS listener on port `443` does not forward a client certificate. So, sending a request to `/validate-from-agw` on that listener will also result in `401` response. You can use the following request to test this:
+The HTTPS listener on port `443` does not forward a client certificate. So, sending a request to `/validate-from-agw` on that listener will also result in `401` response. You can use the following request to test this:
 
 ```
 ### Should fail because no client certificate is passed
@@ -924,7 +923,7 @@ This example returns the same response whether no certificate is supplied or an 
 
 ### Plugging the security hole
 
-You may have noticed that a security vulnerability has been introduced. The `/validate-from-agw` operation relies on the presence of the `X-ARR-ClientCert` header to verify if a valid client certificate is provided. Since its a string in a header, an attacker could call the TLS listener and provide a valid value for the `X-ARR-ClientCert` header. See the example below.
+You may have noticed that a security vulnerability has been introduced. The `/validate-from-agw` operation relies on the presence of the `X-ARR-ClientCert` header to verify if a valid client certificate is provided. Since its a string in a header, an attacker could call the HTTPS listener and provide a valid value for the `X-ARR-ClientCert` header. See the example request below.
 
 ```
 ### Fake a client certificate
@@ -933,13 +932,13 @@ GET https://apim-sample.dev/client-cert/validate-from-agw
 X-ARR-ClientCert: -----BEGIN%20CERTIFICATE-----%0AMIIDRzCCAi%2BgAwIBAgIQGbcu6oSk1L1IwgiS5l0LkjANBgkqhkiG9w0BAQsFADAq%0AMSgwJgYDVQQDDB9BUElNIFNhbXBsZSBERVYgSW50ZXJtZWRpYXRlIENBMCAXDTI0%0AMDIwMjA4Mzk0M1oYDzIwNzQwMjAyMDg0OTQzWjAUMRIwEAYDVQQDDAlDbGllbnQg%0AMDEwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDD7RihwDgTSI6NMvpG%0AUexk0YVzP43JXk5aJV4MlhijvqpypH%2FmBOci1Z%2F47TbrMk97UA3dDmkGuHxLMq8b%0AYjlmV2ZydXYq5PEZt07S%2FAz81qv0rxdvpJ%2Fo9Smwd82D63bVU4bxZN0oPLztcYjr%0AgoO6Xi1CtOO48cihC9VCcYJ0qmlu8IkXuGjbxuan34M9xgxUPR6%2FLggo%2BLO5rJiw%0AxZPtCv7Jnp0pp4ecDqo8ogUPj5u3Ju%2F54YO345rlGa8dcVCFZc%2Brxh19k2gUO2I2%0AgJxvxoGeQIoKnHwOR7%2BWOtcu2efzfM5LSgDKEj%2Fn7KUFAfC4qF6f78fvKCRCCfFD%0AUOm9AgMBAAGjfTB7MA4GA1UdDwEB%2FwQEAwIFoDAUBgNVHREEDTALgglDbGllbnQg%0AMDEwEwYDVR0lBAwwCgYIKwYBBQUHAwIwHwYDVR0jBBgwFoAUZL3oNXFrhkEdOq89%0AyRqgopB9oRswHQYDVR0OBBYEFMW457L8H%2FVvN12Gvsf58NqYcRYBMA0GCSqGSIb3%0ADQEBCwUAA4IBAQBcbUKU6mr7f0Eh%2BfXXB2EC%2B8%2BgzEvqy1%2F6rQJ1%2FiUWJ4Li9fzp%0AJzuEXi3H1MTIu3%2B9IAGHOvfEg%2BVvV5fezL6pOSk%2F0LTDv8XN0iJZH6Shqbqq7Xrn%0A8vT3gTPPN1dnfOxtgTnZyvABtO3Hkh8Zsg9Gdo4LL8M8IIrIayX7pGubeYcylV9W%0ASncfONgRKC2wWgoWjJ1dXwlpsb6ZY%2BlMqCfMA0xTdqPM3p3YxggqIYbvRnwA7qId%0A8kEuhbNW7IPNZwEG%2BB9MuweeuWYiEn7r7strODwlX%2FuuYXcc0N889fnlbw9%2FC2Sm%0AmxGt6Nou8lhYYpNSxKvU1oXpa%2Fp8wnh3CXNA%0A-----END%20CERTIFICATE-----%0A
 ```
 
-If you send this request, you'll receive a `200 OK` response, despite no mTLS connection being established with the application gateway.
+If you send this request, you'll receive a `200 OK` response, despite no mTLS connection being established with the application gateway. (Replace the header value with your own if you're using other client certificates.)
 
-There are several ways to address this issue. If mTLS is required for all communication, configuring only an mTLS listener on the application gateway is one option. Another approach is removing the `X-ARR-ClientCert` header from requests sent to the TLS listener, ensuring that only the mTLS listener will send the header to API Management. This is the solution we'll implement.
+There are several ways to address this issue. If mTLS is required for all communication, configuring only an mTLS listener on the application gateway is one option. Another approach is removing the `X-ARR-ClientCert` header from requests sent to the HTTPS listener, ensuring that only the mTLS listener will send the header to API Management. This is the solution we'll implement.
 
 > For both approaches, it's crucial to ensure that API Management is exclusively accessible through the application gateway, with direct access being restricted. If there's a need to support direct access as well, consider adding multiple hostnames to API Management. One hostname should be designated for exclusive access from the application gateway, while another can be used for other types of communication. Then, determine the authentication mechanism based on the hostname on which the request was received. Implementing this solution is beyond the scope of this post.
 
-To remove the `X-ARR-ClientCert` header from requests sent to the TLS listener, we'll introduce another rewrite rule. See the figure below.
+To remove the `X-ARR-ClientCert` header from requests sent to the HTTPS listener, we'll introduce another rewrite rule. See the figure below.
 
 ![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-3.png)
 ![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-3.png)
@@ -980,7 +979,7 @@ rewriteRuleSet: {
 }
 ```
 
-After deployment, the following request should fail with a `401 Unauthorized` response.
+Deploy the changes. After deployment, the following request should fail with a `401 Unauthorized` response.
 
 ```
 ### Fake a client certificate
@@ -989,7 +988,12 @@ GET https://apim-sample.dev/client-cert/validate-from-agw
 X-ARR-ClientCert: -----BEGIN%20CERTIFICATE-----%0AMIIDRzCCAi%2BgAwIBAgIQGbcu6oSk1L1IwgiS5l0LkjANBgkqhkiG9w0BAQsFADAq%0AMSgwJgYDVQQDDB9BUElNIFNhbXBsZSBERVYgSW50ZXJtZWRpYXRlIENBMCAXDTI0%0AMDIwMjA4Mzk0M1oYDzIwNzQwMjAyMDg0OTQzWjAUMRIwEAYDVQQDDAlDbGllbnQg%0AMDEwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDD7RihwDgTSI6NMvpG%0AUexk0YVzP43JXk5aJV4MlhijvqpypH%2FmBOci1Z%2F47TbrMk97UA3dDmkGuHxLMq8b%0AYjlmV2ZydXYq5PEZt07S%2FAz81qv0rxdvpJ%2Fo9Smwd82D63bVU4bxZN0oPLztcYjr%0AgoO6Xi1CtOO48cihC9VCcYJ0qmlu8IkXuGjbxuan34M9xgxUPR6%2FLggo%2BLO5rJiw%0AxZPtCv7Jnp0pp4ecDqo8ogUPj5u3Ju%2F54YO345rlGa8dcVCFZc%2Brxh19k2gUO2I2%0AgJxvxoGeQIoKnHwOR7%2BWOtcu2efzfM5LSgDKEj%2Fn7KUFAfC4qF6f78fvKCRCCfFD%0AUOm9AgMBAAGjfTB7MA4GA1UdDwEB%2FwQEAwIFoDAUBgNVHREEDTALgglDbGllbnQg%0AMDEwEwYDVR0lBAwwCgYIKwYBBQUHAwIwHwYDVR0jBBgwFoAUZL3oNXFrhkEdOq89%0AyRqgopB9oRswHQYDVR0OBBYEFMW457L8H%2FVvN12Gvsf58NqYcRYBMA0GCSqGSIb3%0ADQEBCwUAA4IBAQBcbUKU6mr7f0Eh%2BfXXB2EC%2B8%2BgzEvqy1%2F6rQJ1%2FiUWJ4Li9fzp%0AJzuEXi3H1MTIu3%2B9IAGHOvfEg%2BVvV5fezL6pOSk%2F0LTDv8XN0iJZH6Shqbqq7Xrn%0A8vT3gTPPN1dnfOxtgTnZyvABtO3Hkh8Zsg9Gdo4LL8M8IIrIayX7pGubeYcylV9W%0ASncfONgRKC2wWgoWjJ1dXwlpsb6ZY%2BlMqCfMA0xTdqPM3p3YxggqIYbvRnwA7qId%0A8kEuhbNW7IPNZwEG%2BB9MuweeuWYiEn7r7strODwlX%2FuuYXcc0N889fnlbw9%2FC2Sm%0AmxGt6Nou8lhYYpNSxKvU1oXpa%2Fp8wnh3CXNA%0A-----END%20CERTIFICATE-----%0A
 ```
 
-### Other
+### Conclusion
+
+
+
+
+**Final remark**:
 
 If you deploy this solution to an Azure subscription with limited credits, take note that both the virtual network and application gateway are not cheap. It's best to remove everything after you're done. If you want to keep the solution around a little longer, you can stop the application gateway. This will stop the billing.
 
