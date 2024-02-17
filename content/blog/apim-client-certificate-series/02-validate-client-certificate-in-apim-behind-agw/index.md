@@ -1003,11 +1003,11 @@ With this, the security vulnerability has been addressed.
 
 In this post, we've explored the impact of validating a client certificate in API Management when it's behind an application gateway. There's quite a bit more involved than simply establishing an mTLS connection with API Management directly. Personally, I found the application gateway configuration to be rather complex at first, so I hope this post will give you a solid start.
 
-The end result of this blog post can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw).
+The final result of this blog post can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). I've divided the `main.bicep` file into several modules to improve readability.
 
-**Final remark**:
+**Final remark**
 
-If you deploy this solution to an Azure subscription with limited credits, take note that both the virtual network and application gateway are not cheap. It's best to remove everything after you're done. If you want to keep the solution around a little longer, you can stop the application gateway. This will stop the billing.
+If you deploy this solution to an Azure subscription with limited credits, take note that both the virtual network and application gateway are not cheap. It's best to remove everything after you're done. If you want to keep the solution around a little longer, you can stop the application gateway. This will stop the billing for that resource.
 
 To stop the application gateway, use the following Azure CLI command:
 
