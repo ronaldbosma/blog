@@ -770,7 +770,7 @@ rewriteRuleSets: [
 ]
 ```
 
-To link the rewrite rule to the routing rule, locate the `apim-mtls-routing-rule` routing rule and add a reference to the new `mtls-rewrite-rules` rewrite rule set using the following Bicep:
+To link the rewrite rule to the routing rule, locate the `apim-mtls-routing-rule` routing rule and add a reference to the new `mtls-rewrite-rules` rewrite rule set. Add the following Bicep to its `properties` section:
 
 ```bicep
 rewriteRuleSet: {
@@ -838,14 +838,88 @@ The result should be a `200 OK`, with the response body resembling the following
 ```
 HTTP/1.1 200 OK
 
------BEGIN%20CERTIFICATE-----%0AMIIDRTCCAi..... TRUNCATED .....6Zdlr9V53Q%3D%3D%0A-----END%20CERTIFICATE-----%0A
+-----BEGIN%20CERTIFICATE-----%0AMIIDRTCCAi.....TRUNCATED.....6Zdlr9V53Q%3D%3D%0A-----END%20CERTIFICATE-----%0A
 ```
 
 The response body contains the value of the `X-ARR-ClientCert` header. The value is the `Base-64 encoded X.509 (.CER)` representation of the client certificate. This is the public part of the client certificate without the private key. Special characters, like the white spaces, are URL encoded.
 
 ### Validate forwarded client certificate
 
-> TODO
+The application gateway already performs a first check to verify that the client certificate is issued by the correct issuer. Further processing of the client certificate can be done within API Management using a policy expression.
+
+To verify the client certificate and ensure it matches one of the uploaded client certificates, open to the file `validate-from-agw.operation.cshtml` and update the `inbound` section with the following XML code:
+
+```csharp
+<inbound>
+  <base />
+  <choose>
+    <when condition="@{
+      var clientCertHeader = context.Request.Headers.GetValueOrDefault("X-ARR-ClientCert");
+
+      // Return false if the certificate was not forwarded in the header
+      if (string.IsNullOrWhiteSpace(clientCertHeader))
+      {
+          return false;
+      }
+
+      // Decode the header value (e.g. replace %20 with a whitespace) and remove the begin and end certificate markers.
+      // The result is the base64 encoded certificate in X.509 (.cer) format without the private key.
+      var pem = System.Net.WebUtility.UrlDecode(clientCertHeader)
+                                     .Replace("-----BEGIN CERTIFICATE-----", "")
+                                     .Replace("-----END CERTIFICATE-----", "");
+
+      // Convert the base64 encoded certificate to a byte[] and create an X509Certificate2 instance
+      var certificate = new X509Certificate2(Convert.FromBase64String(pem));
+
+      // Check that the certificate is valid and matches one of the uploaded client certificates
+      return certificate.VerifyNoRevocation() &&
+             context.Deployment.Certificates.Any(c => c.Value.Thumbprint == certificate.Thumbprint);
+    }">
+      <return-response>
+        <set-status code="200" />
+        <set-body>@(context.Request.Headers.GetValueOrDefault("X-ARR-ClientCert"))</set-body>
+      </return-response>
+    </when>
+    <otherwise>
+      <return-response>
+        <set-status code="401" reason="Invalid client certificate" />
+      </return-response>
+    </otherwise>
+  </choose>
+</inbound>
+```
+
+The policy expression in the `when` condition is where the validation takes place. When the condition evaluates to true, a `200 OK` is returned, otherwise a `401 Unauthorized` is returned. The policy expression executes the following steps:
+
+1. Store the value of the `X-ARR-ClientCert` header in a variable.
+1. Return `false` when the header is empty.
+1. Decode the string to replace characters like `%20` with white space.
+1. Remove the `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----` markers.
+1. Convert the resulting string into a `byte[]` array and instantiate the [X509Certificate2](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509certificate2?view=net-8.0) class. 
+1. Verify the certificate and verify if it matches any of the deployed client certificates.  
+
+Since the `X509Certificate2` class is the same type as `context.Request.Certificate`, we can perform the same checks as shown in [the previous post](/blog/2024/02/02/validate-client-certificates-in-api-management/#validate-against-uploaded-client-certificates).
+
+
+After deploying these changes, you can send a request to `/validate-from-agw` again to test the result.
+
+```
+### mTLS (should return the X-ARR-ClientCert header value and certificate details)
+
+GET https://apim-sample.dev:53029/client-cert/validate-from-agw
+```
+
+If you have configured `dev-client-01.pfx` as the client certificate, you should receive a `200 OK` response, because this certificate has been uploaded into the API Management client certificate store. However, when calling `/validate-from-agw` with the other development client certificate, `dev-client-02.pfx`, a `401` response with reason `Invalid client certificate` should be returned.
+
+The TLS listener on port `443` does not forward a client certificate. So, sending a request to `/validate-from-agw` on that listener will also result in `401` response. You can use the following request to test this:
+
+```
+### Should fail because no client certificate is passed
+
+GET https://apim-sample.dev/client-cert/validate-from-agw
+```
+
+As you may have noticed, this example returns the same response whether no certificate is supplied or an invalid client certificate is provided. A more comprehensive example can be found [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/api-management/validate-from-agw.operation.cshtml).
 
 
 ### Plug the security hole
