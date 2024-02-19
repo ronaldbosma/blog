@@ -1,11 +1,10 @@
 ---
 title: "Validate client certificates in API Management when its behind an Application Gateway"
-date: 2024-02-02T12:00:00+01:00
-publishdate: 2024-02-02T12:00:00+01:00
-lastmod: 2024-02-02T12:00:00+01:00
+date: 2024-02-19T17:00:00+01:00
+publishdate: 2024-02-19T17:00:00+01:00
+lastmod: 2024-02-19T17:00:00+01:00
 tags: [ "Azure", "API Management", "Application Gateway", "Bicep", "Client Certificates", "Infra as Code", "mTLS", "Security" ]
 summary: "In this second post we expand on the solution of the previous post. We’ll deploy API Management inside a virtual network, positioning it behind an application gateway. We'll configure the application gateway with an mTLS listener to validate client certificates and forward them to API Management for further processing. This approach can also be used with other types of backends like an ASP.NET Web API."
-draft: true
 ---
 
 This post is the second in a series on how to work with client certificates in Azure API Management. In the series, I'll cover both the validation of client certificates in API Management and how to connect to backends with mTLS (mutual TLS) using client certificates.
