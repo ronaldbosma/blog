@@ -14,7 +14,7 @@ While Azure's official documentation provides excellent guidance on setting up c
 Topics covered in this series:
 
 1. Validate client certificates in API Management _**(current)**_
-1. Validate client certificates in API Management when its behind an Application Gateway _(coming soon)_
+1. [Validate client certificates in API Management when its behind an Application Gateway](/blog/2024/02/19/validate-client-certificates-in-api-management-when-its-behind-an-application-gateway/)
 1. Connect to backends using client certificates _(coming soon)_
 
 ### Intro
@@ -458,4 +458,4 @@ Using Bicep in combination with the Azure CLI is a great way to automate the dep
 
 The end result of this blog post can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/01-validate-client-certificate-in-apim).
 
-Don't remove your deployed Azure resources yet! In the next post, we'll cover how to validate a client certificate in API Management when it's positioned behind an Azure Application Gateway. The solution provided in this post is a good starting point for the upcoming post.
+Don't remove your deployed Azure resources yet! In [the next post](/blog/2024/02/19/validate-client-certificates-in-api-management-when-its-behind-an-application-gateway/), we'll cover how to validate a client certificate in API Management when it's positioned behind an Azure Application Gateway. The solution provided in this post is a good starting point for the upcoming post.
