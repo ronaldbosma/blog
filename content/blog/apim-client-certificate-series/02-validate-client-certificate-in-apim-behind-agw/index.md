@@ -23,7 +23,6 @@ In this second post, we expand on the solution introduced in [the previous post]
 
 We'll configure the application gateway with an mTLS listener to validate client certificates and forward them to API Management for further processing. You can find an example of the communication flow in the figure below:
 
-![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-overview.png)
 ![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-overview.png)
 
 Note that the application gateway terminates the TLS session, as described [here](https://learn.microsoft.com/en-us/azure/application-gateway/ssl-overview). This results in the client certificate not being sent to API Management, which means we can't rely on the options provided in the previous post to validate the client certificate. 
@@ -52,7 +51,6 @@ This first section will cover the prerequisites for this post. Use the result of
 
 We're going to deploy API Management inside a virtual network with the `internal` mode enabled, restricting access from external clients. To enable external access, we'll route traffic through an application gateway. We'll configure two external endpoints: one for normal TLS and one for mTLS. You can find a visualization of the setup in the figure below.
 
-![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-network.png)
 ![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-network.png)
 
 #### Deploy API Management in virtual network
@@ -321,7 +319,6 @@ As you can see, the application gateway is deployed in its designated subnet.
 
 This will deploy an application gateway, but it won't do anything yet. We'll need to add several components to allow HTTPS traffic to the application gateway and route it to API Management. See the image below for a visual representation of the components that we'll be adding to the application gateway:
 
-![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-listener.png)
 ![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-listener.png)
 
 The configuration consists of three parts:
@@ -530,7 +527,6 @@ Now that we've checked that everything works, we can add mTLS support. Before pr
 
 We'll use the same [self-signed certificates](/blog/2024/02/02/validate-client-certificates-in-api-management/#self-signed-certificates) used in the previous post. In our example, we only want to allow client certificates issued by `APIM Sample DEV Intermediate CA` to be able to call the application gateway. The figure below highlights which certificates we need to upload for this to work.
 
-![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-agw-certificate-validation.png)
 ![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-agw-certificate-validation.png)
 
 When using a well-known certificate authority, it's important to note the guidance provided on [Overview of mutual authentication with Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/mutual-authentication-overview#certificates-supported-for-mutual-authentication):
@@ -540,7 +536,6 @@ When using a well-known certificate authority, it's important to note the guidan
 
 We can reuse components configured for the HTTPS listener, such as the SSL certificate and backend configuration, to add mTLS support. The figure below highlights the new components we'll need to add.
 
-![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-1.png)
 ![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-1.png)
 
 As you can see, we'll add a second listener that accepts traffic on port `53029`. We'll also need to configure an SSL profile with trusted certificates to validate the client certificate, and add a rule to route traffic to the API Management backend.
@@ -742,7 +737,6 @@ We'll use `X-ARR-ClientCert` as the header name. This is a common name that is a
 
 The figure below shows the rewrite rule to add. As you can see, it will be linked to the routing rule of the mTLS listener.
 
-![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-2.png)
 ![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-2.png)
 
 To configure the rewrite rule, add the following Bicep to the `properties` section of the `applicationGateway` resource:
@@ -949,7 +943,6 @@ As an alternative, consider adding multiple hostnames to API Management. Assign 
 
 To remove the `X-ARR-ClientCert` header from requests sent to the HTTPS listener, we'll introduce another rewrite rule. See the figure below.
 
-![](../../../../static/images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-3.png)
 ![](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-3.png)
 
 Add the following Bicep to the `rewriteRuleSets` array of the application gateway:
