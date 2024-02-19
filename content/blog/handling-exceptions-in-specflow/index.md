@@ -3,7 +3,7 @@ title: "Handling exceptions in SpecFlow"
 date: 2021-05-31T07:30:00+02:00
 publishdate: 2021-05-31T07:30:00+02:00
 lastmod: 2021-05-31T07:30:00+02:00
-tags: [ "Gherkin", "SpecFlow", "Specification by Example", "ATDD", "BDD", "Test Automation", "Cleaner Code" ]
+tags: [ "Gherkin", "SpecFlow", "Specification by Example", "ATDD", "BDD", "Test Automation", "Cleaner Code", "Reqnroll" ]
 summary: "I use Gherkin scenarios to describe the functional specifications of my software and SpecFlow to automate these scenarios as tests. Usually there will be a couple of scenarios describing the happy path of the feature I'm building but also some scenarios concerning failures. In this post I'll show my solution how to handle failures in the form of exceptions with the Driver pattern."
 draft: false
 ---

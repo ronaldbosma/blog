@@ -3,7 +3,7 @@ title: "Where to position SpecFlow in the Test Pyramid?"
 date: 2023-05-11T20:45:00+02:00
 publishdate: 2023-05-11T20:45:00+02:00
 lastmod: 2023-05-11T20:45:00+02:00
-tags: [ "Gherkin", "SpecFlow", "Specification by Example", "ATDD", "BDD", "Test Automation" ]
+tags: [ "Gherkin", "SpecFlow", "Specification by Example", "ATDD", "BDD", "Test Automation", "Reqnroll" ]
 summary: "Automated testing is an essential part of software development, and determining the appropriate scope for your tests is crucial. This is also true when automating Gherkin scenarios with SpecFlow (or Cucumber). In this post I explore the different levels of the test pyramid and describe my preferred level for SpecFlow tests."
 draft: false
 ---
