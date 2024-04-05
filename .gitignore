@@ -45,7 +45,7 @@ bower_components
 
 # Hugo
 .hugo_build.lock
-
+public
 
 # Draw.io temp files
 *.drawio.bkp
