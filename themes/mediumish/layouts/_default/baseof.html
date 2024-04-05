@@ -10,6 +10,7 @@
             {{- block "footer" . }}{{- end }}
         </div>
         {{- partial "_shared/js.html" . -}}
-        {{ template "_internal/google_analytics.html" . }}
+        {{ template "_custom/app-insights.html" . }}
+        {{ template "_custom/remove-cookies.html" . }}
     </body>
 </html>
