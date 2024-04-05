@@ -13,8 +13,8 @@ I've also written a blog post on [building and releasing a Hugo site with Azure 
 Commands to clone this repo and run it with Hugo on local machine:
 
 ```powershell
-# Clone repo and include submodule with theme
-git clone --recurse-submodules https://github.com/ronaldbosma/blog.git
+# Clone repo
+git clone https://github.com/ronaldbosma/blog.git
 
 # Run site
 hugo server -D 
