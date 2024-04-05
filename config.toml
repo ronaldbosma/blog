@@ -15,11 +15,11 @@ pygmentsCodeFences = true
 
 [params.author]
   name = "Ronald Bosma"
-  thumbnail = "/images/author.png"
+  thumbnail = "/images/author.webp"
   description = "Software Architect"
 
 [params.index]
-  picture = "/images/author.png"
+  picture = "/images/author.webp"
   title = "Ronald Bosma"
   subtitle = "Software Engineer & Architect"
   mdtext = '''I'm a software engineer & architect working for Info Support in the Netherlands. I have over 15 years of experience in building distributed systems with Microsoft technology.  
