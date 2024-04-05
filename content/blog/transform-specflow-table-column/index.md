@@ -275,11 +275,14 @@ I've created a generic extension method for this as shown in the following code 
 ```csharp
 public static Table TransformColumn(this Table table, string oldColumn, string newColum, Func<string, string> transform)
 {
-    table.RenameColumn(oldColumn, newColum);
-
-    foreach (var row in table.Rows)
+    if (table.ContainsColumn(oldColumn))
     {
-        row[newColum] = transform(row[newColum]);
+        table.RenameColumn(oldColumn, newColum);
+
+        foreach (var row in table.Rows)
+        {
+            row[newColum] = transform(row[newColum]);
+        }
     }
 
     return table;
