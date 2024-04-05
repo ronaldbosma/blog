@@ -22,7 +22,7 @@ pygmentsCodeFences = true
   picture = "/images/author.png"
   title = "Ronald Bosma"
   subtitle = "Software Engineer & Architect"
-  mdtext = '''I'm a software engineer & architect working for Info Support in the Netherlands. I have over 14 years of experience in building distributed systems with Microsoft technology.  
+  mdtext = '''I'm a software engineer & architect working for Info Support in the Netherlands. I have over 15 years of experience in building distributed systems with Microsoft technology.  
 
 Ever since the beginning of my career I’ve had a deep interest in test automation. I’m a TDD enthusiast and in recent years I’ve really come to appreciate Specification by Example and tools like SpecFlow.  
 
