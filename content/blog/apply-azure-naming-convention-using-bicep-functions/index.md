@@ -50,17 +50,19 @@ And here is how you do the same with a function:
 var vnetName = getResourceName('virtualNetwork', 'sample', 'dev', 'norwayeast', '001')
 ```
 
-That being said. Creating the logic for the naming convention is a bit more difficult in a function then in a module. In a module, you can create a 'procedural' script that applies the naming convention step-by-step, using variables for intermediate results. In a function, you can't use variables, so you have to call other functions to create the logic. This is a bit more cumbersome, but it works.
+That being said. Creating the logic to apply the naming convention is a bit more difficult in a function then a module. In a module, you can create a 'procedural' script that applies the naming convention step-by-step, using variables for intermediate results. In a function, you can't use variables, so you have to call other functions to create the logic. This is a bit more cumbersome.
 
 ### User-defined Functions
 
-A lot of the logic consists of keeping the resource names short. This is important due to limitations in the length of resource names. A Key Vault or Storage Account name for example can only be 24 characters long. A Windows virtual machine is even shorter with a maximum of 15 characters.
+In this section we'll go through the different functions that are necessary to apply the naming convention. As you'll see, a lot of the logic consists of keeping the resource names short. This is important due to limitations in the length of resource names. A Key Vault or Storage Account name for example can only be 24 characters long. A Windows virtual machine is even shorter with a maximum of 15 characters.
+
+The end result with all functions can be found [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/naming-conventions.bicep).
 
 #### Resource Type Prefix
 
-We'll start with the resource type prefix. I've used [Abbreviation recommendations for Azure resources](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-abbreviations) as input to create a mapping of resource types to prefixes that I commonly use. It's not a complete list, but you can easily extend it with your own resource types and prefixes.
+We'll start with the resource type prefix. I've used [Abbreviation recommendations for Azure resources](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-abbreviations) as input to create a mapping of resource types to prefixes for resources that I commonly use. It's not a complete list, but you can easily extend it with your own resource types and prefixes.
 
-See the snippet below for the function to get the prefix.
+See the snippet below for the functions to get the prefix.
 
 ```bicep
 func getPrefix(resourceType string) string => getPrefixMap()[resourceType]
@@ -76,11 +78,11 @@ func getPrefixMap() object => {
 }
 ```
 
-As mentioned before, we can't use a variable to store the mapping, so I'm using the function `getPrefixMap` to return the mapping. Which in turn is used by the `getPrefix` function to return the prefix of the specified resource type. The call `getPrefix('virtualNetwork')` will for example return `vnet`.
+As mentioned before, we can't use a variable to store the mapping,. So, I'm using the function `getPrefixMap` to return the map. Which in turn is used by `getPrefix` to return the prefix of the specified resource type. The call `getPrefix('virtualNetwork')` will for example return `vnet`.
 
 #### Environment
 
-Similar to the resource type prefix, I've created a mapping of environment names to abbreviations. This mapping is used by the `abbreviateEnvironment` function to return the abbreviation of the specified environment. See the snippet below.
+Similar to the resource type prefix, I've created a map of environment names to abbreviations. This map is used by the `abbreviateEnvironment` function to return the abbreviation of the specified environment. See the snippet below.
 
 ```bicep
 func abbreviateEnvironment(environment string) string => getEnvironments()[toLower(environment)]
@@ -100,9 +102,7 @@ func getEnvironments() object => {
 
 #### Azure Region
 
-Just like the resource type prefix and environment, I'm using a map to abbreviate the Azure region. There doesn't seem to be an official list of abbreviations by Microsoft, so I'm using [Azure Region Abbreviations](https://www.jlaundry.nz/2022/azure_region_abbreviations/) as input. It provides multiple conventions, so you can choose the one that fits your needs best. I'm using the `Short Name (CAF)` convention because it seems to be the most complete.
-
-Here's a snippet of the functions:
+And just like the resource type prefix and environment, I'm using another map to abbreviate the Azure region. Here's a snippet of the functions:
 
 ```bicep
 func abbreviateRegion(region string) string => getRegionMap()[region]
@@ -115,6 +115,7 @@ func getRegionMap() object => {
   ...
 }
 ```
+There doesn't seem to be an official list of abbreviations by Microsoft, so I'm using [Azure Region Abbreviations](https://www.jlaundry.nz/2022/azure_region_abbreviations/) as input. It provides multiple conventions, so you can choose the one that fits your needs best. I'm using the `Short Name (CAF)` convention because it seems to be the most complete.
 
 #### Sanitize
 
@@ -125,7 +126,7 @@ func getResourceNameByConvention(resourceType string, workload string, environme
   '${getPrefix(resourceType)}-${workload}-${abbreviateEnvironment(environment)}-${abbreviateRegion(region)}-${instance}'
 ```
 
-However, we're not in full control of the input values. We're putting the workload and instance directly in the name without any processing. We should sanitize these values to make sure they don't contain any characters that are not allowed in a resource name.
+However, we're not in full control of the input values. We're putting the `workload` and `instance` directly in the name without any processing. We should sanitize these values to make sure they don't contain any characters that are not allowed in a resource name.
 
 Here's a sample function that sanitizes the input values by removing colons, commas, dots, semicolons, underscores and white spaces. It also converts the result to lowercase.
 
@@ -140,11 +141,18 @@ func removeUnderscores(value string) string => replace(value, '_', '')
 func removeWhiteSpaces(value string) string => replace(value, ' ', '')
 ```
 
+The `sanitizeResourceName` function can be used by `getResourceNameByConvention` to sanitize the input values. Here's the updated function:
+
+```bicep
+func getResourceNameByConvention(resourceType string, workload string, environment string, region string, instance string) string => 
+  sanitizeResourceName('${getPrefix(resourceType)}-${workload}-${abbreviateEnvironment(environment)}-${abbreviateRegion(region)}-${instance}')
+```
+
 #### Short Names
 
-For most resources this will be enough. However, a couple of resources have a small maximum length for the name and some don't allow hyphens. For example, a Key Vault and Storage Account have a maximum length 24 characters. And a Windows virtual machine's maximum length is even shorter with only 15 characters. To make sure the name doesn't exceed the maximum length, we can shorten the name for these specific resources.
+For most resources this will be enough. However, a couple of resources have a small maximum length for the name and some don't allow hyphens. For example, a Key Vault and Storage Account have a maximum length 24 characters. And a Windows virtual machine's maximum length is even shorter with only 15 characters.
 
-First we'll need a function to check if a resource type should be shortened. We'll use an array of resource types that should be shortened and check if the specified resource type is in this list. Here's the function:
+To make sure the name doesn't exceed the maximum length, we can shorten the name for these specific resources. First we'll need a function to check if a resource type should be shortened. We'll use an array of resource types that should be shortened and check if the specified resource type is in this list. Here's the function:
 
 ```bicep
 func shouldBeShortened(resourceType string) bool => contains(getResourcesTypesToShorten(), resourceType)
@@ -163,9 +171,11 @@ func shortenString(value string) string => removeHyphens(sanitizeResourceName(va
 func removeHyphens(value string) string => replace(value, '-', '')
 ```
 
-Taking into account the length of the prefix, environment and region, this is enough for the Key Vault and Storage Account if you keep the combination of workload and instance to about 15 characters. For the Virtual Machine, we need to make the name even shorter but it should also be unique. We can use the [uniqueString](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-functions-string#uniquestring) function to generate a unique string based on the workload, environment and region. The result won't be globally unique, but it's close enough for our purpose. The returned value is 13 characters long. For example, `uniqueString('sample', 'dev', 'norwayeast')` will result in the `zmamywx7mjdhw`. 
+Taking into account the length of the prefix, environment and region, this is enough for the Key Vault and Storage Account if you keep the combination of workload and instance to about 15 characters. 
 
-I want to include the instance in the name, so we need to make the generated unique string a litter shorter depending on the length of the isntance. Using `substring` we kan remove the last characters of the unique string, based on the length of the instance. Here's the function to create the virtual machine name:
+For a Virtual Machine, we need to make the name even shorter. We can use the [uniqueString](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-functions-string#uniquestring) function to generate a unique string based on the workload, environment and region. The result won't be globally unique, but it's close enough for our purpose. The returned value is 13 characters long. For example, `uniqueString('sample', 'dev', 'norwayeast')` will result in the `zmamywx7mjdhw`. 
+
+I want to include the instance in the resource name, so we need to make the generated unique string a litter shorter depending on the length of the instance. Using `substring`, we can remove the last characters of the unique string based on the length of the instance. Here's the full function to create the virtual machine name:
 
 ```bicep
 func getVirtualMachineName(workload string, environment string, region string, instance string) string =>
@@ -195,22 +205,20 @@ func getResourceName(resourceType string, workload string, environment string, r
     : getResourceNameByConvention(resourceType, workload, environment, region, instance)
 ```
 
-Note the `export` decorator. This is required to make the function available to other Bicep files.
-
-The final result can be found in [naming-conventions.bicep](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/naming-conventions.bicep).
+Note the `export` decorator. This is required to make the function available to other Bicep files. The final result can be found in [naming-conventions.bicep](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/naming-conventions.bicep).
 
 
 ### Using the Function
 
-To use the function in different Bicep files, you can put all the functions in a reusable Bicep file. You can then import this file in your Bicep files. Here's an example of how to import the file:
+To use the function in different Bicep files, I've put the functions in a reusable Bicep file. We can then import this file in other Bicep files. Here's an example of how to import the file:
 
 ```bicep
 import { getResourceName } from './naming-conventions.bicep'
 ```
 
-Note that the import feature is still in preview. Although [Imports in Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-import) states that you need to enable the feature in your Bicep config file, I didn't have to do this. I'm using Bicep version `0.26.170`.
+Note that at the moment of writing this post the import feature is still in preview. Although [Imports in Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-import) states that you need to enable the feature in your Bicep config file, I didn't have to.
 
-After importing the file, you can use the `getResourceName` function in your Bicep files. Here are some examples:
+After importing the `getResourceName` function, you can use it in your Bicep files. Here are some examples:
 
 ```bicep
 param location string = resourceGroup().location
@@ -235,9 +243,9 @@ output outputExample string = getResourceName('vnet', workload, environment, loc
 
 ### Testing the Function
 
-There is quite a bit of logic necessary to get a resource name. To make sure everything works as expected, you can use the Bicep Testing Framework. The blog post [Exploring the awesome Bicep Test Framework](https://rios.engineer/exploring-the-bicep-test-framework-%F0%9F%A7%AA/) explains how to use the framework. I'll cover the basics here.
+There is quite a bit of logic necessary to get a resource name. To make sure everything works as expected, I've written some tests with the Bicep Testing Framework. The blog post [Exploring the awesome Bicep Test Framework](https://rios.engineer/exploring-the-bicep-test-framework-%F0%9F%A7%AA/) explains how to use the framework, but I'll cover the basics here.
 
-This testing framework is still experimental so you'll need to enable it in your Bicep config file. You need to create a [bicepconfig.json](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/bicepconfig.json) and add the following configuration:
+Currently, the testing framework is still experimental so you'll need to enable it in your Bicep config file. You need to create a [bicepconfig.json](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/bicepconfig.json) and add the following configuration:
 
 ```json
 {
@@ -248,7 +256,7 @@ This testing framework is still experimental so you'll need to enable it in your
 }
 ```
 
-Our `getResourceName` function can't be directly called from a Bicep test. We'll need to create a Bicep module that calls the function and asserts the result. Create a file called [test-get-resource-name.bicep](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/test-get-resource-name.bicep) and add the following code:
+Our `getResourceName` function can't be directly called from a Bicep test. We'll need to create a Bicep module that calls the function and asserts the result. Create a file called [test-get-resource-name.bicep](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/test-get-resource-name.bicep) and add the following Bicep:
 
 ```bicep
 // Arrange
@@ -277,7 +285,7 @@ As you can see, the module:
 - calls the `getResourceName` function
 - asserts that the actual result is equal to the expected result
 
-Now, create a file called [tests.bicep](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/tests.bicep) that will contain the tests. Here's an example of a test that checks if the name of a virtual network is crate correctly:
+Now, create a file called [tests.bicep](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/tests.bicep) that will contain the tests. Here's an example of a test that checks if the name of a virtual network is created correctly:
 
 ```bicep
 test testPrefixVirtualNetwork 'test-get-resource-name.bicep' = {
