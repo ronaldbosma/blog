@@ -10,6 +10,20 @@ draft: false
 
 When deploying Azure resources, it's a good practice to apply a naming convention to your resources. This will help you to identify the purpose of the resource and the environment it belongs to. In this blog post, I will show you how to apply a naming convention using Bicep user-defined functions. This post also includes a short introduction to the (experimental) Bicep Testing Framework.
 
+### Table of Contents
+
+- [Intro](#intro)
+- [User-defined Functions](#user-defined-functions)
+  - [Get Resource Type Prefix](#get-resource-type-prefix)
+  - [Abbreviate Environment](#abbreviate-environment)
+  - [Abbreviate Azure Region](#abbreviate-azure-region)
+  - [Sanitize Resource Name](#sanitize-resource-name)
+  - [Shorten Resource Name](#shorten-resource-name)
+  - [Get Resource Name](#get-resource-name)
+- [Using the Function](#using-the-function)
+- [Testing the Function](#testing-the-function)
+- [Conclusion](#conclusion)
+
 ### Intro
 
 Based on [Define your naming convention](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming), I'm using the following naming convention as an example:
@@ -61,7 +75,7 @@ In this section, we'll explore the various functions required to apply the namin
 You can find the end result with all functions [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/naming-conventions.bicep).
 
 
-#### Resource Type Prefix
+#### Get Resource Type Prefix
 
 We'll begin with the resource type prefix. I've used [Abbreviation recommendations for Azure resources](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-abbreviations) to create a mapping of resource types to prefixes for resources commonly used in my projects. While this list may not be exhaustive, it can be easily extended with your own resource types and corresponding prefixes.
 
@@ -84,7 +98,7 @@ func getPrefixMap() object => {
 
 As mentioned before, since we can't use a variable to store the mapping, I'm using the function `getPrefixMap` to return the map. This map is then used by `getPrefix` to retrieve the prefix of the specified resource type. For instance, calling `getPrefix('virtualNetwork')` will return `vnet`.
 
-#### Environment
+#### Abbreviate Environment
 
 Similar to the resource type prefix, I've created a map of environment names to abbreviations. This map is used by the `abbreviateEnvironment` function to return the abbreviation of the specified environment. See the snippet below.
 
@@ -104,7 +118,7 @@ func getEnvironments() object => {
 }
 ```
 
-#### Azure Region
+#### Abbreviate Azure Region
 
 Likewise, for the Azure region, I'm using another map to abbreviate it. Below is a snippet of the functions:
 
@@ -122,7 +136,7 @@ func getRegionMap() object => {
 
 As there doesn't seem to be an official list of abbreviations provided by Microsoft, I've used [Azure Region Abbreviations](https://www.jlaundry.nz/2022/azure_region_abbreviations/) as my reference. This source offers multiple conventions, so you can select the one that best suits your needs. I've chosen the `Short Name (CAF)` convention as it appears to be the most complete.
 
-#### Sanitize
+#### Sanitize Resource Name
 
 With these functions as a basis, we can create a simple function that applies the naming convention to a resource name. Here’s an example:
 
@@ -153,7 +167,7 @@ func getResourceNameByConvention(resourceType string, workload string, environme
   sanitizeResourceName('${getPrefix(resourceType)}-${workload}-${abbreviateEnvironment(environment)}-${abbreviateRegion(region)}-${instance}')
 ```
 
-#### Short Names
+#### Shorten Resource Name
 
 For most resources, this approach will suffice. However, a few resources have stricter requirements on name length, and some disallow hyphens. For instance, a Key Vault and Storage Account are limited to a maximum of 24 characters, while a Windows virtual machine’s name can only be up to 15 characters.
 
