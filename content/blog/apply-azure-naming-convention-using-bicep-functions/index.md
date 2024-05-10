@@ -50,7 +50,68 @@ And here is how you do the same with a function:
 var vnetName = getResourceName('virtualNetwork', 'sample', 'dev', 'norwayeast', '001')
 ```
 
-That being said. Creating the logic for the naming convention however is a bit more difficult in a function then in a module. In a module, you can create a 'procedural' script that applies the naming convention step-by-step. Using variables for intermediate results. In a function, you can't use variables, so you have to call other functions from within a function to create a chain of functions. This is a bit more cumbersome, but it works.
+That being said. Creating the logic for the naming convention is a bit more difficult in a function then in a module. In a module, you can create a 'procedural' script that applies the naming convention step-by-step, using variables for intermediate results. In a function, you can't use variables, so you have to call other functions to create the logic. This is a bit more cumbersome, but it works.
 
-### Resource Type Prefix
+### User-defined functions
 
+A lot of the logic consists of keeping the resource names short. This is important due to limitations in the length of resource names. A Key Vault or Storage Account name for example can only be 24 characters long. A Windows virtual machine is even shorter with a maximum of 15 characters.
+
+#### Resource Type Prefix
+
+We'll start with the resource type prefix. I've used [Abbreviation recommendations for Azure resources](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-abbreviations) as input to create a mapping of resource types to prefixes that I commonly use. It's not a complete list, but you can easily extend it with your own resource types and prefixes.
+
+See the snippet below for the function to get the prefix.
+
+```bicep
+func getPrefix(resourceType string) string => getPrefixMap()[resourceType]
+
+func getPrefixMap() object => {
+  apiManagement: 'apim'
+  keyVault: 'kv'
+  resourceGroup: 'rg'
+  storageAccount: 'st'
+  virtualMachine: 'vm'
+  virtualNetwork: 'vnet'
+  ...
+}
+```
+
+As mentioned before, we can't use a variable to store the mapping, so I'm using the function `getPrefixMap` to return the mapping. Which in turn is used by the `getPrefix` function to return the prefix of the specified resource type. The call `getPrefix('virtualNetwork')` will for example return `vnet`.
+
+#### Environment
+
+Similar to the resource type prefix, I've created a mapping of environment names to abbreviations. This mapping is used by the `abbreviateEnvironment` function to return the abbreviation of the specified environment. See the snippet below.
+
+```bicep
+func abbreviateEnvironment(environment string) string => getEnvironments()[toLower(environment)]
+
+func getEnvironments() object => {
+  dev: 'dev'
+  development: 'dev'
+  tst: 'tst'
+  test: 'tst'
+  acc: 'acc'
+  acceptance: 'acc'
+  prd: 'prd'
+  prod: 'prd'
+  production: 'prd'
+}
+```
+
+#### Azure Region
+
+Just like the resource type prefix and environment, I'm using a map to abbreviate the Azure region. There doesn't seem to be an official list of abbreviations by Microsoft, so I'm using [Azure Region Abbreviations](https://www.jlaundry.nz/2022/azure_region_abbreviations/) as input. It provides multiple conventions, so you can choose the one that fits your needs best. I'm using the `Short Name (CAF)` convention because it seems to be the most complete.
+
+Here's a snippet of the functions:
+
+```bicep
+func abbreviateRegion(region string) string => getRegionMap()[region]
+
+func getRegionMap() object => {
+  northeurope: 'ne'
+  norwayeast: 'nwe'
+  westcentralus: 'wcus'
+  westeurope: 'we'
+  ...
+}
+```
