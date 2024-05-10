@@ -313,3 +313,10 @@ The test results will look like this:
 In this example the test `testPrefixResourceGroup` has failed. The output could be improved by adding the actual and expected result. I'm hoping the Bicep team will add this in the future.
 
 You can find the full suite of tests in [tests.bicep](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/tests.bicep).
+
+
+### Conclusion
+
+I think [user-defined functions in Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/user-defined-functions) are a powerful feature to help you create reusable logic, like applying a naming convention. Due to there current limitations, functions can a bit tricky when creating more complex logic. But for me, using a function to apply a naming convention is a definite improvement over using a module, because it results in much clearer code.
+
+The [Bicep Testing Framework](https://rios.engineer/exploring-the-bicep-test-framework-%F0%9F%A7%AA/) is also a great addition to Bicep. It allows you to write tests for your Bicep files and make sure everything works as expected. I hope the Bicep team will continue to improve the framework and add more features like better output for failed tests.
