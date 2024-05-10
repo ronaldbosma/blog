@@ -103,9 +103,9 @@ As mentioned before, since we can't use a variable to store the mapping, I'm usi
 Similar to the resource type prefix, I've created a map of environment names to abbreviations. This map is used by the `abbreviateEnvironment` function to return the abbreviation of the specified environment. See the snippet below.
 
 ```bicep
-func abbreviateEnvironment(environment string) string => getEnvironments()[toLower(environment)]
+func abbreviateEnvironment(environment string) string => getEnvironmentMap()[toLower(environment)]
 
-func getEnvironments() object => {
+func getEnvironmentMap() object => {
   dev: 'dev'
   development: 'dev'
   tst: 'tst'
