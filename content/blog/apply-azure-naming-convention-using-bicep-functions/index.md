@@ -196,3 +196,36 @@ func getResourceName(resourceType string, workload string, environment string, r
 ```
 
 Note the `export` decorator. This is required to make the function available to other Bicep files.
+
+
+### Using the Function
+
+To use the function in different Bicep files, you can put all the functions in a reusable Bicep file. You can then import this file in your Bicep files. Here's an example of how to import the file:
+
+```bicep
+import { getResourceName } from './naming-conventions.bicep'
+```
+
+Note that the import feature is still in preview. Although [Imports in Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-import) states that you need to enable the feature in your Bicep config file, I didn't have to do this. I'm using Bicep version `0.26.170`.
+
+After importing the file, you can use the `getResourceName` function in your Bicep files. Here are some examples:
+
+```bicep
+param location string = resourceGroup().location
+param workload string
+param environment string
+
+param paramExample string = getResourceName('vnet', workload, environment, location, '001')
+
+param varExample string = getResourceName('vnet', workload, environment, location, '002')
+
+resource resourceExample 'Microsoft.Network/virtualNetworks@2023-05-01' = {
+  name: getResourceName('vnet', workload, environment, location, '003')
+  location: location
+  properties: {
+    ...
+  }
+}
+
+output outputExample string = getResourceName('vnet', workload, environment, location, '004')
+```
