@@ -3,7 +3,7 @@ title: "Apply Azure naming convention using Bicep functions"
 date: 2024-05-10T11:00:00+02:00
 publishdate: 2024-05-10T11:00:00+02:00
 lastmod: 2024-05-10T11:00:00+02:00
-tags: [ "Azure", "Bicep" ]
+tags: [ "Azure", "Bicep", "Test Automation" ]
 summary: "When deploying Azure resources, it's a good practice to apply a naming convention to your resources. This will help you to identify the purpose of the resource and the environment it belongs to. In this blog post, I will show you how to apply a naming convention using Bicep user-defined functions. This post also includes a short introduction to the (experimental) Bicep Testing Framework."
 draft: false
 ---
