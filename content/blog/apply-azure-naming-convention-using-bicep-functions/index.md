@@ -115,3 +115,28 @@ func getRegionMap() object => {
   ...
 }
 ```
+
+#### Sanitize
+
+With these functions as a basis we can create a simple function that applies the naming convention to a resource name. Here's an example:
+
+```bicep
+func getResourceName(resourceType string, workload string, environment string, region string, instance string) string => 
+  '${getPrefix(resourceType)}-${workload}-${abbreviateEnvironment(environment)}-${abbreviateRegion(region)}-${instance}'
+```
+
+However, we're not in full control of the input values. We're putting the workload and instance directly in the name without any processing. We should sanitize these values to make sure they don't contain any characters that are not allowed in a resource name.
+
+Here's a sample function that sanitizes the input values by removing colons, commas, dots, semicolons, underscores and white spaces. It also converts the result to lowercase.
+
+```bicep
+func sanitizeResourceName(value string) string => toLower(removeColons(removeCommas(removeDots(removeSemicolons(removeUnderscores(removeWhiteSpaces(value)))))))
+
+func removeColons(value string) string => replace(value, ':', '')
+func removeCommas(value string) string => replace(value, ',', '')
+func removeDots(value string) string => replace(value, '.', '')
+func removeSemicolons(value string) string => replace(value, ';', '')
+func removeUnderscores(value string) string => replace(value, '_', '')
+func removeWhiteSpaces(value string) string => replace(value, ' ', '')
+```
+
