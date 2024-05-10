@@ -52,7 +52,7 @@ var vnetName = getResourceName('virtualNetwork', 'sample', 'dev', 'norwayeast', 
 
 That being said. Creating the logic for the naming convention is a bit more difficult in a function then in a module. In a module, you can create a 'procedural' script that applies the naming convention step-by-step, using variables for intermediate results. In a function, you can't use variables, so you have to call other functions to create the logic. This is a bit more cumbersome, but it works.
 
-### User-defined functions
+### User-defined Functions
 
 A lot of the logic consists of keeping the resource names short. This is important due to limitations in the length of resource names. A Key Vault or Storage Account name for example can only be 24 characters long. A Windows virtual machine is even shorter with a maximum of 15 characters.
 
@@ -118,10 +118,10 @@ func getRegionMap() object => {
 
 #### Sanitize
 
-With these functions as a basis we can create a simple function that applies the naming convention to a resource name. Here's an example:
+With these functions as a basis we could create a simple function that applies the naming convention to a resource name. Here's an example:
 
 ```bicep
-func getResourceName(resourceType string, workload string, environment string, region string, instance string) string => 
+func getResourceNameByConvention(resourceType string, workload string, environment string, region string, instance string) string => 
   '${getPrefix(resourceType)}-${workload}-${abbreviateEnvironment(environment)}-${abbreviateRegion(region)}-${instance}'
 ```
 
@@ -140,3 +140,59 @@ func removeUnderscores(value string) string => replace(value, '_', '')
 func removeWhiteSpaces(value string) string => replace(value, ' ', '')
 ```
 
+#### Short Names
+
+For most resources this will be enough. However, a couple of resources have a small maximum length for the name and some don't allow hyphens. For example, a Key Vault and Storage Account have a maximum length 24 characters. And a Windows virtual machine's maximum length is even shorter with only 15 characters. To make sure the name doesn't exceed the maximum length, we can shorten the name for these specific resources.
+
+First we'll need a function to check if a resource type should be shortened. We'll use an array of resource types that should be shortened and check if the specified resource type is in this list. Here's the function:
+
+```bicep
+func shouldBeShortened(resourceType string) bool => contains(getResourcesTypesToShorten(), resourceType)
+
+func getResourcesTypesToShorten() array => [
+  'keyVault'
+  'storageAccount'
+  'virtualMachine'
+]
+```
+
+Next we'll need a function to shorten the name. We'll remove hyphens and sanitize the resource name. Here's the function:
+
+```bicep
+func shortenString(value string) string => removeHyphens(sanitizeResourceName(value))
+func removeHyphens(value string) string => replace(value, '-', '')
+```
+
+Taking into account the length of the prefix, environment and region, this is enough for the Key Vault and Storage Account if you keep the combination of workload and instance to about 15 characters. For the Virtual Machine, we need to make the name even shorter but it should also be unique. We can use the [uniqueString](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-functions-string#uniquestring) function to generate a unique string based on the workload, environment and region. The result won't be globally unique, but it's close enough for our purpose. The returned value is 13 characters long. For example, `uniqueString('sample', 'dev', 'norwayeast')` will result in the `zmamywx7mjdhw`. 
+
+I want to include the instance in the name, so we need to make the generated unique string a litter shorter depending on the length of the isntance. Using `substring` we kan remove the last characters of the unique string, based on the length of the instance. Here's the function to create the virtual machine name:
+
+```bicep
+func getVirtualMachineName(workload string, environment string, region string, instance string) string =>
+  'vm${substring(uniqueString(workload, environment, region), 0, 13-length(shortenString(instance)))}${shortenString(instance)}'
+```
+
+As you can see, I'm using the `shortenString` function to keep the instance name as short as possible. Take note though, that if the instance name is longer dan 13 characters, the `substring` function will throw an error. Unfortunately, it's not possible yet to set a maximum length on parameters of a function.
+
+With this, we can create a function that will return the shortened name of a resource based on the naming convention. Here's the function:
+
+```bicep
+func getShortenedResourceName(resourceType string, workload string, environment string, region string, instance string) string =>
+  resourceType == 'virtualMachine'
+    ? getVirtualMachineName(workload, environment, region, instance)
+    : shortenString(getResourceNameByConvention(resourceType, workload, environment, region, instance))
+```
+
+#### Get Resource Name
+
+Finally, we can create a function that will return the name of a resource based on the naming convention. This function will check if the resource type should be shortened and call the appropriate function. Here's the function:
+
+```bicep
+@export()
+func getResourceName(resourceType string, workload string, environment string, region string, instance string) string => 
+  shouldBeShortened(resourceType) 
+    ? getShortenedResourceName(resourceType, workload, environment, region, instance)
+    : getResourceNameByConvention(resourceType, workload, environment, region, instance)
+```
+
+Note the `export` decorator. This is required to make the function available to other Bicep files.
