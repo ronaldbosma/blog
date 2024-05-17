@@ -2,8 +2,8 @@
 title: "Transform SpecFlow Table Column"
 date: 2022-10-29T12:30:00+02:00
 publishdate: 2022-10-29T12:30:00+02:00
-lastmod: 2022-10-29T12:30:00+02:00
-tags: [ "Gherkin", "SpecFlow", "Specification by Example", "ATDD", "BDD", "Test Automation", "Cleaner Code" ]
+lastmod: 2024-04-05T00:00:00+02:00
+tags: [ "Gherkin", "SpecFlow", "Specification by Example", "ATDD", "BDD", "Test Automation", "Cleaner Code", "Reqnroll" ]
 summary: "In a previous blog post I wrote about a trick on how to remove technical ids from Gherkin scenarios while still using technical ids in the step definitions. The proposed solution worked well for the given scenario, but not for other cases. In this post I look at several approaches on how to solve this issue."
 draft: false
 ---
@@ -275,11 +275,14 @@ I've created a generic extension method for this as shown in the following code 
 ```csharp
 public static Table TransformColumn(this Table table, string oldColumn, string newColum, Func<string, string> transform)
 {
-    table.RenameColumn(oldColumn, newColum);
-
-    foreach (var row in table.Rows)
+    if (table.ContainsColumn(oldColumn))
     {
-        row[newColum] = transform(row[newColum]);
+        table.RenameColumn(oldColumn, newColum);
+
+        foreach (var row in table.Rows)
+        {
+            row[newColum] = transform(row[newColum]);
+        }
     }
 
     return table;

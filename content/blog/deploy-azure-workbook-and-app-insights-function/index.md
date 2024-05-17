@@ -2,8 +2,8 @@
 title: "Deploy Azure Workbook and App Insights Function"
 date: 2023-03-10T15:00:00+01:00
 publishdate: 2023-03-10T15:00:00+01:00
-lastmod: 2023-03-10T15:00:00+01:00
-tags: [ "Azure", "Azure CLI", "Application Insights", "Bicep", "Continuous Integration", "Infra as Code", "PowerShell" ]
+lastmod: 2024-05-03T09:25:00+02:00
+tags: [ "Azure", "Azure CLI", "Application Insights", "Azure Workbook", "Bicep", "Continuous Integration", "Infra as Code", "PowerShell" ]
 summary: "In this post I explain how to deploy an Azure workbook using Bicep and set environment specific variables. I'll also show how to deploy a shared kusto function in Application Insights with the Azure CLI."
 ---
 

@@ -2,7 +2,7 @@
 
 This blog is hosted on my GitHub pages site [ronaldbosma.github.io](https://ronaldbosma.github.io).
 
-The blog site is created using [Hugo](http://www.gohugo.com/) and styled with the [Mediumish theme](https://themes.gohugo.io/mediumish-gohugo-theme/).
+The blog site is created using [Hugo](http://www.gohugo.com/) and styled with the [Mediumish theme](https://github.com/lgaida/mediumish-gohugo-theme).
 
 Code examples used in my posts can be found [here](https://github.com/ronaldbosma/blog-code-examples).
 
@@ -13,8 +13,8 @@ I've also written a blog post on [building and releasing a Hugo site with Azure 
 Commands to clone this repo and run it with Hugo on local machine:
 
 ```powershell
-# Clone repo and include submodule with theme
-git clone --recurse-submodules https://github.com/ronaldbosma/blog.git
+# Clone repo
+git clone https://github.com/ronaldbosma/blog.git
 
 # Run site
 hugo server -D 

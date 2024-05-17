@@ -2,7 +2,7 @@
 title: "Using multi-stage YAML pipeline to create and publish NuGet packages"
 date: 2019-09-03T00:00:00+01:00
 publishdate: 2019-09-03T00:00:00+01:00
-lastmod: 2019-09-03T00:00:00+01:00
+lastmod: 2024-04-05T00:00:00+01:00
 tags: [ "Azure Pipelines", "Azure DevOps", "NuGet", "Continuous Integration", "YAML" ]
 draft: false
 ---
@@ -180,6 +180,8 @@ That's everything you need to publish the prerelease package. You can give the p
 ### Publish release package to nuget.org
 
 The last stage will publish the release version of the NuGet package to nuget.org. But before we proceed we'll need to make a few preparations.
+
+> In this example I'm using an environment to add a manual approval, but this is not necessary anymore. Instead, you can add a manual approval on the service connection to nuget.org. You can then replace the deployment job with a normal job.
 
 #### Create new environment
 
