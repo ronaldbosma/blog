@@ -70,32 +70,18 @@ As you can see, the `WeatherForecast` class has a `DateOnly` property and two `T
 The `Temperature` is a record that implements the `IParsable<T>` interface and is defined as follows:
 
 ```csharp
+public enum TemperatureUnit
+{
+    Celsius,
+    Fahrenheit
+}
+
 public record Temperature : IParsable<Temperature>
 {
     private readonly static Regex TemperatureRegex = new(@"^(-?\d+) (°C|°F)$");
 
-    public int DegreesCelsius { get; init; }
-    public int DegreesFahrenheit { get; init; }
-
-    public static Temperature FromDegreesCelsius(int degreesCelsius)
-    {
-        decimal degreesFahrenheit = (decimal)degreesCelsius * 9 / 5 + 32;
-        return new Temperature
-        {
-            DegreesCelsius = degreesCelsius,
-            DegreesFahrenheit = (int)Math.Round(degreesFahrenheit, 0, MidpointRounding.AwayFromZero)
-        };
-    }
-
-    public static Temperature FromDegreesFahrenheit(int degreesFahrenheit)
-    {
-        decimal degreesCelsius = ((decimal)degreesFahrenheit - 32) * 5 / 9;
-        return new Temperature
-        {
-            DegreesCelsius = (int)Math.Round(degreesCelsius, 0, MidpointRounding.AwayFromZero),
-            DegreesFahrenheit = degreesFahrenheit
-        };
-    }
+    public int Degrees { get; init; }
+    public TemperatureUnit Unit { get; init; }
 
     public static Temperature Parse(string s, IFormatProvider? provider)
     {
@@ -115,13 +101,16 @@ public record Temperature : IParsable<Temperature>
         if (s != null)
         {
             var regexMatches = TemperatureRegex.Matches(s);
-
             if (regexMatches.Count == 1)
             {
-                var temperatureValue = int.Parse(regexMatches[0].Groups[1].Value);
-                var temperatureUnit = regexMatches[0].Groups[2].Value;
+                var degrees = int.Parse(regexMatches[0].Groups[1].Value);
+                var unit = regexMatches[0].Groups[2].Value;
 
-                result = temperatureUnit == "°C" ? FromDegreesCelsius(temperatureValue) : FromDegreesFahrenheit(temperatureValue);
+                result = new Temperature
+                {
+                    Degrees = degrees,
+                    Unit = unit == "°C" ? TemperatureUnit.Celsius : TemperatureUnit.Fahrenheit
+                };
                 return true;
             }
         }
@@ -132,11 +121,9 @@ public record Temperature : IParsable<Temperature>
 }
 ```
 
-The `FromDegreesCelsius` and `FromDegreesFahrenheit` methods can be used to create a `Temperature` instance based on and `integer` value of degrees Celsius or Fahrenheit.
+The `Temperature` record has a `Degrees` property that represents the temperature in either Celsius or Fahrenheit and a `Unit` property that represents the unit of the temperature.
 
-The `Parse` and `TryParse` methods implement the `IParsable<T>` interface and are used to parse a string to a `Temperature` instance. They use a regular expression to extract the digits and the unit, which is either `°C` or `°F`.  
-
-For example, the strings `10 °C` and `50 °F` will both be parsed to a `Temperature` instance where `DegreesCelsius` is `10` and `DegreesFahrenheit` is `50` respectively.
+The `Parse` and `TryParse` methods implement the `IParsable<T>` interface and are used to parse a string to a `Temperature` instance. They use a regular expression to extract the degrees and the unit, which is either `°C` or `°F`.
 
 
 Now, if we would run our scenario as is, we would get the following error:
