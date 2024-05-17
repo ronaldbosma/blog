@@ -297,4 +297,157 @@ public static void BeforeTestRun()
 
 With these two generic classes we can now convert and compare every type that implements the `IParsable<T>` interface. Reducing the amount of code and making it easier to add new types in the future. The only downside to this solution is that we have to register the value retriever and comparer for each type separately.
 
+You can find a working sample in the `02-GenericTypes` project of [this solution](https://github.com/ronaldbosma/blog-code-examples/tree/master/reqnroll-parsable-value-retriever-and-comparer).
+
+### Creating a Parsable Value Retriever and Comparer with Reflection
+
+We can go one step further. In the previous solution we had to register the value retriever and comparer for each type separately. Instead, we can use reflection to implement the value retriever and value comparer so it can handle any type that implements the `IParsable<T>` interface.
+
+Here's the implementation for the `ParsableValueRetriever` class:
+
+```csharp
+internal class ParsableValueRetriever : IValueRetriever
+{
+    public bool CanRetrieve(KeyValuePair<string, string> keyValuePair, Type targetType, Type propertyType)
+    {
+        return GenericParsableParser.ImplementsSupportedIParsable(propertyType) &&
+               GenericParsableParser.TryParse(propertyType, keyValuePair.Value, null, out _);
+    }
+
+    public object Retrieve(KeyValuePair<string, string> keyValuePair, Type targetType, Type propertyType)
+    {
+        return GenericParsableParser.Parse(propertyType, keyValuePair.Value, CultureInfo.CurrentCulture);
+    }
+}
+```
+
+The logic is the same as before. It checks if the property type implements the `IParsable<T>` interface and if the value can be parsed to a `T` instance. If true, the `Retrieve` method is called to parse the value to a `T` instance.
+
+And here's the implementation for the `ParsableValueComparer` class:
+
+```csharp
+internal class ParsableValueComparer : IValueComparer
+{
+    public bool CanCompare(object actualValue)
+    {
+        return actualValue != null && GenericParsableParser.ImplementsSupportedIParsable(actualValue.GetType());
+    }
+
+    public bool Compare(string expectedValue, object actualValue)
+    {
+        var isParsed = GenericParsableParser.TryParse(actualValue.GetType(), expectedValue, CultureInfo.CurrentCulture, out object? expectedObject);
+        return isParsed && actualValue.Equals(expectedObject);
+    }
+}
+```
+
+Again, the logic is very similar as before. There's an extra check in the `CanCompare` to check that the actual value is not `null`, because we need to be able to determine the type of the actual value. If the actual value implements the `IParsable<T>` interface, the `Compare` method is called to compare the expected value with the actual value.
+
+Both classes use the `GenericParsableParser` class which contains a couple of handy helper methods. First, the `ImplementsSupportedIParsable` is used to check if the type implements the `IParsable<T>` interface.
+
+```csharp
+public static bool ImplementsSupportedIParsable(Type type)
+{
+    return type.GetInterfaces().Any(i =>
+        i.IsGenericType &&
+        i.GetGenericTypeDefinition() == typeof(IParsable<>) &&
+        // IParsable<string> is exluded because we can't dynamically create an instance of string
+        i.GetGenericArguments()[0] != typeof(string)
+    );
+}
+```
+
+Since `ImplementsSupportedIParsable` will return true for all types that implement the `IParsable<T>` interface, we also return true for common types like `string`, `int` and `DateTime`. I found that the parsing logic doesn't work well with strings, so these are excluded.
+
+Next is the `Parse` method which is used to parse a string to an instance of the implementing type. It relies on the `TryParse` method to do the actual parsing.
+```csharp
+public static object Parse(Type targetType, string s, IFormatProvider? formatProvider)
+{
+    if (TryParse(targetType, s, formatProvider, out object? result))
+    {
+        return result;
+    }
+    else
+    {
+        throw new ArgumentException($"Unable to parse '{s}' to type {targetType}");
+    }
+}
+```
+
+The `TryParse` is where the real reflection magic happens.
+
+```csharp
+public static bool TryParse(Type targetType, [NotNullWhen(true)] string? s, IFormatProvider? formatProvider, [MaybeNullWhen(false)] out object result)
+{
+    // Check if the target type implements IParsable<TSelf>
+    if (!ImplementsSupportedIParsable(targetType))
+    {
+        result = null;
+        return false;
+    }
+
+    // Get the IParsable<TSelf> interface implemented by the target type
+    var parsableInterface = targetType
+        .GetInterfaces()
+        .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IParsable<>));
+
+    if (parsableInterface == null)
+    {
+        throw new ArgumentException($"Type {targetType} does not implement IParsable<TSelf>");
+    }
+
+    // Get the type parameter TSelf of IParsable<TSelf>
+    var parsableType = parsableInterface.GetGenericArguments().Single();
+
+    // Create an instance of TSelf
+    var parsableInstance = Activator.CreateInstance(parsableType);
+    if (parsableInstance == null)
+    {
+        throw new Exception($"Unable to create instance of type {parsableType}");
+    }
+
+    // Get the TryParse method of TSelf with signature: TryParse(String, IFormatProvider, out TSelf)
+    var parseMethod = parsableType.GetMethod("TryParse", [typeof(string), typeof(CultureInfo), parsableType.MakeByRefType()]);
+    if (parseMethod == null)
+    {
+        throw new Exception($"Unable to get method with signature Parse(String, IFormatProvider, out TSelf) from type {parsableType}");
+    }
+
+    // Invoke the TryParse method
+    object?[] parameters = [s, formatProvider, null];
+    var tryParseResult = (bool?)parseMethod.Invoke(parsableInstance, parameters);
+    if (tryParseResult == null)
+    {
+        throw new Exception($"Parse method on type {parsableType} unexpectedly return null for value: {s}");
+    }
+
+    // Set result to the parsed result if TryParse was successful
+    result = (bool)tryParseResult ? parameters[2] : null;
+
+    return (bool)tryParseResult;
+}
+```
+
+The `TryParse` method does the following:
+- It checks if the target type implements the `IParsable<T>` interface.
+- It gets the `IParsable<T>` interface implemented by the target type.
+- From the `IParsable<T>` interface it gets the type parameter `T`.
+- It creates an instance of `T`.
+- It gets the `TryParse` method of `T`.
+- It invokes the `TryParse` method.
+- It sets the result to the parsed result if the `TryParse` was successful and returns `true`.
+
+The last step is to register the `ParsableValueRetriever` and `ParsableValueComparer` classes in the `BeforeTestRun` hook as shown below:
+
+```csharp
+[BeforeTestRun]
+public static void BeforeTestRun()
+{
+    Service.Instance.ValueRetrievers.Register(new ParsableValueRetriever());
+    Service.Instance.ValueComparers.Register(new ParsableValueComparer());
+}
+```
+
+With this, the `ParsableValueRetriever` and `ParsableValueComparer` classes can now handle any type that implements the `IParsable<T>` interface. You can find a working sample in the `03-Reflection` project of [this solution](https://github.com/ronaldbosma/blog-code-examples/tree/master/reqnroll-parsable-value-retriever-and-comparer).
+
 
