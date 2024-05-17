@@ -147,11 +147,12 @@ func getResourceNameByConvention(resourceType string, workload string, environme
 
 However, we don’t have complete control over the input values. We’re directly incorporating the `workload` and `instance` into the name without any processing. It's important to sanitize these values to ensure they don’t contain any characters that are not allowed in a resource name.
 
-Here’s a sample function that sanitizes the input values by removing colons, commas, dots, semicolons, underscores, and white spaces. It also converts the result to lowercase.
+Here’s a sample function that sanitizes the input values by removing a trailing hyphen, colons, commas, dots, semicolons, underscores, and white spaces. It also converts the result to lowercase.
 
 ```bicep
-func sanitizeResourceName(value string) string => toLower(removeColons(removeCommas(removeDots(removeSemicolons(removeUnderscores(removeWhiteSpaces(value)))))))
+func sanitizeResourceName(value string) string => toLower(removeTrailingHyphen(removeColons(removeCommas(removeDots(removeSemicolons(removeUnderscores(removeWhiteSpaces(value))))))))
 
+func removeTrailingHyphen(value string) string => endsWith(value, '-') ? substring(value, 0, length(value)-1) : value
 func removeColons(value string) string => replace(value, ':', '')
 func removeCommas(value string) string => replace(value, ',', '')
 func removeDots(value string) string => replace(value, '.', '')
