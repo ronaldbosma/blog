@@ -450,4 +450,9 @@ public static void BeforeTestRun()
 
 With this, the `ParsableValueRetriever` and `ParsableValueComparer` classes can now handle any type that implements the `IParsable<T>` interface. You can find a working sample in the `03-Reflection` project of [this solution](https://github.com/ronaldbosma/blog-code-examples/tree/master/reqnroll-parsable-value-retriever-and-comparer).
 
+> As an alternative to using reflection inside the value retriever and comparer, you could also scan your assemblies for all types implementing `IParsable<T>` and register an instance of `ParsableValueRetriever<T>` and `ParsableValueComparer<T>` for each of them.
 
+
+### Conclusion
+
+With the introduction of the `IParsable<T>` interface in .NET 7, it has become a lot easier to create generic parsing logic. Combining this with Reqnroll's Value Retrievers and Value Comparers, we can create a generic solution to convert and compare any type that implements the `IParsable<T>` interface. Using reflection we can even make this solution more generic and handle any type that implements the `IParsable<T>` interface. Because not everybody is a fan of reflection, I'll let you decide which solution you prefer.
