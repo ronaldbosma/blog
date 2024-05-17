@@ -4,24 +4,41 @@ date: 2024-05-17T12:30:00+02:00
 publishdate: 2024-05-17T12:30:00+02:00
 lastmod: 2024-05-17T12:30:00+02:00
 tags: [ "Reqnroll", "SpecFlow", "Test Automation" ]
-summary: "In this blog post we'll look at how to use the `IParsable<T>` interface to build a generic Reqnroll Value Retriever and Comparer. This solution also works for it's predecessor SpecFlow when using .NET 7 or higher."
+summary: "In this blog post, we'll explore how to use the `IParsable<T>` interface to build a generic Reqnroll value retriever and comparer. We'll start by creating custom value retrievers and comparers, then develop a reusable solution with generics, and finally, we'll use reflection to make it even more generic. (This solution also works for its predecessor, SpecFlow, when using .NET 7 or higher.)"
 draft: true
 ---
 
-The introduction of .NET 7 has brought us the `IParsable<T>` interface. It's a generic interface that defines a static `Parse` and `TryParse` method. This interface is used to parse a string into an instance of the implementing type. Common types like `DateTime`, `Int32` and `Guid` all implement this interface.
 
-If you have a custom type that needs to be parsed from a string, you can implement this interface yourself. This is useful because it allows for reusable parsing logic. In this blog post we'll see how to use the `IParsable<T>` interface to build a generic [Reqnroll](https://reqnroll.net/) Value Retriever and Comparer.
+In this blog post, we'll explore leveraging the IParsable<T> interface to construct a versatile Reqnroll value retriever and comparer. We'll begin by crafting a custom solution, then transition to a more streamlined approach using generics, and finally, we'll delve into employing reflection for even greater flexibility.
 
-> [Reqnroll](https://reqnroll.net/) is the successor of [SpecFlow](https://specflow.org/). The solution provided in this blog post can also work with SpecFlow when using .NET 7 or higher.
 
-As you might already know, when working with tables in Gherkin scenarios, you can use the [DataTable Helper](https://docs.reqnroll.net/latest/automation/datatable-helpers.html) extension methods `CreateInstance<T>` and `CreateSet<T>` to convert a table into a single object or list of objects. Similarly, the `CompareToInstance<T>` and `CompareToSet<T>` extension methods can be used to compare objects to a `DataTable` with expected data.
+
+The introduction of .NET 7 has brought us the [IParsable<T>](https://learn.microsoft.com/en-us/dotnet/api/system.iparsable-1?view=net-8.0) interface, a generic interface that defines static `Parse` and `TryParse` methods. This interface is used to parse a string into an instance of the implementing type. Common types like `string`, `int` and `DateTime` all implement this interface.
+
+If you have a custom type that needs to be parsed from a string, you can implement this interface yourself. This is useful because it allows for reusable parsing logic. In this blog post, we'll see how to use the `IParsable<T>` interface to build a generic [Reqnroll](https://reqnroll.net/) value retriever and comparer.
+
+> Reqnroll is the successor to SpecFlow, designed for automating Gherkin scenarios in .NET with C#. The solution provided in this blog post can also work with SpecFlow when using .NET 7 or higher.
+
+As you might already know, when working with tables in Gherkin scenarios, you can use the [DataTable Helper](https://docs.reqnroll.net/latest/automation/datatable-helpers.html) extension methods `CreateInstance<T>` and `CreateSet<T>` to convert a table into a single object or a list of objects. Similarly, the `CompareToInstance<T>` and `CompareToSet<T>` extension methods can be used to compare objects to a table with expected data.
 
 These extension methods work great when your properties are only simple types like `string`, `int`, `DateTime`, etc. But what if you have a custom type that needs to be converted or compared? This is where [Value Retrievers and Value Comparers](https://docs.reqnroll.net/latest/extend/value-retrievers.html) come in. They allow you to define custom logic for converting and comparing custom types.
 
-> When you're unfamiliar with the Reqnroll DataTable Helper extension methods or Value Retrievers & Comparers, I recommend reading the [DataTable Helpers documentation](https://docs.reqnroll.net/latest/automation/datatable-helpers.html) and [Value Retrievers documentation](https://docs.reqnroll.net/latest/extend/value-retrievers.html) first.
+> If you're unfamiliar with the Reqnroll DataTable Helper extension methods or Value Retrievers and Comparers, I recommend reading the [DataTable Helpers documentation](https://docs.reqnroll.net/latest/automation/datatable-helpers.html) and [Value Retrievers documentation](https://docs.reqnroll.net/latest/extend/value-retrievers.html) first.
+
+As you'll see, the combination of the `IParsable<T>` interface and Reqnroll's value retrievers and value comparers can be a powerful tool for creating generic parsing logic. In this blog post, we'll start by creating a custom type that implements the `IParsable<T>` interface. We'll then use this type in a Gherkin scenario to convert and compare it with a table. Finally, we'll create a generic solution to handle any type that implements the `IParsable<T>` interface.
+
+### Table of Contents
+
+- [Intro](#intro)
+- [Custom Value Retrievers and Comparers](#custom-value-retrievers-and-comparers)
+- [Generic Parsable Value Retriever and Comparer](#generic-parsable-value-retriever-and-comparer)
+- [Parsable Value Retriever and Comparer with Reflection](#parsable-value-retriever-and-comparer-with-reflection)
+- [Conclusion](#conclusion)
 
 
-In this blog post we'll be using the following scenario to convert a table into a list of `WeatherForecast` objects and compare them with another table:
+### Intro
+
+Let's start with some Gherkin first. We'll be using the following scenario to convert a table into a list of `WeatherForecast` objects and compare them with another table:
 
 ```gherkin
 Scenario: Create weather forecasts from a table and compare them with another table
@@ -67,7 +84,7 @@ public class WeatherForecast
 }
 ```
 
-As you can see, the `WeatherForecast` class has a `DateOnly` property and two `Temperature` properties. The `DateOnly` type was introduced in .NET 6 to represent a date without time. Currently, Reqnroll cannot convert it out-of-the-box. 
+As you can see, the `WeatherForecast` class has a `DateOnly` property and two `Temperature` properties. The [DateOnly](https://learn.microsoft.com/en-us/dotnet/api/system.dateonly?view=net-8.0) type was introduced in .NET 6 to represent a date without time. Currently, Reqnroll cannot convert it out-of-the-box. 
 
 The `Temperature` type is a custom type that can represent a temperature in both Celsius and Fahrenheit. It is a record that implements the `IParsable<T>` interface and is defined as follows:
 
@@ -127,8 +144,7 @@ The `Temperature` record has a `Degrees` property that represents the temperatur
 
 The `Parse` and `TryParse` methods implement the `IParsable<T>` interface and are used to parse a string to a `Temperature` instance. They use a regular expression to extract the degrees and the unit, which is either `°C` or `°F`.
 
-
-Now, if we would run our scenario as is, we would get the following error:
+Now, if we were to run our scenario as is, we would get the following error:
 
 ```
 Test method ReqnrollParsableValueRetrieverAndComparer.Init.InitFeature.CreateWeatherForecastsFromATableAndCompareThemWithAnotherTable threw exception: 
@@ -145,7 +161,7 @@ Reqnroll.ComparisonException:
 This error occurs because Reqnroll is unable to properly create and compare the `WeatherForecast` objects from the table. Instead, the date has a value of `1/1/0001` and the temperature values are empty. This is because Reqnroll doesn't know how to parse the `DateOnly` and `Temperature` types from the table.
 
 
-### Implementing custom Value Retrievers and Value Comparers
+### Custom Value Retrievers and Comparers
 
 To solve this issue, we can implement custom value retrievers and value comparers for the `DateOnly` and `Temperature` types. We'll start by implementing the `DateOnlyValueRetriever` class:
 
@@ -237,7 +253,7 @@ public static void BeforeTestRun()
 With these changes, the scenario will now run successfully and the expected and actual weather forecasts will be created and compared correctly. You can find a working sample in the `01-Init` project of [this solution](https://github.com/ronaldbosma/blog-code-examples/tree/master/reqnroll-parsable-value-retriever-and-comparer).
 
 
-### Creating a generic Parsable Value Retriever and Comparer
+### Generic Parsable Value Retriever and Comparer
 
 As you've seen, the implementations of the `DateOnlyValueRetriever` and `TemperatureValueRetriever` are very similar. The same goes for the `DateOnlyValueComparer` and `TemperatureValueComparer`. Because both the `DateOnly` and `Temperature` types implement the `IParsable<T>` interface, we can create a generic `ParsableValueRetriever<T>` and `ParsableValueComparer<T>` class to reduce the amount of code.
 
@@ -295,11 +311,11 @@ public static void BeforeTestRun()
 }
 ```
 
-With these two generic classes we can now convert and compare every type that implements the `IParsable<T>` interface. Reducing the amount of code and making it easier to add new types in the future. The only downside to this solution is that we have to register the value retriever and comparer for each type separately.
+With these two generic classes, we can now convert and compare every type that implements the `IParsable<T>` interface, educing the amount of code and making it easier to add new types in the future. The only downside to this solution is that we have to register the value retriever and comparer for each type separately.
 
 You can find a working sample in the `02-GenericTypes` project of [this solution](https://github.com/ronaldbosma/blog-code-examples/tree/master/reqnroll-parsable-value-retriever-and-comparer).
 
-### Creating a Parsable Value Retriever and Comparer with Reflection
+### Parsable Value Retriever and Comparer with Reflection
 
 We can go one step further. In the previous solution we had to register the value retriever and comparer for each type separately. Instead, we can use reflection to implement the value retriever and value comparer so it can handle any type that implements the `IParsable<T>` interface.
 
@@ -321,7 +337,7 @@ internal class ParsableValueRetriever : IValueRetriever
 }
 ```
 
-The logic is the same as before. It checks if the property type implements the `IParsable<T>` interface and if the value can be parsed to a `T` instance. If true, the `Retrieve` method is called to parse the value to a `T` instance.
+The logic remains the same as before. It checks if the property type implements the `IParsable<T>` interface and if the value can be parsed to a `T` instance. If `true`, the `Retrieve` method is called to parse the value to a `T` instance.
 
 And here's the implementation for the `ParsableValueComparer` class:
 
@@ -341,9 +357,9 @@ internal class ParsableValueComparer : IValueComparer
 }
 ```
 
-Again, the logic is very similar as before. There's an extra check in the `CanCompare` to check that the actual value is not `null`, because we need to be able to determine the type of the actual value. If the actual value implements the `IParsable<T>` interface, the `Compare` method is called to compare the expected value with the actual value.
+Once again, the logic is very similar to before. An additional check is included in the `CanCompare` method to ensure that the actual value is not `null`, as we need to determine the type of the actual value. If the actual value implements the `IParsable<T>` interface, the `Compare` method is called to compare the expected value with the actual value.
 
-Both classes use the `GenericParsableParser` class which contains a couple of handy helper methods. First, the `ImplementsSupportedIParsable` is used to check if the type implements the `IParsable<T>` interface.
+Both classes use the `GenericParsableParser` class, which contains a couple of handy helper methods. First, the `ImplementsSupportedIParsable` method is used to check if the type implements the `IParsable<T>` interface. The implementation is shown below:
 
 ```csharp
 public static bool ImplementsSupportedIParsable(Type type)
@@ -357,9 +373,10 @@ public static bool ImplementsSupportedIParsable(Type type)
 }
 ```
 
-Since `ImplementsSupportedIParsable` will return true for all types that implement the `IParsable<T>` interface, we also return true for common types like `string`, `int` and `DateTime`. I found that the parsing logic doesn't work well with strings, so these are excluded.
+Since `ImplementsSupportedIParsable` will return `true` for all types that implement the `IParsable<T>` interface, it also returns `true` for common types like `string`, `int` and `DateTime`. However, I found that the parsing logic doesn't work well with strings, so these are excluded.
 
-Next is the `Parse` method which is used to parse a string to an instance of the implementing type. It relies on the `TryParse` method to do the actual parsing.
+Next is the `Parse` method, which is used to parse a string to an instance of the implementing type. It relies on the `TryParse` method to perform the actual parsing.
+
 ```csharp
 public static object Parse(Type targetType, string s, IFormatProvider? formatProvider)
 {
@@ -374,7 +391,7 @@ public static object Parse(Type targetType, string s, IFormatProvider? formatPro
 }
 ```
 
-The `TryParse` is where the real reflection magic happens.
+The `TryParse` function is where the real reflection magic happens.
 
 ```csharp
 public static bool TryParse(Type targetType, [NotNullWhen(true)] string? s, IFormatProvider? formatProvider, [MaybeNullWhen(false)] out object result)
@@ -428,14 +445,14 @@ public static bool TryParse(Type targetType, [NotNullWhen(true)] string? s, IFor
 }
 ```
 
-The `TryParse` method does the following:
-- It checks if the target type implements the `IParsable<T>` interface.
-- It gets the `IParsable<T>` interface implemented by the target type.
-- From the `IParsable<T>` interface it gets the type parameter `T`.
-- It creates an instance of `T`.
-- It gets the `TryParse` method of `T`.
-- It invokes the `TryParse` method.
-- It sets the result to the parsed result if the `TryParse` was successful and returns `true`.
+The `TryParse` method executes the following steps:
+1. It checks if the target type implements the `IParsable<T>` interface.
+1. It gets the `IParsable<T>` interface implemented by the target type.
+1. From the `IParsable<T>` interface, it retrieves the type parameter `T`.
+1. It creates an instance of `T`.
+1. It gets the `TryParse` method of `T`.
+1. It invokes the `TryParse` method.
+1. If the `TryParse` was successful, it sets the result to the parsed value and returns `true`.
 
 The last step is to register the `ParsableValueRetriever` and `ParsableValueComparer` classes in the `BeforeTestRun` hook as shown below:
 
@@ -455,4 +472,4 @@ With this, the `ParsableValueRetriever` and `ParsableValueComparer` classes can 
 
 ### Conclusion
 
-With the introduction of the `IParsable<T>` interface in .NET 7, it has become a lot easier to create generic parsing logic. Combining this with Reqnroll's Value Retrievers and Value Comparers, we can create a generic solution to convert and compare any type that implements the `IParsable<T>` interface. Using reflection we can even make this solution more generic and handle any type that implements the `IParsable<T>` interface. Because not everybody is a fan of reflection, I'll let you decide which solution you prefer.
+With the introduction of the `IParsable<T>` interface in .NET 7, it has become much easier to create generic parsing logic. By combining this interface with Reqnroll's Value Retrievers and Value Comparers, we can create a generic solution to convert and compare any type that implements the `IParsable<T>` interface. Using reflection, we can even make this solution more generic and handle any type that implements the `IParsable<T>` interface. However, because not everybody is a fan of reflection, I'll let you decide which solution you prefer.
