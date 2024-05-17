@@ -42,7 +42,7 @@ The name of a resource consists of the following components:
 
 In the past, I've used a Bicep module for applying naming conventions. However, in this post, we'll leverage a relatively new feature called [User-defined functions in Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/user-defined-functions), in conjunction with [Imports in Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-import). This approach allows us to create a reusable function that generates resource names based on the specified convention, seamlessly integrating it into our Bicep files.
 
-From a user's perspective, using a user-defined function appears more elegant than utilizing a module. A function call can be condensed into a single line, whereas invoking a module requires multiple lines of code. Additionally, unlike a function, a module becomes a deployment in Azure.
+From a user's perspective, using a user-defined function appears more elegant than utilizing a module. A function call can be condensed into a single line, whereas invoking a module requires multiple lines of code. Additionally, unlike a function, a module becomes a deployment in Azure, which creates unnecessary noise.
 
 For reference, here's how you would use a module to retrieve the name of a virtual network based on the naming convention:
 
@@ -70,14 +70,14 @@ That being said, creating the logic to apply the naming convention is a bit more
 
 ### User-defined Functions
 
-In this section, we'll explore the various functions required to apply the naming convention. As you'll discover, much of the logic revolves around maintaining concise resource names, which is crucial given the limitations on name length. For instance, a Key Vault or Storage Account name can only be 24 characters long, while a Windows virtual machine name is even shorter, capped at 15 characters.
+In this section, we'll explore the various functions required to apply the naming convention. As you'll discover, much of the logic revolves around creating concise resource names, which is crucial given the limitations on name length. For instance, a Key Vault or Storage Account name can only be 24 characters long, while a Windows virtual machine name is even shorter, capped at 15 characters.
 
 You can find the end result with all functions [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/naming-conventions.bicep).
 
 
 #### Get Resource Type Prefix
 
-We'll begin with the resource type prefix. I've used [Abbreviation recommendations for Azure resources](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-abbreviations) to create a mapping of resource types to prefixes for resources commonly used in my projects. While this list may not be exhaustive, it can be easily extended with your own resource types and corresponding prefixes.
+We'll begin with the resource type prefix. I've used [Abbreviation recommendations for Azure resources](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-abbreviations) to create a mapping of resource types to prefixes for resources commonly used in my projects. While I haven't implemented the complete list, it can be easily extended with your own resource types and corresponding prefixes.
 
 Below is a snippet of the functions to retrieve the prefix.
 
@@ -184,7 +184,7 @@ func getResourcesTypesToShorten() array => [
 ]
 ```
 
-Next, we'll need a function to shorten the name. We'll remove hyphens and sanitize the resource name. Here's the function:
+Next, we'll need a function to shorten the name. We'll remove any hyphens and sanitize the resource name. Here's the function:
 
 ```bicep
 func shortenString(value string) string => removeHyphens(sanitizeResourceName(value))
@@ -230,13 +230,15 @@ Note the `export` decorator. This is required to make the function available to 
 
 ### Using the Function
 
-To use the function in different Bicep files, I've placed the functions in a reusable Bicep file. This file can then be imported into other Bicep files. Here's an example of how to import the file:
+To use the function in different Bicep files, I've placed the functions in a separate Bicep file. This file can then be imported into other Bicep files. Here's an example of how to import the `getResourceName` function from the `naming-conventions.bicep` file:
 
 ```bicep
 import { getResourceName } from './naming-conventions.bicep'
 ```
 
-Please note that, at the time of writing this post, the import feature is still in preview. Although the [Imports in Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-import) documentation states that you need to enable the feature in your Bicep config file, I found that it was not necessary.
+Please note that, at the time of writing this post, the import feature is still in preview. 
+
+> Although the [Imports in Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-import) documentation states that you need to enable the feature in your Bicep config file, I found that it was not necessary.
 
 Once the `getResourceName` function is imported, you can use it in your Bicep files. Here are some examples:
 
@@ -299,7 +301,7 @@ assert assertResult = actualResult == expectedResult
 ```
 
 As you can see, the module:
-- Imports the function.
+- Imports the function `getResourceName`.
 - Defines parameters for the input values of the function.
 - Defines a parameter for the expected result.
 - Calls the `getResourceName` function.
@@ -337,6 +339,6 @@ You can find the full suite of tests in [tests.bicep](https://github.com/ronaldb
 
 ### Conclusion
 
-I think [user-defined functions in Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/user-defined-functions) are a powerful feature to help you create reusable logic, like applying a naming convention. Due to their current limitations, functions can be a bit tricky when creating more complex logic. But for me, using a function to apply a naming convention is a definite improvement over using a module, because it results in much cleaner code.
+I think [User-defined functions in Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/user-defined-functions) are a powerful feature to help you create reusable logic, like applying a naming convention. Due to their current limitations, functions can be a bit tricky when creating more complex logic. But for me, using a function to apply a naming convention is a definite improvement over using a module, because it results in much cleaner code.
 
-The [Bicep Testing Framework](https://rios.engineer/exploring-the-bicep-test-framework-%F0%9F%A7%AA/) is also a great addition to Bicep. It allows you to write tests for your Bicep files and make sure everything works as expected. I hope the Bicep team will continue to improve the framework and add more features like better output for failed tests.
+The [Bicep Testing Framework](https://rios.engineer/exploring-the-bicep-test-framework-%F0%9F%A7%AA/) is also a great addition to Bicep. It allows you to write tests for your Bicep files and ensure everything works as expected. I hope the Bicep team will continue to improve the framework and add more features, such as better output for failed tests.
