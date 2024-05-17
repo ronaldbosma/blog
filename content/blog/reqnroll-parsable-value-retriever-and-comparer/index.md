@@ -8,10 +8,7 @@ summary: "In this blog post, we'll explore how to use the `IParsable<T>` interfa
 draft: true
 ---
 
-
 In this blog post, we'll explore leveraging the IParsable<T> interface to construct a versatile Reqnroll value retriever and comparer. We'll begin by crafting a custom solution, then transition to a more streamlined approach using generics, and finally, we'll delve into employing reflection for even greater flexibility.
-
-
 
 The introduction of .NET 7 has brought us the [IParsable<T>](https://learn.microsoft.com/en-us/dotnet/api/system.iparsable-1?view=net-8.0) interface, a generic interface that defines static `Parse` and `TryParse` methods. This interface is used to parse a string into an instance of the implementing type. Common types like `string`, `int` and `DateTime` all implement this interface.
 
