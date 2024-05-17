@@ -247,3 +247,63 @@ public static void BeforeTestRun()
 
 With these changes, the scenario will now run successfully and the expected and actual weather forecasts will be compared correctly. You can find a working sample in the `01-Init` project of [this solution](https://github.com/ronaldbosma/blog-code-examples/tree/master/reqnroll-parsable-value-retriever-and-comparer).
 
+
+### Creating a generic Parsable Value Retriever and Comparer
+
+As you've seen, the implementations of the `DateOnlyValueRetriever` and `TemperatureValueRetriever` are very similar. The same goes for the `DateOnlyValueComparer` and `TemperatureValueComparer`. Because both the `DateOnly` and `Temperature` types implement the `IParsable<T>` interface, we can create a generic `ParsableValueRetriever<T>` and `ParsableValueComparer<T>` class to reduce the amount of code.
+
+Here's the implementation of the `ParsableValueRetriever<T>` class:
+
+```csharp
+internal class ParsableValueRetriever<T> : IValueRetriever where T : IParsable<T>
+{
+    public bool CanRetrieve(KeyValuePair<string, string> keyValuePair, Type targetType, Type propertyType)
+    {
+        return typeof(IParsable<T>).IsAssignableFrom(propertyType) &&
+                T.TryParse(keyValuePair.Value, CultureInfo.CurrentCulture, out _);
+    }
+
+    public object Retrieve(KeyValuePair<string, string> keyValuePair, Type targetType, Type propertyType)
+    {
+        return T.Parse(keyValuePair.Value, CultureInfo.CurrentCulture);
+    }
+}
+```
+
+In the `CanRetrieve` method we check if the property type is assignable from `IParsable<T>` and if the value can be parsed to a `T` instance. The `Retrieve` method is then called to parse the value to a `T` instance.
+
+And here's the implementation of the `ParsableValueComparer<T>` class:
+
+```csharp
+internal class ParsableValueComparer<T> : IValueComparer where T : IParsable<T>
+{
+    public bool CanCompare(object actualValue)
+    {
+        return actualValue is IParsable<T>;
+    }
+
+    public bool Compare(string expectedValue, object actualValue)
+    {
+        var isParsed = T.TryParse(expectedValue, CultureInfo.CurrentCulture, out T? expectedObject);
+        return isParsed && actualValue.Equals(expectedObject);
+    }
+}
+```
+
+In the `CanCompare` method we check if the actual value is assignable from `IParsable<T>`. The `Compare` method is then called to compare the expected value with the actual value.
+
+With these generic implementations, we can now register the `ParsableValueRetriever<T>` and `ParsableValueComparer<T>` classes for the `DateOnly` and `Temperature` types in the `BeforeTestRun` hook as shown below:
+
+```csharp
+[BeforeTestRun]
+public static void BeforeTestRun()
+{
+    Service.Instance.ValueRetrievers.Register(new ParsableValueRetriever<DateOnly>());
+    Service.Instance.ValueRetrievers.Register(new ParsableValueRetriever<Temperature>());
+
+    Service.Instance.ValueComparers.Register(new ParsableValueComparer<DateOnly>());
+    Service.Instance.ValueComparers.Register(new ParsableValueComparer<Temperature>());
+}
+```
+
+With these two generic classes we can now convert and compare every type that implements the `IParsable<T>` interface. Reducing the amount of code and making it easier to add new types in the future. The only downside to this solution is that we have to register the value retriever and comparer for each type separately.
