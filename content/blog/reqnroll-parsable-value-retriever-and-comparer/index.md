@@ -8,8 +8,6 @@ summary: "In this blog post, we'll explore how to use the `IParsable<T>` interfa
 draft: true
 ---
 
-In this blog post, we'll explore leveraging the IParsable<T> interface to construct a versatile Reqnroll value retriever and comparer. We'll begin by crafting a custom solution, then transition to a more streamlined approach using generics, and finally, we'll delve into employing reflection for even greater flexibility.
-
 The introduction of .NET 7 has brought us the [IParsable<T>](https://learn.microsoft.com/en-us/dotnet/api/system.iparsable-1?view=net-8.0) interface, a generic interface that defines static `Parse` and `TryParse` methods. This interface is used to parse a string into an instance of the implementing type. Common types like `string`, `int` and `DateTime` all implement this interface.
 
 If you have a custom type that needs to be parsed from a string, you can implement this interface yourself. This is useful because it allows for reusable parsing logic. In this blog post, we'll see how to use the `IParsable<T>` interface to build a generic [Reqnroll](https://reqnroll.net/) value retriever and comparer.
@@ -18,7 +16,7 @@ If you have a custom type that needs to be parsed from a string, you can impleme
 
 As you might already know, when working with tables in Gherkin scenarios, you can use the [DataTable Helper](https://docs.reqnroll.net/latest/automation/datatable-helpers.html) extension methods `CreateInstance<T>` and `CreateSet<T>` to convert a table into a single object or a list of objects. Similarly, the `CompareToInstance<T>` and `CompareToSet<T>` extension methods can be used to compare objects to a table with expected data.
 
-These extension methods work great when your properties are only simple types like `string`, `int`, `DateTime`, etc. But what if you have a custom type that needs to be converted or compared? This is where [Value Retrievers and Value Comparers](https://docs.reqnroll.net/latest/extend/value-retrievers.html) come in. They allow you to define custom logic for converting and comparing custom types.
+These extension methods work great when your properties are only simple types like `string`, `int` and `DateTime`. But what if you have a custom type that needs to be converted or compared? This is where [Value Retrievers and Value Comparers](https://docs.reqnroll.net/latest/extend/value-retrievers.html) come in. They allow you to define custom logic for converting and comparing custom types.
 
 > If you're unfamiliar with the Reqnroll DataTable Helper extension methods or Value Retrievers and Comparers, I recommend reading the [DataTable Helpers documentation](https://docs.reqnroll.net/latest/automation/datatable-helpers.html) and [Value Retrievers documentation](https://docs.reqnroll.net/latest/extend/value-retrievers.html) first.
 
@@ -43,16 +41,16 @@ Scenario: Create weather forecasts from a table and compare them with another ta
 When the following table is converted into weather forecasts
     | Date          | Minimum Temperature | Maximum Temperature |
     | 13 April 2024 | 13 °C               | 23 °C               |
-    | 14 April 2024 | 10 °C               | 15 °C               |
+    | 14 April 2024 | 10 °C               | 59 °F               |
     | 15 April 2024 | 7 °C                |                     |
 Then the following weather forecasts are created
     | Date          | Minimum Temperature | Maximum Temperature |
     | 13 April 2024 | 13 °C               | 23 °C               |
-    | 14 April 2024 | 50 °F               | 59 °F               |
+    | 14 April 2024 | 10 °C               | 59 °F               |
     | 15 April 2024 | 7 °C                |                     |
 ```
 
-In the `When` step, we'll use the `CreateSet` method to convert the `DataTable` into a list of `WeatherForecast` objects. In the `Then` step, we'll use the `CompareToSet` method to compare the expected weather forecasts with the actual weather forecasts. The implemented step definitions are shown below:
+In the `When` step, we'll use the `CreateSet<T>` method to convert the `DataTable` into a list of `WeatherForecast` objects. In the `Then` step, we'll use the `CompareToSet<T>` method to compare the expected weather forecasts with the actual weather forecasts. The implemented step definitions are shown below:
 
 ```csharp
 private IEnumerable<WeatherForecast>? _actualWeatherForecasts;
@@ -81,7 +79,9 @@ public class WeatherForecast
 }
 ```
 
-As you can see, the `WeatherForecast` class has a `DateOnly` property and two `Temperature` properties. The [DateOnly](https://learn.microsoft.com/en-us/dotnet/api/system.dateonly?view=net-8.0) type was introduced in .NET 6 to represent a date without time. Currently, Reqnroll cannot convert it out-of-the-box. 
+As you can see, the `WeatherForecast` class has a `DateOnly` property and two `Temperature` properties. The `MaximumTemperature` property is nullable to check if our solution can handle `null` values.
+
+The [DateOnly](https://learn.microsoft.com/en-us/dotnet/api/system.dateonly?view=net-8.0) type was introduced in .NET 6 to represent a date without time. Currently, Reqnroll cannot convert it out-of-the-box. 
 
 The `Temperature` type is a custom type that can represent a temperature in both Celsius and Fahrenheit. It is a record that implements the `IParsable<T>` interface and is defined as follows:
 
@@ -94,6 +94,7 @@ public enum TemperatureUnit
 
 public record Temperature : IParsable<Temperature>
 {
+    // Regex to parse a temperature string
     private readonly static Regex TemperatureRegex = new(@"^(-?\d+) (°C|°F)$");
 
     public int Degrees { get; init; }
@@ -114,32 +115,35 @@ public record Temperature : IParsable<Temperature>
 
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out Temperature result)
     {
-        if (s != null)
-        {
-            var regexMatches = TemperatureRegex.Matches(s);
-            if (regexMatches.Count == 1)
-            {
-                var degrees = int.Parse(regexMatches[0].Groups[1].Value);
-                var unit = regexMatches[0].Groups[2].Value;
+        result = null;
 
-                result = new Temperature
-                {
-                    Degrees = degrees,
-                    Unit = unit == "°C" ? TemperatureUnit.Celsius : TemperatureUnit.Fahrenheit
-                };
-                return true;
-            }
+        if (string.IsNullOrWhiteSpace(s))
+        {
+            return false;
+        }
+        
+        var regexMatches = TemperatureRegex.Matches(s);
+        if (regexMatches.Count != 1)
+        {
+            return false;
         }
 
-        result = null;
-        return false;
+        var degrees = int.Parse(regexMatches[0].Groups[1].Value);
+        var unit = regexMatches[0].Groups[2].Value;
+
+        result = new Temperature
+        {
+            Degrees = degrees,
+            Unit = unit == "°C" ? TemperatureUnit.Celsius : TemperatureUnit.Fahrenheit
+        };
+        return true;
     }
 }
 ```
 
-The `Temperature` record has a `Degrees` property that represents the temperature in either Celsius or Fahrenheit and a `Unit` property that represents the unit of the temperature.
+The `Temperature` record has a `Degrees` property that represents the temperature in degrees and a `Unit` property that represents the unit of the temperature, which is Celsius or Fahrenheit.
 
-The `Parse` and `TryParse` methods implement the `IParsable<T>` interface and are used to parse a string to a `Temperature` instance. They use a regular expression to extract the degrees and the unit, which is either `°C` or `°F`.
+The `Parse` and `TryParse` methods implement the `IParsable<T>` interface and are used to parse a string into a `Temperature` instance. They use a regular expression to extract the degrees and the unit, which is represented by `°C` or `°F`. Example include are `10 °C` and `59 °F`.
 
 Now, if we were to run our scenario as is, we would get the following error:
 
@@ -160,7 +164,7 @@ This error occurs because Reqnroll is unable to properly create and compare the 
 
 ### Custom Value Retrievers and Comparers
 
-To solve this issue, we can implement custom value retrievers and value comparers for the `DateOnly` and `Temperature` types. We'll start by implementing the `DateOnlyValueRetriever` class:
+To solve this issue, we can implement custom value retrievers and comparers for the `DateOnly` and `Temperature` types. We'll start by implementing the `DateOnlyValueRetriever` class:
 
 ```csharp
 internal class DateOnlyValueRetriever : IValueRetriever
@@ -177,7 +181,7 @@ internal class DateOnlyValueRetriever : IValueRetriever
 }
 ```
 
-Reqnroll will call the `CanRetrieve` method to determine if the `DateOnlyValueRetriever` can retrieve the value. If the property type is `DateOnly` and the value can be parsed to a `DateOnly` instance, the `CanRetrieve` method will return `true`. The `Retrieve` method is then called to parse the value to a `DateOnly` instance.
+Every value retriever implements the `IValueRetriever` interface. Reqnroll will call the `CanRetrieve` method to determine if the `DateOnlyValueRetriever` can retrieve the value. If the property type is `DateOnly` and the value can be parsed to a `DateOnly` instance, the `CanRetrieve` method will return `true`. The `Retrieve` method is then called to parse the value to a `DateOnly` instance.
 
 The `DateOnlyValueComparer` class is implemented as follows:
 
@@ -197,7 +201,7 @@ internal class DateOnlyValueComparer : IValueComparer
 }
 ```
 
-Similar to the value retriever, Reqnroll will call the `CanCompare` method to determine if the `DateOnlyValueComparer` can compare the value. If the actual value is of type `DateOnly`, the `CanCompare` method will return `true`. The `Compare` method is then called to compare the expected value with the actual value. If the expected value cannot be parse to a `DateOnly`, `false` will be returned. Otherwise, the actual value will be compared with the expected value.
+Similar to the value retriever, the value comparer needs to implement the `IValueComparer` interface. Reqnroll will call the `CanCompare` method to determine if the `DateOnlyValueComparer` can compare the value. If the actual value is of type `DateOnly`, the `CanCompare` method will return `true`. The `Compare` method is then called to compare the expected value with the actual value. If the expected value cannot be parse to a `DateOnly`, `false` will be returned. Otherwise, the actual value will be compared with the expected value.
 
 And here are the implementations for the `TemperatureValueRetriever` and `TemperatureValueComparer` classes:
 
@@ -233,7 +237,7 @@ internal class TemperatureValueComparer : IValueComparer
 
 As you can see, the implementations are exactly the same as for the `DateOnlyValueRetriever` and `DateOnlyValueComparer` classes, but now for the `Temperature` type.
 
-The last step is to register the custom value retrievers and value comparers. We can use a `BeforeTestRun` hook as shown in the following code snippet:
+The last step is to register the custom value retrievers and comparers. We can use a `BeforeTestRun` hook as shown in the following code snippet:
 
 ```csharp
 [BeforeTestRun]
@@ -308,13 +312,13 @@ public static void BeforeTestRun()
 }
 ```
 
-With these two generic classes, we can now convert and compare every type that implements the `IParsable<T>` interface, educing the amount of code and making it easier to add new types in the future. The only downside to this solution is that we have to register the value retriever and comparer for each type separately.
+With these two generic classes, we can now convert and compare every type that implements the `IParsable<T>` interface, reducing the amount of code and making it easier to add new types in the future. The only downside to this solution is that we have to register the value retriever and comparer for each type separately.
 
 You can find a working sample in the `02-GenericTypes` project of [this solution](https://github.com/ronaldbosma/blog-code-examples/tree/master/reqnroll-parsable-value-retriever-and-comparer).
 
 ### Parsable Value Retriever and Comparer with Reflection
 
-We can go one step further. In the previous solution we had to register the value retriever and comparer for each type separately. Instead, we can use reflection to implement the value retriever and value comparer so it can handle any type that implements the `IParsable<T>` interface.
+We can go one step further. In the previous solution we had to register the value retriever and comparer for each type separately. Instead, we can use reflection to implement the value retriever and comparer so it can handle any type that implements the `IParsable<T>` interface.
 
 Here's the implementation for the `ParsableValueRetriever` class:
 
@@ -424,7 +428,7 @@ public static bool TryParse(Type targetType, [NotNullWhen(true)] string? s, IFor
     var parseMethod = parsableType.GetMethod("TryParse", [typeof(string), typeof(CultureInfo), parsableType.MakeByRefType()]);
     if (parseMethod == null)
     {
-        throw new Exception($"Unable to get method with signature Parse(String, IFormatProvider, out TSelf) from type {parsableType}");
+        throw new Exception($"Unable to get method with signature TryParse(String, IFormatProvider, out TSelf) from type {parsableType}");
     }
 
     // Invoke the TryParse method
@@ -432,7 +436,7 @@ public static bool TryParse(Type targetType, [NotNullWhen(true)] string? s, IFor
     var tryParseResult = (bool?)parseMethod.Invoke(parsableInstance, parameters);
     if (tryParseResult == null)
     {
-        throw new Exception($"Parse method on type {parsableType} unexpectedly return null for value: {s}");
+        throw new Exception($"TryParse method on type {parsableType} unexpectedly returned null for value: {s}");
     }
 
     // Set result to the parsed result if TryParse was successful
@@ -443,7 +447,7 @@ public static bool TryParse(Type targetType, [NotNullWhen(true)] string? s, IFor
 ```
 
 The `TryParse` method executes the following steps:
-1. It checks if the target type implements the `IParsable<T>` interface.
+1. It checks if the target type implements a supported version of the `IParsable<T>` interface.
 1. It gets the `IParsable<T>` interface implemented by the target type.
 1. From the `IParsable<T>` interface, it retrieves the type parameter `T`.
 1. It creates an instance of `T`.
@@ -469,4 +473,4 @@ With this, the `ParsableValueRetriever` and `ParsableValueComparer` classes can 
 
 ### Conclusion
 
-With the introduction of the `IParsable<T>` interface in .NET 7, it has become much easier to create generic parsing logic. By combining this interface with Reqnroll's Value Retrievers and Value Comparers, we can create a generic solution to convert and compare any type that implements the `IParsable<T>` interface. Using reflection, we can even make this solution more generic and handle any type that implements the `IParsable<T>` interface. However, because not everybody is a fan of reflection, I'll let you decide which solution you prefer.
+With the introduction of the `IParsable<T>` interface in .NET 7, it has become much easier to create generic parsing logic. By combining this interface with Reqnroll's value retrievers and comparers, we can create a generic solution to convert and compare any type that implements the `IParsable<T>` interface. Using reflection, we can make this solution more generic and handle any type that implements the `IParsable<T>` interface. However, because not everybody is a fan of reflection, I'll let you decide which solution you prefer.
