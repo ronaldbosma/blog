@@ -22,6 +22,10 @@ Topics covered in this series:
 
 In the previous posts, we covered how to validate client certificates in Azure API Management. In this post, we’ll focus on securing backend connections with mTLS in API Management. We'll deploy two API Management instances. The first will serve as the backend and will require a client certificate for authentication. The second will act as the client and will connect to the backend using mTLS. The client certificate will be stored in Key Vault.
 
+The following figure provides a full overview of the setup:
+
+![Overview](../../../../../images/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/diagrams-overview.webp)
+
 This post provides a step by step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim). If you want to know how to configure all of this through the Azure Portal, have a look at [Secure backend services using client certificate authentication in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates).
 
 ### Prerequisites
@@ -31,6 +35,11 @@ The first section will cover the prerequisites for this post. You'll need:
 1. Another Consumption tier API Management instance that will act as the client and connect to the backend using a client certificate.
 1. A Key Vault to store the client certificate. The API Management client instance needs access to the Key Vault using the 'Key Vaults Secrets' role.
 1. Access to the Key Vault yourself to create a certificate in the Key Vault. The 'Key Vault Administrator' role will suffice.
+
+The following diagram provides an overview of the prerequisites:
+
+![Prerequisites](../../../../../images/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/diagrams-prerequisites.webp)
+
 
 You can create these resources manually, but I've created a Bicep template that will deploy all of them. You can find the Bicep template [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/prerequisites/prerequisites.bicep).
 
