@@ -252,7 +252,7 @@ resource clientCertificate 'Microsoft.ApiManagement/service/certificates@2022-08
 }
 ```
 
-This code creates a reference to the client certificate in the Key Vault. The `secretIdentifier` property is set to the `secretUri` of the client certificate secret in the Key Vault. This is the URI that can be used to always get the latest version of the secret.
+This code creates a 'certificate' resource that is a reference to the client certificate in the Key Vault. The `secretIdentifier` property is set to the `secretUri` of the client certificate secret in the Key Vault. This is the URI that can be used to always get the latest version of the secret.
 
 The last step is to update the backend to use the client certificate for authentication. Replace the current `testBackend` resource with the following code:
 
@@ -301,3 +301,26 @@ https://<your-apim-client-instance>.azure-api.net/backend/internal-status-012345
 Instead of a 403 Forbidden response, you should now receive a 200 OK response, because the backend is called using a valid client certificate.
 
 > Note that at the moment, any client certificate will be accepted by the backend. This is because we're not validating the client certificate in the backend API Management instance. How to do this was covered in the first and second posts of this series. You can find them [here](/blog/2024/02/02/validate-client-certificates-in-api-management/) and [here](/blog/2024/02/19/validate-client-certificates-in-api-management-when-its-behind-an-application-gateway/).
+
+
+### Considerations
+
+There are some considerations to keep in mind when working with client certificates that are stored in Key Vault and used by API Management. 
+
+When creating a certificate in Key Vault, it's preferred to _not_ make the private key exportable. This is saver because it's not possible to export the private key and steal the certificate. However, when using the certificate in API Management, the private key must be exportable. If you don't make it exportable and deploy the Bicep template, you'll receive the following error:
+
+```plaintext
+Certificate with id 'client-certificate' does not contain private key.
+```
+
+Second. At the time of writing this post, API Management has a bug concerning certificates with key type EC. When deploying the Bicep template and a certificate with key type EC is referenced, the first deployment will succeed when the 'certificate' resource is created in API Management. However, once the 'certificate' resource exists in API Management, consecutive deployments will all fail with a 500 Internal Server Error response.
+
+To test this, (manually) create a certificate in the Key Vault with key type EC. Then redeploy the Bicep template, passing the name of the new client certificate into the `clientCertificateSecretName` parameter. Assuming that the 'certificate' resource already exists in API Management, the deployment will take a lot longer then before. If you look at the deployment in the Azure Portal, you'll see a running deployment with status 'InternalServerError'. See the figure below.
+
+![Running Deployment with Internal Server Error](../../../../../images/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/running-deployment-with-internal-server-error.png)
+
+I've let the deployment run and it failed after running for more than 2 hours due to a timeout. I've contacted Microsoft about this issue and they've informed me that it's a known issue and that they're working on a fix. Unfortenately, they can't give a timeline for when this will be fixed.
+
+If you also run into this issue, upvote [Support updating certificates generated in Key Vault (Bug)](https://feedback.azure.com/d365community/idea/de682266-c5fb-ee11-a73c-000d3a012948) on the Azure Feedback Forum. Hopefully, this will speed up the process of getting it fixed.
+
+As a workaround, we've added a boolean parameter to our deployment which we can manually set to `true` when the 'certificate' resources is created for the first time. After the first deployment, we set it to `false` so the 'certificate' resource is not updated and the deployment will succeed. This is not ideal, but it's a workaround until the issue is fixed.
