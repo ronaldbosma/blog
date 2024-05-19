@@ -324,3 +324,10 @@ I've let the deployment run and it failed after running for more than 2 hours du
 If you also run into this issue, upvote [Support updating certificates generated in Key Vault (Bug)](https://feedback.azure.com/d365community/idea/de682266-c5fb-ee11-a73c-000d3a012948) on the Azure Feedback Forum. Hopefully, this will speed up the process of getting it fixed.
 
 As a workaround, we've added a boolean parameter to our deployment which we can manually set to `true` when the 'certificate' resources is created for the first time. After the first deployment, we set it to `false` so the 'certificate' resource is not updated and the deployment will succeed. This is not ideal, but it's a workaround until the issue is fixed.
+
+
+### Conclusion
+
+In comparison to validating a client certificate in API Management, which we did in previous posts, using a client certificate to connect to a backend is fairly easy to setup. You only need to create a client certificate in the Key Vault and reference it in the backend configuration of API Management.
+
+In this post, we've created a client certificate in the Key Vault using an Azure CLI command. But what if you been given a .pfx file and you need to import that into the Key Vault? In the next post, we'll cover how to import a certificate into the Key Vault from an Azure Pipeline.
