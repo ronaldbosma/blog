@@ -40,12 +40,13 @@ The following diagram provides an overview of the prerequisites:
 
 ![Prerequisites](../../../../../images/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/diagrams-prerequisites.webp)
 
-You can create these resources manually, but I've created a Bicep template that will deploy all of them. You can find the Bicep template [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/prerequisites/prerequisites.bicep).
+You can create these resources manually, but I've created a Bicep template that will deploy all the prerequisites. You can find the Bicep template [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/prerequisites/prerequisites.bicep).
 
 You can use the accompanying [deploy-prerequisites.ps1](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/prerequisites/deploy-prerequisites.ps1) PowerShell script to deploy the prerequisites. It uses the Azure CLI to:
 
 1. Create the resource group if it doesn't exist.
-1. Get your user id to grant you access to Key Vault. It uses the `az ad signed-in-user show` command. _(If this fails, use the `KeyVaultAdministratorId` parameter to specify your id manually.)_
+1. Get your user id to grant you access to Key Vault.  
+   It uses the `az ad signed-in-user show` command. If this fails, use the `KeyVaultAdministratorId` parameter to specify your id manually.
 1. Deploy the Bicep template.
 
 Here's an example of how to run the script. Make sure to replace `<your-resource-group>`, `<your-apim-client-instance>`, `<your-apim-backend-instance>`, and `<your-key-vault>` with your own values.
@@ -212,7 +213,7 @@ az keyvault certificate create --vault-name "<your-key-vault>" `
                                --policy `@defaultpolicy.json
 ```
 
-This will create a certificate with the name `generated-client-certificate` that will be valid for 1 year by default. The private key is exportable by default, which is required to use the certificate in API Management. Also, the key type is RSA by default, which is important. We'll come back to this later on.
+This will create a certificate with the name `generated-client-certificate` that will be valid for 1 year. The private key is exportable, which is required when using the certificate in API Management. Also, the key type is RSA, which is important. We'll come back to this later on in the [considerations](#considerations) section.
 
 With the client certificate in the Key Vault, we can use it in API Management. Open your `main.bicep` file and add the following code:
 
@@ -234,11 +235,11 @@ resource clientCertificateSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' 
 }
 ```
 
-We're creating a reference to the client certificate in the Key Vault using the `Microsoft.KeyVault/vaults/secrets` resource. Since the `Microsoft.KeyVault/vaults/certificates` resources does not exist, this is the only way to reference the certificate in the Key Vault. Although we've imported the client certificate as a certificate, the Key Vault will also create a secret with the same name that can be used to reference the certificate. 
+This creates a symbol to the client certificate in the Key Vault using the `Microsoft.KeyVault/vaults/secrets` resource. Since the `Microsoft.KeyVault/vaults/certificates` resource type does not exist, using a secret is the only way to reference the certificate in the Key Vault. Although we've imported the client certificate as a certificate, the Key Vault will also create a secret with the same name that can be used to reference the certificate. 
 
 The name of the client certificate in the Key Vault can be specified through the `clientCertificateSecretName` parameter. This is useful if you want to try out different types of certificates.
 
-Next, add the following code to the `main.bicep` file to create a references to the client certificate from the client API Management instance:
+Next, add the following code to the `main.bicep` file to link certificate from the client API Management instance:
 
 ```bicep
 resource clientCertificate 'Microsoft.ApiManagement/service/certificates@2022-08-01' = {
@@ -252,7 +253,7 @@ resource clientCertificate 'Microsoft.ApiManagement/service/certificates@2022-08
 }
 ```
 
-This code creates a 'certificate' resource that is a reference to the client certificate in the Key Vault. The `secretIdentifier` property is set to the `secretUri` of the client certificate secret in the Key Vault. This is the URI that can be used to always get the latest version of the secret.
+This code creates a 'certificate' resource that is a reference to the client certificate in the Key Vault. The `secretIdentifier` property is set to the `secretUri` of the client certificate secret in the Key Vault. 
 
 The last step is to update the backend to use the client certificate for authentication. Replace the current `testBackend` resource with the following code:
 
@@ -276,7 +277,7 @@ resource testBackend 'Microsoft.ApiManagement/service/backends@2022-08-01' = {
 }
 ```
 
-We've added a `credentials` property to the backend that contains a `certificateIds` property. This property is an array containing the id of the client certificate we created earlier. This will make sure that the client certificate is used for authentication when connecting to the backend.
+This new version has a `credentials` property that contains a `certificateIds` property. This property is an array containing the id of the 'certificate' resource we created earlier. This will make sure that the client certificate is used for authentication when connecting to the backend.
 
 Save the `main.bicep` file and run the following command in a PowerShell prompt to deploy the resources. Make sure to replace `<your-resource-group>`, `<your-apim-client-instance>`, `<your-apim-backend-instance>`, and `<your-key-vault>` with your own values.
 
