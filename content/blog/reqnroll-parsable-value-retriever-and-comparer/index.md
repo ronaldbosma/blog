@@ -298,6 +298,8 @@ internal class ParsableValueComparer<T> : IValueComparer where T : IParsable<T>
 
 In the `CanCompare` method we check if the actual value implements `IParsable<T>`. If true, the `Compare` method is called to compare the expected value with the actual value.
 
+Take note that we’re relying on the `Equals` method of `T` to compare the actual and expected values. Since `Temperature` is a record, this works out-of-the-box.
+
 With these generic implementations, we can now register the `ParsableValueRetriever<T>` and `ParsableValueComparer<T>` classes for the `DateOnly` and `Temperature` types in the `BeforeTestRun` hook as shown below:
 
 ```csharp
