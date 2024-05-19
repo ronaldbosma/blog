@@ -206,7 +206,7 @@ The result should be a 403 Forbidden response. This is because the backend requi
 
 In this section, we'll create a client certificate in the Key Vault, create a link to the certificate in the client API Management instance, and update the backend to use the client certificate for authentication.
 
-Lets start with the client certificate. We can use the [az keyvault certificate create](https://learn.microsoft.com/nl-nl/cli/azure/keyvault/certificate?view=azure-cli-latest#az-keyvault-certificate-create) command to create a self-signed certificate in the Key Vault. The [az keyvault certificate get-default-policy](https://learn.microsoft.com/nl-nl/cli/azure/keyvault/certificate?view=azure-cli-latest#az-keyvault-certificate-get-default-policy) command is used to get the default policy for creating a certificate. Which will suffice for this demo.
+Lets start with the client certificate. We can use the [az keyvault certificate create](https://learn.microsoft.com/nl-nl/cli/azure/keyvault/certificate?view=azure-cli-latest#az-keyvault-certificate-create) command to create a self-signed certificate in the Key Vault. This command requires a policy that specifies how to create the certificate. We can get a default policy using the [az keyvault certificate get-default-policy](https://learn.microsoft.com/nl-nl/cli/azure/keyvault/certificate?view=azure-cli-latest#az-keyvault-certificate-get-default-policy) command.
 
 You can use the following PowerShell script to create the certificate. Make sure to replace `<your-key-vault>` with your own value.
 
@@ -217,7 +217,7 @@ az keyvault certificate create --vault-name "<your-key-vault>" `
                                --policy `@defaultpolicy.json
 ```
 
-This will create a certificate with the name `generated-client-certificate` that will be valid for 1 year. The private key is exportable, which is required when using the certificate in API Management. Also, the key type is RSA, which is important. We'll come back to this later on in the [considerations](#considerations) section.
+This will create a certificate with the name `generated-client-certificate`, that will be valid for 1 year. The private key is exportable, which is required when using the certificate in API Management. Also, the key type is RSA, which is important. We'll come back to this later on in the [considerations](#considerations) section.
 
 With the client certificate in the Key Vault, we can use it in API Management. Open your `main.bicep` file and add the following code:
 
