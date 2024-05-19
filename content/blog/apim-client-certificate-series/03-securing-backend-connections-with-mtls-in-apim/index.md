@@ -20,9 +20,13 @@ Topics covered in this series:
 
 ### Intro
 
-In the previous posts, we covered how to validate client certificates in Azure API Management. In this post, we’ll focus on securing backend connections with mTLS in API Management. We'll deploy two API Management instances. The first will serve as the backend and will require a client certificate for authentication. The second will act as the client and will connect to the backend using mTLS. The client certificate will be stored in Key Vault.
+In the previous posts, we covered how to validate client certificates in Azure API Management. In this post, we’ll focus on securing backend connections with mTLS in API Management. We'll deploy two API Management instances. The first will serve as the backend and will require a client certificate for authentication. The second will act as the client. We will call the client using TLS and it will in turn connect to the backend using mTLS. 
 
-The following figure provides a full overview of the setup:
+The sequence of calls will be as follows:
+
+![Sequence Diagram](../../../../../images/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/diagrams-sequence-diagram.webp)
+
+To make this work, we'll need to create several resources. The following diagram provides an overview of the setup we'll create:
 
 ![Overview](../../../../../images/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/diagrams-overview.webp)
 
@@ -76,7 +80,7 @@ Calling the backend API Management instance should return a 403 Forbidden respon
 > Take note that while the default health endpoint for a Consumption tier API Management instance is `/internal-status-0123456789abcdef`, it's `/status-0123456789abcdef` for other tiers. 
 > Also, if you're not using the Consumption tier, the default health endpoint will not require mTLS. Instead, you'll need to create you're own API in the backend API Management instance that requires mTLS. See the post [Validate client certificates in API Management](/blog/2024/02/02/validate-client-certificates-in-api-management/) in this series for more information.
 
-### Add API and backend
+### Add API and backend configuration
 
 Next, we'll call the backend API Management instance from the client API Management instance. For this, we'll need two things. First, we'll create a backend in the client API Management instance that will contain the backend configuration, like the base url of the backend. Then, we'll add an API to the client API Management instance that will forward requests to the backend. We'll apply a test driven approach and first connect to the backend using TLS. This should fail.
 
