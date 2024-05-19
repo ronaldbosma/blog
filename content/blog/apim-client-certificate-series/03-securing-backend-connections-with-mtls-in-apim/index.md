@@ -40,7 +40,6 @@ The following diagram provides an overview of the prerequisites:
 
 ![Prerequisites](../../../../../images/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/diagrams-prerequisites.webp)
 
-
 You can create these resources manually, but I've created a Bicep template that will deploy all of them. You can find the Bicep template [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/prerequisites/prerequisites.bicep).
 
 You can use the accompanying [deploy-prerequisites.ps1](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/prerequisites/deploy-prerequisites.ps1) PowerShell script to deploy the prerequisites. It uses the Azure CLI to:
@@ -49,7 +48,7 @@ You can use the accompanying [deploy-prerequisites.ps1](https://github.com/ronal
 1. Get your user id to grant you access to Key Vault. It uses the `az ad signed-in-user show` command. _(If this fails, use the `KeyVaultAdministratorId` parameter to specify your id manually.)_
 1. Deploy the Bicep template.
 
-Here's an example of how to run the script:
+Here's an example of how to run the script. Make sure to replace `<your-resource-group>`, `<your-apim-client-instance>`, `<your-apim-backend-instance>`, and `<your-key-vault>` with your own values.
 
 ```powershell
 ./deploy-prerequisites.ps1 `
@@ -58,3 +57,141 @@ Here's an example of how to run the script:
     -ApiManagementServiceBackendName "<your-apim-backend-instance>" `
     -KeyVaultName "<your-key-vault>"
 ```
+
+The deployment will take a few minutes. After the deployment is finished, you can test the API Management instances by calling the health endpoint. Call the following URL in your browser to test the client API Management instance. It should return a 200 OK response. Replace `<your-apim-client-instance>` with your own value:
+
+```plaintext
+https://<your-apim-client-instance>.azure-api.net/internal-status-0123456789abcdef
+```
+
+For the backend API Management instance, use the following url. Replace `<your-apim-backend-instance>` with your own value:
+
+```plaintext
+https://<your-apim-backend-instance>.azure-api.net/internal-status-0123456789abcdef
+```
+
+Calling the backend API Management instance should return a 403 Forbidden response. This is because the backend requires a client certificate for authentication.
+
+> Take note that while the default health endpoint for a Consumption tier API Management instance is `/internal-status-0123456789abcdef`, it's `/status-0123456789abcdef` for other tiers. 
+> Also, if you're not using the Consumption tier, the default health endpoint will not require mTLS. Instead, you'll need to create you're own API in the backend API Management instance that requires mTLS. See the post [Validate client certificates in API Management](/blog/2024/02/02/validate-client-certificates-in-api-management/) in this series for more information.
+
+### Add API and backend
+
+Next, we'll call the backend API Management instance from the client API Management instance. For this, we'll need two things. First, we'll create a backend in the client API Management instance that will contain the backend configuration, like the base url of the backend. Then, we'll add an API to the client API Management instance that will forward requests to the backend. We'll apply a test driven approach and first connect to the backend using TLS. This should fail.
+
+Start by creating a `main.bicep` file and add the following code:
+
+```bicep
+@description('The name of the API Management Service that will be the client side of the connection')
+param apiManagementServiceClientName string
+
+@description('The name of the API Management Service that will be the backend side of the connection')
+param apiManagementServiceBackendName string
+
+resource apiManagementServiceClient 'Microsoft.ApiManagement/service@2022-08-01' existing = {
+  name: apiManagementServiceClientName
+}
+
+resource apiManagementServiceBackend 'Microsoft.ApiManagement/service@2022-08-01' existing = {
+  name: apiManagementServiceBackendName
+}
+```
+
+We're creating a reference to the existing client API Management instance so we can deploy the backend and API to it. The backend API Management instance will be used to get the url to the backend.
+
+Next, add the following code to the `main.bicep` file to create the backend:
+
+
+```bicep
+resource testBackend 'Microsoft.ApiManagement/service/backends@2022-08-01' = {
+  name: 'test-backend'
+  parent: apiManagementServiceClient
+  properties: {
+    url: apiManagementServiceBackend.properties.gatewayUrl
+    protocol: 'http'
+    tls: {
+      validateCertificateChain: true
+      validateCertificateName: true
+    }
+  }
+}
+```
+
+As you can see, we're creating a backend called `test-backend`. The url is set to the gateway url of the backend API Management instance using `apiManagementServiceBackend.properties.gatewayUrl`. The `validateCertificateChain` and `validateCertificateName` TLS properties are both set to `true` so the client will validate the SSL server certificate of the backend. These are set to `false` by default.
+
+The last step is to add the 'Backend API' to the client API Management instance. Add the following code to the `main.bicep` file:
+
+```bicep
+resource backendApi 'Microsoft.ApiManagement/service/apis@2022-08-01' = {
+  name: 'backend-api'
+  parent: apiManagementServiceClient
+  properties: {
+    displayName: 'Backend API'
+    path: 'backend'
+    protocols: [ 
+      'https' 
+    ]
+    subscriptionRequired: false // Disable required subscription key for simplicity of the demo
+  }
+
+  // Set an API level policy so all operations use the backend
+  resource policies 'policies' = {
+    name: 'policy'
+    properties: {
+      value: '''
+        <policies>
+          <inbound>
+            <base />
+            <set-backend-service backend-id="test-backend" />
+          </inbound>
+          <backend><base /></backend>
+          <outbound><base /></outbound>
+          <on-error><base /></on-error>
+        </policies>
+      '''
+    }
+  }
+
+  // Create a GET Backend Status operation
+  resource operations 'operations' = {
+    name: 'get-backend-status'
+    properties: {
+      displayName: 'GET Backend Status'
+      method: 'GET'
+      urlTemplate: '/internal-status-0123456789abcdef'
+    }
+  }
+
+  dependsOn: [
+    testBackend
+  ]
+}
+```
+
+This Bicep code creates an API called `backend-api`. I've disabled the required subscription key so it's easier to test, but this should not be done in real world scenarios if you don't have other authentication mechanism in place.
+
+The API has a policy that sets the backend to the `test-backend` backend we created earlier. This will make sure that any request send to the API is forwarded to the backend.
+
+We also create one operation on the API called `GET Backend Status` that will be used to test the connection to the backend. It will call the default health endpoint on the backend API Management instance because the operation's url template is `internal-status-0123456789abcdef`.
+
+Because we're using the `test-backend` backend in the policy, we also need to add a dependency on the `testBackend` resource.
+
+Save the `main.bicep` file and run the following command in a PowerShell prompt to deploy the resources. Make sure to replace `<your-resource-group>`, `<your-apim-client-instance>`, and `<your-apim-backend-instance>` with your own values.
+
+```powershell
+az deployment group create `
+    --name "deploy-main-$(Get-Date -Format "yyyyMMdd-HHmmss")" `
+    --resource-group '<your-resource-group>' `
+    --template-file './main.bicep' `
+    --parameters apiManagementServiceClientName='<your-apim-client-instance>' `
+                 apiManagementServiceBackendName='<your-apim-client-instance>' `
+    --verbose
+```
+
+After the deployment is finished, you can test the connection to the backend by calling the `GET Backend Status` operation on the `backend-api` API. You can do this by calling the following URL in your browser, replacing `<your-apim-client-instance>` with your own value:
+
+```plaintext
+https://<your-apim-client-instance>.azure-api.net/backend/internal-status-0123456789abcdef
+```
+
+The result should be a 403 Forbidden response. This is because the backend requires a client certificate for authentication. We'll add the client certificate in the next section.
