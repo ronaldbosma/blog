@@ -195,3 +195,109 @@ https://<your-apim-client-instance>.azure-api.net/backend/internal-status-012345
 ```
 
 The result should be a 403 Forbidden response. This is because the backend requires a client certificate for authentication. We'll add the client certificate in the next section.
+
+
+### Call backend using mTLS
+
+In this section, we'll create a client certificate in the Key Vault, create a link to the certificate in the client API Management instance, and update the backend to use the client certificate for authentication.
+
+Lets start with the client certificate. We can use the [az keyvault certificate create](https://learn.microsoft.com/nl-nl/cli/azure/keyvault/certificate?view=azure-cli-latest#az-keyvault-certificate-create) command to create a self-signed certificate in the Key Vault. The [az keyvault certificate get-default-policy](https://learn.microsoft.com/nl-nl/cli/azure/keyvault/certificate?view=azure-cli-latest#az-keyvault-certificate-get-default-policy) command is used to get the default policy for creating a certificate. Which will suffice for this demo.
+
+You can use the following PowerShell script to create the certificate. Make sure to replace `<your-key-vault>` with your own value.
+
+```powershell
+az keyvault certificate get-default-policy | Out-File -Encoding utf8 defaultpolicy.json
+az keyvault certificate create --vault-name "<your-key-vault>" `
+                               --name "generated-client-certificate" `
+                               --policy `@defaultpolicy.json
+```
+
+This will create a certificate with the name `generated-client-certificate` that will be valid for 1 year by default. The private key is exportable by default, which is required to use the certificate in API Management. Also, the key type is RSA by default, which is important. We'll come back to this later on.
+
+With the client certificate in the Key Vault, we can use it in API Management. Open your `main.bicep` file and add the following code:
+
+```bicep
+@description('The name of the Key Vault that will contain the client certificate')
+@maxLength(24)
+param keyVaultName string
+
+@description('The name of the secret in the Key Vault that contains the client certificate')
+param clientCertificateSecretName string = 'generated-client-certificate'
+
+resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' existing = {
+  name: keyVaultName
+}
+
+resource clientCertificateSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' existing = {
+  name: clientCertificateSecretName
+  parent: keyVault
+}
+```
+
+We're creating a reference to the client certificate in the Key Vault using the `Microsoft.KeyVault/vaults/secrets` resource. Since the `Microsoft.KeyVault/vaults/certificates` resources does not exist, this is the only way to reference the certificate in the Key Vault. Although we've imported the client certificate as a certificate, the Key Vault will also create a secret with the same name that can be used to reference the certificate. 
+
+The name of the client certificate in the Key Vault can be specified through the `clientCertificateSecretName` parameter. This is useful if you want to try out different types of certificates.
+
+Next, add the following code to the `main.bicep` file to create a references to the client certificate from the client API Management instance:
+
+```bicep
+resource clientCertificate 'Microsoft.ApiManagement/service/certificates@2022-08-01' = {
+  name: 'client-certificate'
+  parent: apiManagementServiceClient
+  properties: {
+    keyVault: {
+      secretIdentifier: clientCertificateSecret.properties.secretUri
+    }
+  }
+}
+```
+
+This code creates a reference to the client certificate in the Key Vault. The `secretIdentifier` property is set to the `secretUri` of the client certificate secret in the Key Vault. This is the URI that can be used to always get the latest version of the secret.
+
+The last step is to update the backend to use the client certificate for authentication. Replace the current `testBackend` resource with the following code:
+
+```bicep
+resource testBackend 'Microsoft.ApiManagement/service/backends@2022-08-01' = {
+  name: 'test-backend'
+  parent: apiManagementServiceClient
+  properties: {
+    url: apiManagementServiceBackend.properties.gatewayUrl
+    protocol: 'http'
+    credentials: {
+      certificateIds: [
+        clientCertificate.id
+      ]
+    }
+    tls: {
+      validateCertificateChain: true
+      validateCertificateName: true
+    }
+  }
+}
+```
+
+We've added a `credentials` property to the backend that contains a `certificateIds` property. This property is an array containing the id of the client certificate we created earlier. This will make sure that the client certificate is used for authentication when connecting to the backend.
+
+Save the `main.bicep` file and run the following command in a PowerShell prompt to deploy the resources. Make sure to replace `<your-resource-group>`, `<your-apim-client-instance>`, `<your-apim-backend-instance>`, and `<your-key-vault>` with your own values.
+
+```powershell
+az deployment group create `
+    --name "deploy-main-$(Get-Date -Format "yyyyMMdd-HHmmss")" `
+    --resource-group '<your-resource-group>' `
+    --template-file './main.bicep' `
+    --parameters apiManagementServiceClientName='<your-apim-client-instance>' `
+                 apiManagementServiceBackendName='<your-apim-client-instance>' `
+                 keyVaultName='<your-key-vault>' `
+                 clientCertificateSecretName='generated-client-certificate' `
+    --verbose
+```
+
+After deploying the changes, you can retest the connection to the backend by calling the `GET Backend Status` operation on the `backend-api` API. Navigate to the following URL in your browser, replacing `<your-apim-client-instance>` with your own value:
+
+```plaintext
+https://<your-apim-client-instance>.azure-api.net/backend/internal-status-0123456789abcdef
+```
+
+Instead of a 403 Forbidden response, you should now receive a 200 OK response, because the backend is called using a valid client certificate.
+
+> Note that at the moment, any client certificate will be accepted by the backend. This is because we're not validating the client certificate in the backend API Management instance. How to do this was covered in the first and second posts of this series. You can find them [here](/blog/2024/02/02/validate-client-certificates-in-api-management/) and [here](/blog/2024/02/19/validate-client-certificates-in-api-management-when-its-behind-an-application-gateway/).
