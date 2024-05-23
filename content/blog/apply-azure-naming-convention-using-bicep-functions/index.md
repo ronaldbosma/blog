@@ -236,10 +236,6 @@ To use the function in different Bicep files, I've placed the functions in a sep
 import { getResourceName } from './naming-conventions.bicep'
 ```
 
-Please note that, at the time of writing this post, the import feature is still in preview. 
-
-> Although the [Imports in Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-import) documentation states that you need to enable the feature in your Bicep config file, I found that it was not necessary.
-
 Once the `getResourceName` function is imported, you can use it in your Bicep files. Here are some examples:
 
 ```bicep
