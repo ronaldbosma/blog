@@ -18,6 +18,15 @@ Topics covered in this series:
 1. Securing backend connections with mTLS in API Management _**(current)**_
 1. Deploying certificates into Key Vault _(coming soon)_
 
+### Table of Contents
+
+- [Intro](#intro)
+- [Prerequisites](#prerequisites)
+- [Add API and backend configuration](#add-api-and-backend-configuration)
+- [Call backend using mTLS](#call-backend-using-mtls)
+- [Considerations](#considerations)
+- [Conclusion](#conclusion)
+
 ### Intro
 
 In the previous posts, we covered how to validate client certificates in Azure API Management. In this post, we’ll focus on securing backend connections with mTLS in API Management.
