@@ -15,7 +15,7 @@ Topics covered in this series:
 
 1. Validate client certificates in API Management _**(current)**_
 1. [Validate client certificates in API Management when its behind an Application Gateway](/blog/2024/02/19/validate-client-certificates-in-api-management-when-its-behind-an-application-gateway/)
-1. [Securing backend connections with mTLS in API Management](TBD)
+1. [Securing backend connections with mTLS in API Management](/blog/2024/05/24/securing-backend-connections-with-mtls-in-api-management/)
 1. Deploying certificates into Key Vault _(coming soon)_
 
 ### Intro
