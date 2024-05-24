@@ -385,7 +385,7 @@ httpListeners: [
 ```
 As you can see, the frontend IP configuration is linked to the previously added public IP address. We'll accept traffic on the standard HTTPS port `443`, so we'll also configure an SSL certificate. The HTTP listener connects these components together. We'll introduce a second listener when adding mTLS support, so we'll refer to this listener as the HTTPS listener for the remainder of this post.
 
-In a real-world scenario, the SSL certificate would typically be stored in Key Vault, and we would link to it from the `sslCertificates` configuration. However, for this demo, we'll upload it directly to the application gateway. In the next post of this series, we'll explore how to upload a PFX certificate to Key Vault and use it.
+In a real-world scenario, the SSL certificate would typically be stored in Key Vault, and we would link to it from the `sslCertificates` configuration. However, for this demo, we'll upload it directly to the application gateway. In the [next post](/blog/2024/05/24/securing-backend-connections-with-mtls-in-api-management/#call-backend-using-mtls) of this series, we'll explore how to create a certificate in Key Vault and use it.
 
 
 ##### SSL Certificate
