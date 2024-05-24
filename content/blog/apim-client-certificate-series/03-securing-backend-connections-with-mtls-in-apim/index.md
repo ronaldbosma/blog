@@ -315,6 +315,7 @@ Instead of receiving a 403 Forbidden response, you should now receive a 200 OK r
 
 > Note that currently, any client certificate will be accepted by the backend. This is because we're not validating the client certificate in the backend API Management instance. Instructions on how to do this are covered in the first and second posts of this series. You can find them [here](/blog/2024/02/02/validate-client-certificates-in-api-management/) and [here](/blog/2024/02/19/validate-client-certificates-in-api-management-when-its-behind-an-application-gateway/).
 
+You can find the end result [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim).
 
 ### Considerations
 
