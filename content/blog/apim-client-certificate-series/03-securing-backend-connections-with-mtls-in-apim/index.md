@@ -21,9 +21,9 @@ Topics covered in this series:
 
 ### Intro
 
-In the previous posts, we covered how to validate client certificates in Azure API Management. In this post, we’ll focus on securing backend connections with mTLS in API Management. We'll deploy two API Management instances: the first will serve as the backend and require a client certificate for authentication, and the second will act as the client. We will call the client using TLS, and it will, in turn, connect to the backend using mTLS.
+In the previous posts, we covered how to validate client certificates in Azure API Management. In this post, we’ll focus on securing backend connections with mTLS in API Management.
 
-The sequence of calls will be as follows:
+We'll deploy two API Management instances: the first will serve as the backend and require a client certificate for authentication, and the second will act as the client. We will call the client using TLS, and it will, in turn, connect to the backend using mTLS. See the sequence diagram below:
 
 ![Sequence Diagram](../../../../../images/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/diagrams-sequence-diagram.webp)
 
@@ -31,13 +31,13 @@ To make this work, we'll need to create several resources. The following diagram
 
 ![Overview](../../../../../images/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/diagrams-overview.webp)
 
-This post provides a step-by-step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim). If you want to know how to configure all of this through the Azure Portal, have a look at [Secure backend services using client certificate authentication in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates).
+This post provides a step-by-step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim). If you want to know how to configure this through the Azure Portal, have a look at [Secure backend services using client certificate authentication in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates).
 
 ### Prerequisites
 
 The first section will cover the prerequisites for this post. You'll need:
-1. A backend that requires mTLS for authentication. We'll use a Consumption tier API Management instance. The `enableClientCertificate` property needs to be set to `true` for mTLS to be enabled.
-1. Another Consumption tier API Management instance that will act as the client and connect to the backend using a client certificate.
+1. A _backend_ that requires mTLS for authentication. We'll use a Consumption tier API Management instance. The `enableClientCertificate` property needs to be set to `true` for mTLS to be enabled.
+1. Another Consumption tier API Management instance that will act as the _client_ and connect to the backend using a client certificate.
 1. A Key Vault to store the client certificate. The API Management client instance needs access to the Key Vault using the 'Key Vault Secrets' role.
 1. Access to the Key Vault yourself to create a certificate in the Key Vault. The 'Key Vault Administrator' role will suffice.
 
@@ -51,7 +51,7 @@ You can use the accompanying [deploy-prerequisites.ps1](https://github.com/ronal
 
 1. Create the resource group if it doesn't exist.
 1. Get your user id to grant you access to Key Vault.  
-   It uses the `az ad signed-in-user show` command. If this fails, you can use the `KeyVaultAdministratorId` parameter to specify your id manually.
+   It uses the `az ad signed-in-user show` command to retrieve your id. If this fails, you can use the `KeyVaultAdministratorId` parameter to specify your id manually.
 1. Deploy the Bicep template.
 
 Here's an example of how to run the script. Make sure to replace `<your-resource-group>`, `<your-apim-client-instance>`, `<your-apim-backend-instance>`, and `<your-key-vault>` with your own values.
@@ -76,14 +76,14 @@ For the backend API Management instance, use the following URL. Replace `<your-a
 https://<your-apim-backend-instance>.azure-api.net/internal-status-0123456789abcdef
 ```
 
-Calling the backend API Management instance should return a 403 Forbidden response. This is because the backend requires a client certificate for authentication.
+Calling the backend API Management instance should either return a 403 Forbidden response immediately or request a client certificate. This is because the backend requires mTLS.
 
-> Take note that while the default health endpoint for a Consumption tier API Management instance is `/internal-status-0123456789abcdef`, it's `/status-0123456789abcdef` for other tiers. 
+> Take note that while the default health endpoint for a Consumption tier API Management instance is `/internal-status-0123456789abcdef`, it is `/status-0123456789abcdef` for other tiers. 
 > Also, if you're not using the Consumption tier, the default health endpoint will not require mTLS. Instead, you'll need to create your own API in the backend API Management instance that requires mTLS. See the post [Validate client certificates in API Management](/blog/2024/02/02/validate-client-certificates-in-api-management/) in this series for more information.
 
 ### Add API and backend configuration
 
-Next, we'll call the backend API Management instance from the client API Management instance. For this, we'll need two things. First, we'll create a backend in the client API Management instance that will contain the backend configuration, such as the base URL of the backend. Then, we'll add an API to the client API Management instance that will forward requests to the backend. We'll apply a test-driven approach and first connect to the backend using TLS. This should fail.
+Next, we'll call the backend from the client. For this, we'll need two things. First, we'll create a backend resource in the client API Management instance that will contain the backend configuration, such as the base URL. Then, we'll add an API to the client API Management instance that will forward requests to the backend. We'll apply a test-driven approach and initially connect to the backend using TLS. This should fail.
 
 Start by creating a `main.bicep` file and add the following code:
 
@@ -122,7 +122,7 @@ resource testBackend 'Microsoft.ApiManagement/service/backends@2022-08-01' = {
 }
 ```
 
-As you can see, we're creating a backend called `test-backend`. The URL is set to the gateway URL of the backend API Management instance using `apiManagementServiceBackend.properties.gatewayUrl`. Both the `validateCertificateChain` and `validateCertificateName` TLS properties are set to `true` so that the client will validate the SSL server certificate of the backend. These are set to `false` by default.
+As you can see, we're creating a backend called `test-backend`. The URL is set to the gateway URL of the backend using `apiManagementServiceBackend.properties.gatewayUrl`. Both the `validateCertificateChain` and `validateCertificateName` TLS properties are set to `true` so that the client will validate the SSL server certificate of the backend. These are set to `false` by default.
 
 The last step is to add the 'Backend API' to the client API Management instance. Add the following code to the `main.bicep` file:
 
@@ -177,7 +177,7 @@ This Bicep code creates an API called `backend-api`. I've disabled the required 
 
 The API has a policy that sets the backend to the `test-backend` backend we created earlier. This ensures that any request sent to the API is forwarded to the backend.
 
-We also create one operation on the API called `GET Backend Status` that will be used to test the connection to the backend. It will call the default health endpoint on the backend API Management instance because the operation's URL template is `internal-status-0123456789abcdef`.
+We also create one operation on the API called `GET Backend Status` that will be used to test the connection to the backend. It will call the default health endpoint on the backend API Management instance, because the operation's URL template is `internal-status-0123456789abcdef`.
 
 Because we're using the `test-backend` backend in the policy, we also need to add a dependency on the `testBackend` resource.
 
@@ -193,20 +193,20 @@ az deployment group create `
     --verbose
 ```
 
-After the deployment is finished, you can test the connection to the backend by calling the `GET Backend Status` operation on the `backend-api` API. You can do this by calling the following URL in your browser, replacing `<your-apim-client-instance>` with your own value:
+After the deployment is finished, you can test the connection to the backend by calling the `GET Backend Status` operation on the `backend-api` API of the client. Simply navigate to the following URL in your browser, replacing `<your-apim-client-instance>` with your own value:
 
 ```plaintext
 https://<your-apim-client-instance>.azure-api.net/backend/internal-status-0123456789abcdef
 ```
 
-The result should be a 403 Forbidden response. This is because the backend requires a client certificate for authentication. We'll add the client certificate in the next section.
+The result should be a 403 Forbidden response because the backend requires a client certificate for authentication, while the client uses TLS to connect to the backend. We'll add the client certificate in the next section.
 
 
 ### Call backend using mTLS
 
-In this section, we'll create a client certificate in the Key Vault, create a link to the certificate in the client API Management instance, and update the backend to use the client certificate for authentication.
+In this section, we'll create a client certificate in the Key Vault and create a link to the certificate in the client API Management instance. Then, we'll update the backend configuration in the client to use the client certificate for authentication.
 
-Let's start with the client certificate. We can use the [az keyvault certificate create](https://learn.microsoft.com/nl-nl/cli/azure/keyvault/certificate?view=azure-cli-latest#az-keyvault-certificate-create) command to generate a self-signed certificate in the Key Vault. This command requires a policy that specifies how to create the certificate. We can obtain a default policy using the [az keyvault certificate get-default-policy](https://learn.microsoft.com/nl-nl/cli/azure/keyvault/certificate?view=azure-cli-latest#az-keyvault-certificate-get-default-policy) command.
+Let's start with the client certificate. We can use the [az keyvault certificate create](https://learn.microsoft.com/nl-nl/cli/azure/keyvault/certificate?view=azure-cli-latest#az-keyvault-certificate-create) command to generate a self-signed certificate in the Key Vault. This command requires a policy that specifies how to create the certificate. We can obtain the default policy using the [az keyvault certificate get-default-policy](https://learn.microsoft.com/nl-nl/cli/azure/keyvault/certificate?view=azure-cli-latest#az-keyvault-certificate-get-default-policy) command.
 
 You can use the following PowerShell script to create the certificate. Make sure to replace `<your-key-vault>` with your own value.
 
@@ -239,9 +239,9 @@ resource clientCertificateSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' 
 }
 ```
 
-This creates a symbol to the client certificate in the Key Vault using the `Microsoft.KeyVault/vaults/secrets` resource. Since the `Microsoft.KeyVault/vaults/certificates` resource type does not exist, using a secret is the only way to reference the certificate in the Key Vault. Although we've imported the client certificate as a certificate, the Key Vault will also create a secret with the same name that can be used to reference the certificate. 
+This creates a symbol to the client certificate in the Key Vault using the `Microsoft.KeyVault/vaults/secrets` resource. Since the `Microsoft.KeyVault/vaults/certificates` resource type does not exist, using a secret is the only way to reference the certificate in the Key Vault. Although we've created the client certificate as a certificate, the Key Vault will also create a secret with the same name that can be used to reference the certificate. 
 
-The name of the client certificate in the Key Vault can be specified through the `clientCertificateSecretName` parameter. This is useful if you want to try out different types of certificates.
+> The name of the client certificate in the Key Vault can be specified through the `clientCertificateSecretName` parameter. This is useful if you want to try out different types of certificates.
 
 Next, add the following code to the `main.bicep` file to link the certificate from the client API Management instance:
 
@@ -257,7 +257,7 @@ resource clientCertificate 'Microsoft.ApiManagement/service/certificates@2022-08
 }
 ```
 
-This code creates a 'certificate' resource that references the client certificate in the Key Vault. The `secretIdentifier` property is set to the `secretUri` of the client certificate secret in the Key Vault. 
+This code creates a 'certificate' resource that references the client certificate. The `secretIdentifier` property is set to the `secretUri` of the client certificate secret in the Key Vault. 
 
 The last step is to update the backend to use the client certificate for authentication. Replace the current `testBackend` resource with the following code:
 
@@ -297,7 +297,7 @@ az deployment group create `
     --verbose
 ```
 
-After deploying the changes, you can retest the connection to the backend by calling the `GET Backend Status` operation on the `backend-api` API. Navigate to the following URL in your browser, replacing `<your-apim-client-instance>` with your own value:
+After deploying the changes, you can retest the connection to the backend by calling the `GET Backend Status` operation on the `backend-api` API again. Navigate to the following URL in your browser, replacing `<your-apim-client-instance>` with your own value:
 
 ```plaintext
 https://<your-apim-client-instance>.azure-api.net/backend/internal-status-0123456789abcdef
@@ -312,19 +312,19 @@ Instead of receiving a 403 Forbidden response, you should now receive a 200 OK r
 
 There are some considerations to keep in mind when working with client certificates stored in Key Vault and used by API Management. 
 
-First, when creating a certificate in Key Vault, it's preferred to _not_ make the private key exportable. This is safer because it's not possible to export the private key and steal the certificate. However, when using the certificate in API Management, the private key must be exportable. If you don't make it exportable and deploy the Bicep template, you'll receive the following error:
+First, when creating or importing certificates in Key Vault, it's preferred to _not_ make the private key exportable. This is safer because it's not possible to export the private key and steal the certificate. However, when using the certificate in API Management, the private key must be exportable. If you don't make it exportable and deploy the Bicep template, you'll receive the following error:
 
 ```plaintext
 Certificate with id 'client-certificate' does not contain private key.
 ```
 
-Secondly, at the time of writing this post, API Management has a bug concerning certificates with key type EC. When deploying the Bicep template and referencing a certificate with key type EC, the first deployment will succeed when the 'certificate' resource is created in API Management. However, once the 'certificate' resource exists in API Management, consecutive deployments will all fail with a 500 Internal Server Error response.
+Secondly, at the time of writing this post, API Management has a bug concerning certificates with key type EC. When deploying the Bicep template and referencing a certificate with this key type, the first deployment will succeed when the 'certificate' resource is created in API Management. However, once the 'certificate' resource exists in API Management, consecutive deployments will all fail with a 500 Internal Server Error response.
 
-To test this, create a certificate in the Key Vault with key type EC. Then redeploy the Bicep template, passing the name of the new client certificate into the `clientCertificateSecretName` parameter. Assuming that the 'certificate' resource already exists in API Management, the deployment will take a lot longer than before. If you look at the deployment in the Azure Portal, you'll see a running deployment with status 'InternalServerError'. See the figure below.
+To test this, create a certificate in the Key Vault with key type EC. Then redeploy the Bicep template, passing the name of the new client certificate into the `clientCertificateSecretName` parameter. Assuming that the 'certificate' resource already existed in API Management, the deployment will take a lot longer than before. If you look at the deployment in the Azure Portal, you'll see a running deployment with status 'InternalServerError'. See the figure below.
 
 ![Running Deployment with Internal Server Error](../../../../../images/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/running-deployment-with-internal-server-error.png)
 
-I've let the deployment run and it failed after running for more than 2 hours due to a timeout. I've contacted Microsoft about this issue, and they've informed me that it's a known issue and that they're working on a fix. Unfortunately, they can't provide a timeline for when this will be resolved.
+I let the deployment run, and it failed after running for over 2 hours due to a timeout. I've contacted Microsoft about this issue, and they've informed me that it's a known issue and that they're working on a fix. Unfortunately, they can't provide a timeline for when this will be resolved.
 
 If you also encounter this issue, please upvote [Support updating certificates generated in Key Vault (Bug)](https://feedback.azure.com/d365community/idea/de682266-c5fb-ee11-a73c-000d3a012948) on the Azure Feedback Forum. Hopefully, this will speed up the process of getting it fixed.
 
