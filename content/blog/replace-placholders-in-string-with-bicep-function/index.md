@@ -147,4 +147,6 @@ var placeholders = {
 var result = replacePlaceholders(input, placeholders)
 ```
 
-You can find the final result [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/replace-placholders-in-string-with-bicep-function/replace-placeholders.bicep). Similar to my previous blog post, I've written some tests to verify the behavior of the `replacePlaceholders` function. You can find the tests [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/replace-placholders-in-string-with-bicep-function/tests.bicep). For more information on the (experimental) Bicep Testing Framework, see [my previous post]([my previous blog post](/blog/2024/06/05/apply-azure-naming-convention-using-bicep-functions/#testing-the-function)) or checkout the blog post [Exploring the awesome Bicep Test Framework](https://rios.engineer/exploring-the-bicep-test-framework-%F0%9F%A7%AA/) by Dan Rios.
+You can find the final result [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/replace-placholders-in-string-with-bicep-function/replace-placeholders.bicep). 
+
+Similar to my previous blog post, I've also written some tests to verify the behavior of the `replacePlaceholders` function. You can find the tests [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/replace-placholders-in-string-with-bicep-function/tests.bicep). For more information on the (experimental) Bicep Testing Framework, see [my previous blog post](/blog/2024/06/05/apply-azure-naming-convention-using-bicep-functions/#testing-the-function).
