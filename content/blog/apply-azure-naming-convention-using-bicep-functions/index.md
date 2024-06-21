@@ -260,7 +260,7 @@ output outputExample string = getResourceName('vnet', workload, environment, loc
 
 ### Testing the Function
 
-There is quite a bit of logic necessary to get a resource name. To ensure everything works as expected, I’ve written some tests with the Bicep Testing Framework. The blog post [Exploring the awesome Bicep Test Framework](https://rios.engineer/exploring-the-bicep-test-framework-%F0%9F%A7%AA/) explains how to use the framework, but I'll cover the basics here.
+There is quite a bit of logic necessary to get a resource name. To ensure everything works as expected, I’ve written some tests with the Bicep Testing Framework. The blog post [Exploring the awesome Bicep Test Framework](https://rios.engineer/exploring-the-bicep-test-framework-%F0%9F%A7%AA/) by Dan Rios explains how to use the framework, but I'll cover the basics here.
 
 Currently, the testing framework is still experimental, so you'll need to enable it in your Bicep config file. You need to create a [bicepconfig.json](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/bicepconfig.json) file and add the following configuration:
 
