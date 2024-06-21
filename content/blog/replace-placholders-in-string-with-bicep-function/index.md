@@ -1,11 +1,11 @@
 ---
 title: "Replace placeholders in string with user-defined Bicep function"
-date: 2024-06-12T17:00:00+02:00
-publishdate: 2024-06-12T17:00:00+02:00
-lastmod: 2024-06-12T17:00:00+02:00
+date: 2024-06-21T15:00:00+02:00
+publishdate: 2024-06-21T15:00:00+02:00
+lastmod: 2024-06-21T15:00:00+02:00
 tags: [ "Azure", "Bicep", "Test Automation" ]
-draft: true
 ---
+
 
 When you have a string value in Bicep with multiple placeholders that you want to replace, it can be tricky to find a good way to do this. In this blog post, I will show you how you can replace placeholders in a string with a couple of [user-defined functions](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/user-defined-functions).
 
