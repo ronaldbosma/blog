@@ -1,11 +1,10 @@
 ---
 title: "Reqnroll Parsable Value Retriever and Comparer"
-date: 2024-05-17T12:30:00+02:00
-publishdate: 2024-05-17T12:30:00+02:00
-lastmod: 2024-05-17T12:30:00+02:00
+date: 2024-07-17T08:00:00+02:00
+publishdate: 2024-07-17T08:00:00+02:00
+lastmod: 2024-07-17T08:00:00+02:00
 tags: [ "Reqnroll", "SpecFlow", "Test Automation" ]
 summary: "In this blog post, we'll explore how to use the `IParsable<T>` interface to build a generic Reqnroll value retriever and comparer. We'll start by creating custom value retrievers and comparers, then develop a reusable solution with generics, and finally, we'll use reflection to make it even more generic. (This solution also works for its predecessor, SpecFlow, when using .NET 7 or higher.)"
-draft: true
 ---
 
 The introduction of .NET 7 has brought us the [IParsable<T>](https://learn.microsoft.com/en-us/dotnet/api/system.iparsable-1?view=net-8.0) interface, a generic interface that defines static `Parse` and `TryParse` methods. This interface is used to parse a string into an instance of the implementing type. Common types like `string`, `int` and `DateTime` all implement this interface.
