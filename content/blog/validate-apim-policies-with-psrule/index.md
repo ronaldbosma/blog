@@ -388,3 +388,98 @@ For attribute values there are a couple of solutions. You can surround the value
     </when>
 </choose>
 ```
+
+To test this yourself, download [invalid-xml-1.operation.cshtml](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/validate-apim-policies-with-psrule/src/bad/invalid-xml-1.operation.cshtml) and [invalid-xml-2.operation.cshtml](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/validate-apim-policies-with-psrule/src/bad/invalid-xml-2.operation.cshtml), and place them in the `bad` folder. Also download [good.operation.cshtml](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/validate-apim-policies-with-psrule/src/good/good.operation.cshtml), and place it in the `good` folder. This has the suggested solutions for the invalid XML syntax.
+
+When you run PRSule again, you might think that every works, because you see output for the `APIM.Policy.FileExtension` rule. However, if you scroll up to the top of the output, you'll see the following error, indicating that a policy file with invalid XML could not be loaded:
+
+```
+Invoke-PSRule: Cannot convert value "<policies>
+    <inbound>
+        <base />
+        <!-- This will result in an error when loading the policy as XML, because of the use of < and > in the policy expression -->
+        <set-body>@{
+            return context.Request.Body.As<string>();
+        }</set-body>
+    </inbound>
+    ... TRUNCATED ...
+</policies>" to type "System.Xml.XmlDocument". Error: "The 'string' start tag on line 7 position 44 does not match the end tag of 'set-body'. Line 8, position 12."
+```
+
+To handle policy files with invalid XML syntax gracefully, we'll need to make some changes to the convention. I also want to report on the files with invalid XML, because they won't be processed by the other rules. Open `APIM.Policy.Conventions.Rule.ps1` and replace its contents with the following code:
+
+```powershell
+# Synopsis: Imports the APIM XML policy file for analysis. File names should match: *.cshtml
+Export-PSRuleConvention "APIM.Policy.Conventions.Import" -Initialize {
+
+    $policies = @()
+    $policyFilesWithInvalidXml = @()
+
+    $policyFiles = Get-ChildItem -Path "." -Include "*.cshtml" -Recurse -File
+
+    foreach ($policyFile in $policyFiles) {
+        # Use the relative path of the file as the object name, this makes it easier to e.g. apply suppressions.
+        # Also replace backslashes with forward slashes, so the path doesn't differ between Windows and Linux.
+        # Example: ./src/my.api.cshtml
+        $name = ($policyFile.FullName | Resolve-Path -Relative).Replace('\', '/')
+
+        # Determine the scope of the policy based on the file name.
+        $scope = $null
+        if ($policyFile.Name -eq "global.cshtml") { $scope = "Global" }
+        elseif ($policyFile.Name.EndsWith(".workspace.cshtml")) { $scope = "Workspace" }
+        elseif ($policyFile.Name.EndsWith(".product.cshtml")) { $scope = "Product" }
+        elseif ($policyFile.Name.EndsWith(".api.cshtml")) { $scope = "API" }
+        elseif ($policyFile.Name.EndsWith(".operation.cshtml")) { $scope = "Operation" }
+        elseif ($policyFile.Name.EndsWith(".fragment.cshtml")) { $scope = "Fragment" }
+
+        # Only create a policy object to analyse if the scope is recognized.
+        # The 'APIM.Policy.FileExtension' rule will report on unknown file extensions.
+        if ($null -ne $scope) {
+            try {
+                $policies += [PSCustomObject]@{
+                    Name = $name
+                    Scope = $scope
+                    Content = [Xml](Get-Content -Path $policyFile.FullName -Raw)
+                }
+            }
+            catch {
+                # Add policy files with invalid XML to a separate list, so we can report them in a separate rule.
+                # By adding them as a different type, we don't have to exclude them from every APIM Policy rule that expects valid XML.
+                $policyFilesWithInvalidXml += [PSCustomObject]@{
+                    Name = $name
+                    Error = $_.Exception.Message
+                }
+            }
+        }
+    }
+
+    $PSRule.ImportWithType("APIM.Policy", $policies);
+    $PSRule.ImportWithType("APIM.PolicyWithInvalidXml", $policyFilesWithInvalidXml);
+}
+```
+
+This snippet has several changes compared to the previous version:
+1. At the top, a new array called `$policyFilesWithInvalidXml` is created which will hold the `.cshtml` files with invalid XML.
+1. The creation of the custom object has been placed in a `try catch` block. When the XML content of the policy file can't be loaded, an exception is thrown. This exception is caught and a new custom object is created with the file name and the exception message. This object is added to the `$policyFilesWithInvalidXml` array.
+1. At the end, the files with invalid XML are imported as a new type `APIM.PolicyWithInvalidXml`.
+
+I've chosen to import the files with invalid XML as a separate type called `APIM.PolicyWithInvalidXml`. This way, we can use the `-Type "APIM.Policy"` filter on the rules that validate policies without having to worry about invalid XML. Simplifying the creation of new rules.
+
+Now, to report on policy files with invalid XML, we'll create a new rule. Open `APIM.Policy.Rule.ps1` and add the following rule:
+
+```powershell
+# Synopsis: A policy file should contain valid XML
+Rule "APIM.Policy.ValidXml" -Type "APIM.Policy", "APIM.PolicyWithInvalidXml" {
+    if ($PSRule.TargetType -eq "APIM.Policy") {
+        $Assert.Pass()
+    } else {
+        $Assert.Fail($TargetObject.Error)
+    }
+}
+```
+
+As you can see, the rule is executed for objects of type `APIM.Policy` and `APIM.PolicyWithInvalidXml`. When the type is `APIM.Policy`, we know the XML content was loaded successfully and the rule passes. Otherwise, the rule fails with the error message as the reason.
+
+> By filtering on both types, the `APIM.Policy.ValidXml` rule will report a `Pass` on policy files with valid XML. Which I like. You can also choose to only report on invalid XML by executing the rule for the `APIM.PolicyWithInvalidXml` type only and always failing the rule.
+
+When you run PSRule again, you should see that all our custom rules are executed again. The rule `APIM.Policy.ValidXml` will fail for the files `invalid-xml-1.operation.cshtml` and `invalid-xml-2.operation.cshtml`, and succeed for all other policy files.
