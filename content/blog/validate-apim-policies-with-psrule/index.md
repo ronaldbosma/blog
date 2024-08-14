@@ -268,7 +268,7 @@ The rule should check that the following policy is present in the inbound sectio
 <set-header name="Ocp-Apim-Subscription-Key" exists-action="delete" />
 ```
 
-The sample `global.cshtml` files that you've downloaded already have this scenario in place, so we can create a new rule right away. Open `APIM.Policy.Rule.ps1` again and add the following rule:
+The sample `global.cshtml` files that you've downloaded already have this scenario in place, so we can create a new rule right away. Open `APIM.Policy.Rule.ps1` and add the following rule:
 
 ```powershell
 # Synopsis: The subscription key header (Ocp-Apim-Subscription-Key) should be removed in the inbound section of the global policy to prevent it from being forwarded to the backend.
@@ -297,3 +297,46 @@ Rule "APIM.Policy.RemoveSubscriptionKeyHeader" -If { $TargetObject.Scope -eq "Gl
 The rule is executed on every object of type `APIM.Policy` where the scope is `Global`. It checks if there's a `set-header` policy for the `Ocp-Apim-Subscription-Key` header with the `delete` action in the inbound section. If the policy is found, the rule passes. Otherwise, it fails.
 
 When you execute PSRule again, you should see that the `APIM.Policy.RemoveSubscriptionKeyHeader` rule is executed for the `global.cshtml` files. The output should show that the rule passes for the `./src/good/global.cshtml` file and fails for the `./src/bad/global.cshtml` file.
+
+
+### Implement rule APIM.Policy.UseBackendEntity
+
+There are several ways in API Management to configure the backend configuration to use. I prefer to create a separate backend entity in the API Management service that has the service URL and other settings, like authentication, configured. This way, the backend configuration is reusable, easier to maintain, and it is also checked by several [Azure Policies](https://learn.microsoft.com/en-us/azure/api-management/policy-reference#azure-api-management). We'll create the following rule for this:
+
+_A `set-backend-service` policy should use a backend entity (by setting the `backend-id` attribute) so the backend configuration is reusable and easier to maintain._
+
+Here are two samples of the `set-backend-service` policy, where the first is accepted and the second is not:
+
+```xml
+<!-- Good -->
+<set-backend-service backend-id="test" />
+
+<!-- Bad -->
+<set-backend-service base-url="https://test.nl" />
+```
+
+The sample `*.api.cshtml` files that you've downloaded already have this scenario in place, so we can create a new rule right away. Open `APIM.Policy.Rule.ps1` and add the following rule:
+
+```powershell
+# Synopsis: A set-backend-service policy should use a backend entity (by setting the backend-id attribute) so it's reusable and easier to maintain.
+Rule "APIM.Policy.UseBackendEntity" `
+    -If { $TargetObject.Content.DocumentElement.SelectNodes(".//*[local-name()='set-backend-service']").Count -ne 0  } `
+    -Type "APIM.Policy" `
+{
+    $policy = $TargetObject.Content.DocumentElement
+
+    # Select all set-backend-service policies
+    $setBackendServicePolicies = $policy.SelectNodes(".//*[local-name()='set-backend-service']")
+
+    # Check that each set-backend-service policy has the backend-id attribute set
+    foreach ($setBackendServicePolicy in $setBackendServicePolicies) {
+        $Assert.HasField($setBackendServicePolicy, "backend-id")
+    }
+}
+```
+
+The rule is executed on every object of type `APIM.Policy` no matter the scope. We only want to execute the rule if the policy file actually has a `set-backend-service` policy, which is achieved by the condition: `$TargetObject.Content.DocumentElement.SelectNodes(".//*[local-name()='set-backend-service']").Count -ne 0`. It performs an XPath query to select all `set-backend-service` policies in the XML content of the policy file.
+
+The rule itself will check that each `set-backend-service` policy has the `backend-id` attribute set. If the attribute is set, the rule passes. Otherwise, it fails.
+
+When you execute PSRule again, you should see that the `APIM.Policy.UseBackendEntity` rule is executed for all `.cshtml` files with a valid scope. The output should show that the rule passes for the files in the `good` folder and fails for the files in the `bad` folder.
