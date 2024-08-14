@@ -483,3 +483,12 @@ As you can see, the rule is executed for objects of type `APIM.Policy` and `APIM
 > By filtering on both types, the `APIM.Policy.ValidXml` rule will report a `Pass` on policy files with valid XML. Which I like. You can also choose to only report on invalid XML by executing the rule for the `APIM.PolicyWithInvalidXml` type only and always failing the rule.
 
 When you run PSRule again, you should see that all our custom rules are executed again. The rule `APIM.Policy.ValidXml` will fail for the files `invalid-xml-1.operation.cshtml` and `invalid-xml-2.operation.cshtml`, and succeed for all other policy files.
+
+
+### Conclusion
+
+PSRule is a powerful tool that can help manage the quality of your Azure API Management policies. By creating custom rules, you can validate your policies against your own standards. 
+
+The rules can be as simple or complex as you want. The same goes for the logic in the convention. Since I'm a big fan of test automation, I've written a bunch of tests against the rules and convention. In the next blog post, I'll dive deeper into this topic.
+
+You can find a full working sample [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/validate-apim-policies-with-psrule). I've included a couple more rules and samples.
