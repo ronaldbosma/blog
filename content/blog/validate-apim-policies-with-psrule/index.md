@@ -25,6 +25,7 @@ In this blog post, I’ll demonstrate how to use PSRule to validate your Azure A
   - [Check that the subscription key header is removed](#check-that-the-subscription-key-header-is-removed)
   - [Check that a backend entity is used](#check-that-a-backend-entity-is-used)
 - [Handle invalid XML syntax](#handle-invalid-xml-syntax)
+- [Considerations](#considerations)
 - [Conclusion](#conclusion)
 
 
