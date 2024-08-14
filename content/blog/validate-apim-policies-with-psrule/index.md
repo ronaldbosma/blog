@@ -11,7 +11,7 @@ I've been working with Azure API Management for a while now, and one of the chal
 
 After some searching, I discovered [PSRule](https://microsoft.github.io/PSRule)—a cross-platform PowerShell module to validate infrastructure as code (IaC) files and objects using PowerShell rules. It's created by Bernie White and hosted on the Microsoft Github account [here](https://github.com/microsoft/PSRule). It's also included in [Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/iac-vulnerabilities#view-details-and-remediation-information-for-applied-iac-rules) as part of Template Analyzer.
 
-In this blog post, I’ll demonstrate how to use PSRule to validate your Azure API Management policies. But fefore we start, let's start with some requirements first.
+In this blog post, I’ll demonstrate how to use PSRule to validate your Azure API Management policies. But before we start, let's start with some requirements first.
 
 ### Table of Contents
 
@@ -30,7 +30,7 @@ In this blog post, I’ll demonstrate how to use PSRule to validate your Azure A
 
 ### Requirements
 
-First off, we'll store our policies in separate files. This makes it easier to manage and maintain them. I commonly use the `.cshtml` file extension for these files, because it this enables IntelliSense on policies when using the [Azure API Management for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-apimanagement) extension. So, PSRule will need to recognize these files as API Management policies.
+I usually use [Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview?tabs=bicep) to deploy my policies. And although you can specify your policies directly in a Bicep file, I prefer to store them in separate files. This makes it easier to manage and maintain them. I usually use the `.cshtml` file extension for these files, because this enables IntelliSense on policies when using the [Azure API Management for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-apimanagement) extension. So, PSRule will need to recognize these files as API Management policies.
 
 As you might be aware, policies in API Management can be applied to different [scopes](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-policies#scopes). We'll be creating several rules, where some will apply to all scopes and others to specific scopes. Because there's nothing in the policy files to indicate the scope, we'll use the file name to determine the scope. For example, a file named `test.api.cshtml` will apply to the API scope, while a file named `test.operation.cshtml` will apply to the operation scope.
 
@@ -502,6 +502,31 @@ As you can see, the rule is executed for objects of type `APIM.Policy` and `APIM
 > By filtering on both types, the `APIM.Policy.ValidXml` rule will report a `Pass` on policy files with valid XML. Which I like. You can also choose to only report on invalid XML by executing the rule for the `APIM.PolicyWithInvalidXml` type only and always failing the rule.
 
 When you run PSRule again, you should see that all our custom rules are executed again. The rule `APIM.Policy.ValidXml` will fail for the files `invalid-xml-1.operation.cshtml` and `invalid-xml-2.operation.cshtml`, and succeed for all other policy files.
+
+
+### Considerations
+
+Microsoft has created a module on top of PSRule to validate Azure Infrastructure as Code resources called [PSRule for Azure](https://azure.github.io/PSRule.Rules.Azure/). It comes with a standard set of rules and my colleague Caspar Eldermans has written the blog post [Validating Azure Bicep templates with PSRule](https://blogs.infosupport.com/validating-azure-bicep-templates-with-psrule/) about it.
+
+This module actually has a couple of rules that check API Management policies as well. For example the [Azure.APIM.PolicyBase](https://azure.github.io/PSRule.Rules.Azure/en/rules/Azure.APIM.PolicyBase/) rule that checks that each section of a policy has a `base` policy. Here's the implementation of this rule:
+
+```powershell
+# Synopsis: Base element for any policy element in a section should be configured.
+Rule 'Azure.APIM.PolicyBase' -Ref 'AZR-000371' -Type 'Microsoft.ApiManagement/service', 'Microsoft.ApiManagement/service/apis', 'Microsoft.ApiManagement/service/apis/resolvers', 'Microsoft.ApiManagement/service/apis/operations', 'Microsoft.ApiManagement/service/apis/resolvers/policies', 'Microsoft.ApiManagement/service/products/policies', 'Microsoft.ApiManagement/service/apis/policies',
+'Microsoft.ApiManagement/service/apis/operations/policies' -If { $Null -ne (GetAPIMPolicyNode -Node 'policies' -IgnoreGlobal) } -Tag @{ release = 'GA'; ruleSet = '2023_06'; 'Azure.WAF/pillar' = 'Security'; } {
+    $policies = GetAPIMPolicyNode -Node 'policies' -IgnoreGlobal
+    foreach ($policy in $policies) {
+        Write-Debug "Got policy: $($policy.OuterXml)"
+        
+        $Assert.HasField($policy.inbound, 'base').PathPrefix('inbound')
+        $Assert.HasField($policy.backend, 'base').PathPrefix('backend')
+        $Assert.HasField($policy.outbound, 'base').PathPrefix('outbound')
+        $Assert.HasField($policy.'on-error', 'base').PathPrefix('on-error')
+    }
+}
+```
+
+It's very similar to the rules created in this post, but the filtering is done based on the resource type that you use in Bicep or ARM templates. Every rule that we've created to check our policies can also be created using this module. An advantage of using this module is that it also works for inline policies that you define in e.g. a Bicep file. A disadvantage is that the rules won't always work for ARM templates when you load your policies from external files. Additionally, PSRule for Azure doesn't support other deployment tools like Terraform. That's the reason why I usually prefer to store my policies in separate `.cshtml` files and use the approach that I've described in this blog post.
 
 
 ### Conclusion
