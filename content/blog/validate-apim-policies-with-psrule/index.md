@@ -255,3 +255,45 @@ When you execute PSRule again, you should see that the `APIM.Policy.FileExtensio
 
 > By adding the `-Outcome Fail` parameter, PSRule will only output the failures. And if you're only interested in the results of a single rule, you can use the `-Name`. For example: `-Name "APIM.Policy.InboundBasePolicy"`.
 
+
+### Implement rule APIM.Policy.RemoveSubscriptionKeyHeader
+
+One of the features of API Management is that it will forward all headers to the backend by default. This is very useful, but can also pose a security risk. The API Management subscription key header (`Ocp-Apim-Subscription-Key`) is also forwarded to the backend, while the backend usually doesn't need to know about this key. Especially when calling an external backend. To prevent this, we should remove this header in the inbound section of the global policy. We'll create a rule for this:
+
+_The subscription key header (`Ocp-Apim-Subscription-Key`) should be removed in the inbound section of the global policy to prevent it from being forwarded to the backend._
+
+The rule should check that the following policy is present in the inbound section of the global policy:
+
+```xml
+<set-header name="Ocp-Apim-Subscription-Key" exists-action="delete" />
+```
+
+The sample `global.cshtml` files that you've downloaded already have this scenario in place, so we can create a new rule right away. Open `APIM.Policy.Rule.ps1` again and add the following rule:
+
+```powershell
+# Synopsis: The subscription key header (Ocp-Apim-Subscription-Key) should be removed in the inbound section of the global policy to prevent it from being forwarded to the backend.
+Rule "APIM.Policy.RemoveSubscriptionKeyHeader" -If { $TargetObject.Scope -eq "Global" } -Type "APIM.Policy" {
+    $policy = $TargetObject.Content.DocumentElement
+    
+    $Assert.HasField($policy, "inbound")
+    
+    # Select all set-header policies that remove the Ocp-Apim-Subscription-Key header.
+    # We only check direct children of the inbound section, because the header should always be removed and not optionally (e.g. when it's nested in a choose.when).
+    # The expression is surround by @(...) because the result is a XmlElement if only one occurence is found, but we want an array.
+    $removeSubscriptionKeyPolicies = @( $policy.inbound.ChildNodes | Where-Object { 
+        $_.LocalName -eq "set-header" -and 
+        $_.name -eq "Ocp-Apim-Subscription-Key" -and 
+        $_."exists-action" -eq "delete" 
+    } )
+
+    if ($removeSubscriptionKeyPolicies.Count -gt 0) {
+        $Assert.Pass()
+    } else {
+        $Assert.Fail("Unable to find a set-header policy that removes the Ocp-Apim-Subscription-Key header as a direct child of the inbound section.")
+    }
+}
+```
+
+The rule is executed on every object of type `APIM.Policy` where the scope is `Global`. It checks if there's a `set-header` policy for the `Ocp-Apim-Subscription-Key` header with the `delete` action in the inbound section. If the policy is found, the rule passes. Otherwise, it fails.
+
+When you execute PSRule again, you should see that the `APIM.Policy.RemoveSubscriptionKeyHeader` rule is executed for the `global.cshtml` files. The output should show that the rule passes for the `./src/good/global.cshtml` file and fails for the `./src/bad/global.cshtml` file.
