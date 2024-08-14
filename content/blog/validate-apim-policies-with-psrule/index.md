@@ -506,7 +506,7 @@ When you run PSRule again, you should see that all our custom rules are executed
 
 ### Considerations
 
-Microsoft has created a module on top of PSRule to validate Azure Infrastructure as Code resources called [PSRule for Azure](https://azure.github.io/PSRule.Rules.Azure/). It comes with a standard set of rules and my colleague Caspar Eldermans has written the blog post [Validating Azure Bicep templates with PSRule](https://blogs.infosupport.com/validating-azure-bicep-templates-with-psrule/) about it.
+Microsoft has created a module on top of PSRule to validate Azure Infrastructure as Code resources called [PSRule for Azure](https://azure.github.io/PSRule.Rules.Azure/). It comes with a standard set of rules. My colleague Caspar Eldermans has written a [blog post](https://blogs.infosupport.com/validating-azure-bicep-templates-with-psrule/) on this topic.
 
 This module actually has a couple of rules that check API Management policies as well. For example the [Azure.APIM.PolicyBase](https://azure.github.io/PSRule.Rules.Azure/en/rules/Azure.APIM.PolicyBase/) rule that checks that each section of a policy has a `base` policy. Here's the implementation of this rule:
 
@@ -526,7 +526,13 @@ Rule 'Azure.APIM.PolicyBase' -Ref 'AZR-000371' -Type 'Microsoft.ApiManagement/se
 }
 ```
 
-It's very similar to the rules created in this post, but the filtering is done based on the resource type that you use in Bicep or ARM templates. Every rule that we've created to check our policies can also be created using this module. An advantage of using this module is that it also works for inline policies that you define in e.g. a Bicep file. A disadvantage is that the rules won't always work for ARM templates when you load your policies from external files. Additionally, PSRule for Azure doesn't support other deployment tools like Terraform. That's the reason why I usually prefer to store my policies in separate `.cshtml` files and use the approach that I've described in this blog post.
+It's very similar to the rules created in this post, but the filtering is done based on the resource type that you would use in Bicep or ARM templates. They have a [similar PSRule convention](https://github.com/Azure/PSRule.Rules.Azure/blob/39aa1e45e998eb773ba804e22bc4f2a3a61823fb/src/PSRule.Rules.Azure/rules/Conventions.Rule.ps1) to the one described in this post, but instead of loading an entire file, they split up the Bicep file / ARM template into separate objects. One for each resource. This way, they can apply rules to specific resources. 
+
+To check an API Management policy, you would execute the rule against resources that can have a policy and use the `GetAPIMPolicyNode` function to get the actual policy XML content. This means that every rule that we've created to check our policies can also be created using this module. 
+
+An advantage of using this module is that it also works for inline policies that you define in e.g. a Bicep file. A disadvantage is that the rules won't always work for ARM templates when you load your policies from external files. Additionally, PSRule for Azure doesn't support other deployment tools, like Terraform. This module has the same issues with invalid XML syntax as the solution described in this post.
+
+It depends on your situation which approach is better. Note, that you can also verify your API Management policies with the solution described in this post and use PSRule for Azure to validate your other Bicep/ARM configuration.
 
 
 ### Conclusion
