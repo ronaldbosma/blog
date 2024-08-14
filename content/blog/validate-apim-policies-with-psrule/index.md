@@ -508,6 +508,6 @@ When you run PSRule again, you should see that all our custom rules are executed
 
 PSRule is a powerful tool that can help manage the quality of your Azure API Management policies. By creating custom rules, you can validate your policies against your own standards. 
 
-The rules can be as simple or complex as you want. The same goes for the logic in the convention. Since I'm a big fan of test automation, I've written a bunch of tests against the rules and convention. In the next blog post, I'll dive deeper into this topic.
+The rules can be as simple or complex as you want. The same goes for the logic in the convention. Since I'm a big fan of test automation, I've written the rules using a TDD approach and created a bunch of tests. In the next blog post, I'll dive deeper into how I did this.
 
 You can find a full working sample [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/validate-apim-policies-with-psrule). I've included a couple more rules and samples.
