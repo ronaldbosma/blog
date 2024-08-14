@@ -340,3 +340,51 @@ The rule is executed on every object of type `APIM.Policy` no matter the scope. 
 The rule itself will check that each `set-backend-service` policy has the `backend-id` attribute set. If the attribute is set, the rule passes. Otherwise, it fails.
 
 When you execute PSRule again, you should see that the `APIM.Policy.UseBackendEntity` rule is executed for all `.cshtml` files with a valid scope. The output should show that the rule passes for the files in the `good` folder and fails for the files in the `bad` folder.
+
+
+### Handle invalid XML syntax
+
+With a couple of these tests done, I thought: Great! Lets run it on an actual code base. But I immediately got an error that the XML in at least one of the files was invalid. None of the rules for the `APIM.Policy` type were executed, because the convention failed to import the policies. Only the `APIM.Policy.FileExtension` rule was executed, because it's not dependent on the convention.
+
+The problem is that API Management accepts invalid XML when dealing with policy expressions. See the following two snippets for examples:
+
+```xml
+<!-- This will result in an error when loading the policy as XML, because of the use of < and > in the policy expression -->
+<set-body>@{
+    return context.Request.Body.As<string>();
+}</set-body>
+
+
+<choose>
+    <!-- This will result in an error when loading the policy as XML, because of the use of " inside the attribute value -->
+    <when condition="@(context.Response.StatusCode.ToString() == "200")">
+        <!-- Do something -->
+    </when>
+</choose>
+```
+
+The `set-body` snippet is invalid because of the `<string>` generic, which is recognized as a start XML tag. The second snippet is invalid because of the double quotes inside the `condition` attribute value. Even the examples in the official documentation have invalid XML. See the [set-body policy examples](https://learn.microsoft.com/en-us/azure/api-management/set-body-policy#examples).
+
+
+The easiest way to get valid XML inside an element is to use `<![CDATA[]]>`. The first snippet would look like this:
+
+```xml
+<set-body><![CDATA[@{
+    return context.Request.Body.As<string>();
+}]]></set-body>
+```
+
+I was concerned that API Management would not work properly with this syntax, but it does. The policy expression is still executed as expected.
+
+For attribute values there are a couple of solutions. You can surround the value with single quotes: `'{value}'`. When you upload this snippet to API Management, it will automatically convert the single quotes to double quotes. The second solution is to use `&quot;` inside the attribute value. Here are two examples:
+
+```xml
+<choose>
+    <when condition='@(context.Response.StatusCode.ToString() == "200")'>
+        <!-- Do something -->
+    </when>
+    <when condition="@(context.Response.StatusCode.ToString() == &quot;200&quot;)">
+        <!-- Do something -->
+    </when>
+</choose>
+```
