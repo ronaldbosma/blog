@@ -20,7 +20,7 @@ In this blog post, I’ll demonstrate how to use PSRule to validate your Azure A
 - [Import policies using convention](#import-policies-using-convention)
 - [Implement first rule: inbound section should start with base policy](#implement-first-rule-inbound-section-should-start-with-base-policy)
 - [Filter on scope](#filter-on-scope)
-- [More Rules](#more-rules)
+- [More rules](#more-rules)
   - [Check that policy files specify the scope](#check-that-policy-files-specify-the-scope)
   - [Check that the subscription key header is removed](#check-that-the-subscription-key-header-is-removed)
   - [Check that a backend entity is used](#check-that-a-backend-entity-is-used)
@@ -232,7 +232,7 @@ The output should now only display the results for the API scoped files as show 
 ![Output](../../../../../images/validate-apim-policies-with-psrule/output-inboundbasepolicy-2.png)
 
 
-### More Rules
+### More rules
 
 In this section, we'll create a couple more rules to validate the API Management policies.
 
