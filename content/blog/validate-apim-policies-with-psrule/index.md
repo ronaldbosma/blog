@@ -13,6 +13,20 @@ After some searching, I discovered [PSRule](https://microsoft.github.io/PSRule)â
 
 In this blog post, Iâ€™ll demonstrate how to use PSRule to validate your Azure API Management policies. But fefore we start, let's start with some requirements first.
 
+### Table of Contents
+
+- [Requirements](#requirements)
+- [Sample policies](#sample-policies)
+- [Import policies using convention](#import-policies-using-convention)
+- [Implement first rule: inbound section should start with base policy](#implement-first-rule-inbound-section-should-start-with-base-policy)
+- [Filter on scope](#filter-on-scope)
+- [More Rules](#more-rules)
+  - [Check that policy files specify the scope](#check-that-policy-files-specify-the-scope)
+  - [Check that the subscription key header is removed](#check-that-the-subscription-key-header-is-removed)
+  - [Check that a backend entity is used](#check-that-a-backend-entity-is-used)
+- [Handle invalid XML syntax](#handle-invalid-xml-syntax)
+- [Conclusion](#conclusion)
+
 
 ### Requirements
 
@@ -46,7 +60,7 @@ We'll need some sample policies to test our rules against. You can download them
 Have a look at the different policies. The files in the `good` folder conform to the rules we'll create, while the ones in the `bad` folder don't.
 
 
-### Load policies using convention
+### Import policies using convention
 
 At this moment in time, PSRule doesn't support loading XML files out-of-the-box. I've created an issue for this on Github, which can be found [here](https://github.com/microsoft/PSRule/issues/1537). Luckily, PSRule is extensible, and Bernie White, the creator of PSRule, has provided a sample in my issue that we can use to load XML files. It uses a [convention](https://microsoft.github.io/PSRule/stable/concepts/PSRule/en-US/about_PSRule_Conventions/).
 
@@ -97,7 +111,7 @@ convention:
 Setting `preferTargetInfo` to `true` will make sure that PSRule uses the `APIM.Policy` type for our policies. The convention `APIM.Policy.Conventions.Import` is included to actually import the policies.
 
 
-### Implement first rule APIM.Policy.InboundBasePolicy
+### Implement first rule: inbound section should start with base policy
 
 Now, if you would execute PSRule from the root folder using the following command, you'll get the message `WARNING: Could not find a matching rule. Please check that Path, Name and Tag parameters are correct` because we haven't created any rules yet. 
 
@@ -218,7 +232,12 @@ The output should now only display the results for the API scoped files as show 
 ![Output](../../../../../images/validate-apim-policies-with-psrule/output-inboundbasepolicy-2.png)
 
 
-### Implement rule APIM.Policy.FileExtension
+### More Rules
+
+In this section, we'll create a couple more rules to validate the API Management policies.
+
+
+#### Check that policy files specify the scope
 
 As mentioned in the previous section, we want to check that each `.cshtml` file has a valid scope. So, we'll create the following rule for this:
 
@@ -256,7 +275,7 @@ When you execute PSRule again, you should see that the `APIM.Policy.FileExtensio
 > By adding the `-Outcome Fail` parameter, PSRule will only output the failures. And if you're only interested in the results of a single rule, you can use the `-Name`. For example: `-Name "APIM.Policy.InboundBasePolicy"`.
 
 
-### Implement rule APIM.Policy.RemoveSubscriptionKeyHeader
+#### Check that the subscription key header is removed
 
 One of the features of API Management is that it will forward all headers to the backend by default. This is very useful, but can also pose a security risk. The API Management subscription key header (`Ocp-Apim-Subscription-Key`) is also forwarded to the backend, while the backend usually doesn't need to know about this key. Especially when calling an external backend. To prevent this, we should remove this header in the inbound section of the global policy. We'll create a rule for this:
 
@@ -299,7 +318,7 @@ The rule is executed on every object of type `APIM.Policy` where the scope is `G
 When you execute PSRule again, you should see that the `APIM.Policy.RemoveSubscriptionKeyHeader` rule is executed for the `global.cshtml` files. The output should show that the rule passes for the `./src/good/global.cshtml` file and fails for the `./src/bad/global.cshtml` file.
 
 
-### Implement rule APIM.Policy.UseBackendEntity
+#### Check that a backend entity is used
 
 There are several ways in API Management to configure the backend configuration to use. I prefer to create a separate backend entity in the API Management service that has the service URL and other settings, like authentication, configured. This way, the backend configuration is reusable, easier to maintain, and it is also checked by several [Azure Policies](https://learn.microsoft.com/en-us/azure/api-management/policy-reference#azure-api-management). We'll create the following rule for this:
 
