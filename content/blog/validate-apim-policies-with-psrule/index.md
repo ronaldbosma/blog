@@ -43,7 +43,7 @@ We'll need some sample policies to test our rules against. You can download them
             bad.api.cshtml
 ```
 
-Have a look at the different policies. The ones in the `good` folder conform to the rules we'll create, while the ones in the `bad` folder don't.
+Have a look at the different policies. The files in the `good` folder conform to the rules we'll create, while the ones in the `bad` folder don't.
 
 
 ### Load policies using convention
@@ -105,7 +105,8 @@ Now, if you would execute PSRule from the root folder using the following comman
 Invoke-PSRule -InputPath ".\src\" -Option ".\.ps-rule\ps-rule.yaml"
 ```
 
-Let's start with the first [rule](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_Rules/):  
+Let's start with the first rule:  
+
 _The inbound section should always start with a `base` policy to make sure important logic, like security checks, are applied first. This rule should apply to all scopes, except for the global scope and policy fragments._
 
 Create a new file named `APIM.Policy.Rule.ps1` in the `.ps-rule` folder and add the following code:
@@ -121,7 +122,7 @@ Rule "APIM.Policy.InboundBasePolicy" -Type "APIM.Policy" {
 }
 ```
 
-The name of the rule is `APIM.Policy.InboundBasePolicy` and it applies to the `APIM.Policy` type that we've specified in our convention. This will make sure that the rule is only executed on our API Management policies. Other files and objects will be ignored.
+The [Rule](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_Rules/) keyword is used to define a new rule. The name of the rule is `APIM.Policy.InboundBasePolicy` and it applies to the `APIM.Policy` type that we've specified in our convention. This will make sure that the rule is only executed on our API Management policies. Other files and objects will be ignored by this rule.
 
 The `Synopsis` is a short description of the rule. It's used in the output of PSRule to describe the rule. More information on documentation can be found [here](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_Docs/).
 
@@ -141,7 +142,7 @@ The output should look similar to this:
 
 As you can see, the rule was executed on all policy files. Only the `good.api.cshtml` file conforms to the rule and passes. All other files fail the rule. 
 
-> Although the `.cshtml` files are processed, we still get warnings from PSRule that the files have not been processed because no matching rules were found. This is most likely due to the fact that we're importing these files using a custom convention.
+> Although the `.cshtml` files are processed, we still get warnings from PSRule that the files have not been processed because no matching rules were found. This is most likely due to the fact that we're importing these files using a custom convention. By adding the `-WarningAction Ignore` parameter, you can suppress these warnings.
 
 
 ### Filter on scope
@@ -204,9 +205,9 @@ Rule "APIM.Policy.InboundBasePolicy" `
 }
 ```
 
-The `-If` parameter is used to only execute the rule if the scope is not `Global` and `Fragment`.
+The `-If` parameter is used to only execute the rule if the scope is not `Global` and not `Fragment`.
 
-Run PSRule again using the following command (_the `-WarningAction Ignore` parameter will suppress the warnings that no matching rules were found for the `.cshtml` files_):
+Run PSRule again using the following command:
 
 ```powershell
 Invoke-PSRule -InputPath ".\src\" -Option ".\.ps-rule\ps-rule.yaml" -WarningAction Ignore
