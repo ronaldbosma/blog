@@ -21,7 +21,7 @@ First off, we'll store our policies in separate files. This makes it easier to m
 As you might be aware, policies in API Management can be applied to different [scopes](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-policies#scopes). We'll be creating several rules, where some will apply to all scopes and others to specific scopes. Because there's nothing in the policy files to indicate the scope, we'll use the file name to determine the scope. For example, a file named `test.api.cshtml` will apply to the API scope, while a file named `test.operation.cshtml` will apply to the operation scope.
 
 We'll create the following custom rules:
-1. The inbound section should always start with a `base` policy to make sure important logic, like security checks, are applied first. This rule should apply to all levels, except for the global level and policy fragments.
+1. The inbound section should always start with a `base` policy to make sure important logic, like security checks, are applied first. This rule should apply to all scopes, except for the global scope and policy fragments.
 1. The subscription key header (`Ocp-Apim-Subscription-Key`) should be removed in the inbound section of the global policy to prevent it from being forwarded to the backend.
 1. A `set-backend-service` policy should use a backend entity (by setting the `backend-id` attribute) so the backend configuration is reusable and easier to maintain.
 1. Files with the `.cshtml` extension should following the naming convention and specify the scope.
@@ -82,4 +82,134 @@ This convention will import all files with the `.cshtml` extension and create a 
 The name is used by PSRule to identify the object in output and in suppressions. I found using the relative path makes this easier to manage. Any `\` in the path is also replaces with `/` to ensure the path is consistent across platforms.
 
 At the end, the policies are imported with the `APIM.Policy` type. We'll use this type to apply our rules only to API Management policies, but not to other file types and objects.
+
+The last step is to include the convention in the PSRule configuration. Create a file named `ps-rule.yml` in the `.ps-rule` folder and add the following content:
+
+```yaml
+binding:
+  preferTargetInfo: true
+  
+convention:
+  include:
+  - 'APIM.Policy.Conventions.Import'
+```
+
+Setting `preferTargetInfo` to `true` will make sure that PSRule uses the `APIM.Policy` type for our policies. The convention `APIM.Policy.Conventions.Import` is included to actually load the policies.
+
+
+### First rule: APIM.Policy.InboundBasePolicy
+
+Now, if you would execute PSRule from the root folder using the following command, you'll get the following warning: `WARNING: Could not find a matching rule. Please check that Path, Name and Tag parameters are correct.` because we haven't created any rules yet. 
+
+```powershell
+Invoke-PSRule -InputPath ".\src\" -Option ".\.ps-rule\ps-rule.yaml"
+```
+
+Let's start with the first rule: _The inbound section should always start with a `base` policy to make sure important logic, like security checks, are applied first. This rule should apply to all scopes, except for the global scope and policy fragments._
+
+Create a new file named `APIM.Policy.Rule.ps1` in the `.ps-rule` folder and add the following code:
+
+```powershell
+# Synopsis: The first policy inside the inbound section should be the base policy to make sure important logic like security checks are applied first.
+Rule "APIM.Policy.InboundBasePolicy" -Type "APIM.Policy" {
+    $policy = $TargetObject.Content.DocumentElement
+    
+    $Assert.HasField($policy, "inbound")
+    $Assert.HasField($policy.inbound, "base")
+    $Assert.HasFieldValue($policy, "inbound.FirstChild.Name", "base")
+}
+```
+
+The name of the rule is `APIM.Policy.InboundBasePolicy` and it applies to the `APIM.Policy` type that we've specified in our convention. This will make sure that the rule is only executed on our API Management policies. Other files and objects will be ignored.
+
+The `Synopsis` is a short description of the rule. It's used in the output of PSRule to describe the rule. More information on documentation can be found [here](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_Docs/).
+
+The [$TargetObject](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_Variables/#targetobject) is the object that is processed by the rule. In our case, it's the custom object that we created in the convention for each `.cshtml` file. The `Content` property contains the XML content of the policy file and is of type [XmlDocument](https://learn.microsoft.com/en-us/dotnet/api/system.xml.xmldocument?view=net-8.0).
+
+Using the different [assertion methods](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_Assert/) that come with PSRule, we check that the inbound section exists, that the base policy exists inside the inbound section and that it's the first policy in the inbound section.
+
+Run PSRule again using the following command:
+
+```powershell
+Invoke-PSRule -InputPath ".\src\" -Option ".\.ps-rule\ps-rule.yaml"
+```
+
+The output should look similar to this:
+
+![Output](../../../../../images/validate-apim-policies-with-psrule/output-inboundbasepolicy-1.png)
+
+As you can see, the rule was executed on all policies. Only the `good.api.cshtml` file conforms to the rule and passes the rule. All other files fail the rule. 
+
+> Although the `.cshtml` files are process, we still get warnings from PSRule that the files have not been processed because no matching rules were found. This is most likely due to the fact that we're importing these files as a custom object.
+
+
+### Filter on scope
+
+The `APIM.Policy.InboundBasePolicy` rule should have been skipped for the two global policy files because the `base` policy can't be used at the global scope since there is now higher level. We can add a filter to the rule to exclude the global scope, but first we'll need to determine the scope of the policy during the import.
+
+Open `APIM.Policy.Conventions.Rule.ps1` and replace its contents with the following code:
+
+```powershell
+# Synopsis: Imports the APIM XML policy file for analysis. File names should match: *.cshtml
+Export-PSRuleConvention "APIM.Policy.Conventions.Import" -Initialize {
+
+    $policies = @()
+    $policyFiles = Get-ChildItem -Path "." -Include "*.cshtml" -Recurse -File
+
+    foreach ($policyFile in $policyFiles) {
+        # Use the relative path of the file as the object name, this makes it easier to e.g. apply suppressions.
+        # Also replace backslashes with forward slashes, so the path doesn't differ between Windows and Linux.
+        # Example: ./src/my.api.cshtml
+        $name = ($policyFile.FullName | Resolve-Path -Relative).Replace('\', '/')
+
+        # Determine the scope of the policy based on the file name.
+        $scope = $null
+        if ($policyFile.Name -eq "global.cshtml") { $scope = "Global" }
+        elseif ($policyFile.Name.EndsWith(".workspace.cshtml")) { $scope = "Workspace" }
+        elseif ($policyFile.Name.EndsWith(".product.cshtml")) { $scope = "Product" }
+        elseif ($policyFile.Name.EndsWith(".api.cshtml")) { $scope = "API" }
+        elseif ($policyFile.Name.EndsWith(".operation.cshtml")) { $scope = "Operation" }
+        elseif ($policyFile.Name.EndsWith(".fragment.cshtml")) { $scope = "Fragment" }
+
+        # Only create a policy object to analyse if the scope is recognized.
+        if ($null -ne $scope) {
+            $policies += [PSCustomObject]@{
+                Name = $name
+                Scope = $scope
+                Content = [Xml](Get-Content -Path $policyFile.FullName -Raw)
+            }
+        }
+    }
+
+    $PSRule.ImportWithType("APIM.Policy", $policies);
+}
+```
+
+We determine the scope of the policy based on the file name. The scope is stored in the `Scope` property of the custom object. If we can't determine the scope, no object is created. We'll create a another rule later on to check if all `.cshtml` files have a valid scope.
+
+Now we can add a filter to the `APIM.Policy.InboundBasePolicy` rule to exclude the global scope and policy fragments. Open `APIM.Policy.Rule.ps1` and replace its contents with the following code:
+
+```powershell
+# Synopsis: The first policy inside the inbound section should be the base policy to make sure important logic like security checks are applied first.
+Rule "APIM.Policy.InboundBasePolicy" -If { $TargetObject.Scope -ne "Global" -and $TargetObject.Scope -ne "Fragment" } -Type "APIM.Policy" {
+    $policy = $TargetObject.Content.DocumentElement
+    
+    $Assert.HasField($policy, "inbound")
+    $Assert.HasField($policy.inbound, "base")
+    $Assert.HasFieldValue($policy, "inbound.FirstChild.Name", "base")
+}
+```
+
+The `-If` parameter is used to filter the rule based on the scope of the policy. The rule will only be executed if the scope is not `Global` or `Fragment`.
+
+Run PSRule again using the following command (_the `-WarningAction Ignore` parameter will suppress the warnings that no matching rules were found for the `.cshtml` files_):
+
+```powershell
+Invoke-PSRule -InputPath ".\src\" -Option ".\.ps-rule\ps-rule.yaml" -WarningAction Ignore
+```
+
+The output should now only display the results for the API scoped files as show below:
+
+![Output](../../../../../images/validate-apim-policies-with-psrule/output-inboundbasepolicy-2.png)
+
 
