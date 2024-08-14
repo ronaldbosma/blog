@@ -22,9 +22,9 @@ As you might be aware, policies in API Management can be applied to different [s
 
 We'll create the following custom rules:
 1. The inbound section should always start with a `base` policy to make sure important logic, like security checks, are applied first. This rule should apply to all scopes, except for the global scope and policy fragments.
+1. Files with the `.cshtml` extension should following the naming convention and specify the scope.
 1. The subscription key header (`Ocp-Apim-Subscription-Key`) should be removed in the inbound section of the global policy to prevent it from being forwarded to the backend.
 1. A `set-backend-service` policy should use a backend entity (by setting the `backend-id` attribute) so the backend configuration is reusable and easier to maintain.
-1. Files with the `.cshtml` extension should following the naming convention and specify the scope.
 1. Files with API Management policies should have valid XML syntax.
 
 
@@ -97,7 +97,7 @@ convention:
 Setting `preferTargetInfo` to `true` will make sure that PSRule uses the `APIM.Policy` type for our policies. The convention `APIM.Policy.Conventions.Import` is included to actually import the policies.
 
 
-### First rule: APIM.Policy.InboundBasePolicy
+### Implement first rule APIM.Policy.InboundBasePolicy
 
 Now, if you would execute PSRule from the root folder using the following command, you'll get the message `WARNING: Could not find a matching rule. Please check that Path, Name and Tag parameters are correct` because we haven't created any rules yet. 
 
@@ -187,7 +187,7 @@ Export-PSRuleConvention "APIM.Policy.Conventions.Import" -Initialize {
 }
 ```
 
-We determine the scope of the policy based on the file name. The scope is stored in the `Scope` property of the custom object. If we can't determine the scope, no object is created. We'll create a another rule later on to check if all `.cshtml` files have a valid scope.
+We determine the scope of the policy based on the file name. The scope is stored in the `Scope` property of the custom object. If we can't determine the scope, no object is created. We'll create a another rule in the next section to check if all `.cshtml` files have a valid scope.
 
 Now we can add a filter to the `APIM.Policy.InboundBasePolicy` rule to exclude the global scope and policy fragments. Open `APIM.Policy.Rule.ps1` and replace its contents with the following code:
 
@@ -216,4 +216,42 @@ Invoke-PSRule -InputPath ".\src\" -Option ".\.ps-rule\ps-rule.yaml" -WarningActi
 The output should now only display the results for the API scoped files as show below:
 
 ![Output](../../../../../images/validate-apim-policies-with-psrule/output-inboundbasepolicy-2.png)
+
+
+### Implement rule APIM.Policy.FileExtension
+
+As mentioned in the previous section, we want to check that each `.cshtml` file has a valid scope. So, we'll create the following rule for this:
+
+_Files with the `.cshtml` extension should following the naming convention and specify the scope._
+
+Let's start by creating a new file that doesn't specify a scope in the name. Navigate to the `bad` folder, create a file named `unknown-scope.cshtml` and add the following content: `<policies/>`. When you run PSRule this file should still be ignored, because we haven't created a rule for it yet.
+
+Now, open `APIM.Policy.Rule.ps1` and add the following rule:
+
+```powershell
+# Synopsis: APIM policy file name should specify the scope. The name should be global.cshtml or end with: .workspace.cshtml, .product.cshtml, .api.cshtml, .operation.cshtml, or .fragment.cshtml.
+Rule "APIM.Policy.FileExtension" -Type ".cshtml" {
+    
+    $knownScope = $TargetObject.Name -eq "global.cshtml" -or `
+                  $TargetObject.Name.EndsWith(".workspace.cshtml") -or 
+                  $TargetObject.Name.EndsWith(".product.cshtml") -or 
+                  $TargetObject.Name.EndsWith(".api.cshtml") -or 
+                  $TargetObject.Name.EndsWith(".operation.cshtml") -or 
+                  $TargetObject.Name.EndsWith(".fragment.cshtml")
+
+    if ($knownScope) {
+        $Assert.Pass()
+    } else {
+        $Assert.Fail("Unknown API Management policy scope. Expected file name global.cshtml or name ending with: .workspace.cshtml, .product.cshtml, .api.cshtml, .operation.cshtml, or .fragment.cshtml")
+    }
+}
+```
+
+As you can see, the `-Type` parameter filters on `.cshtml` files, not on the `APIM.Policy` as was the case with the previous rule. This rule is executed on all `.cshtml` files, even if our convention didn't import them as `APIM.Policy` objects.
+
+The rule checks if the file name specifies a valid scope. If the file name is `global.cshtml` or ends with `.workspace.cshtml`, `.product.cshtml`, `.api.cshtml`, `.operation.cshtml`, or `.fragment.cshtml`, the rule passes. Otherwise, it fails.
+
+When you execute PSRule again, you should see that the `APIM.Policy.FileExtension` rule is executed for each `.cshtml` file. The `unknown-scope.cshtml` file should fail the rule.
+
+> By adding the `-Outcome Fail` parameter, PSRule will only output the failures. And if you're only interested in the results of a single rule, you can use the `-Name`. For example: `-Name "APIM.Policy.InboundBasePolicy"`.
 
