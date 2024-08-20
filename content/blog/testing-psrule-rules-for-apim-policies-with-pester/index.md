@@ -21,6 +21,7 @@ An explanation of the concepts of Pester is out-of-scope for this blog post. If 
   - [Should not apply to global](#should-not-apply-to-global)
   - [Other scenarios](#other-scenarios)
 - [Refactor tests](#refactor-tests)
+- [Integration tests](#integration-tests)
 
 
 ### Prerequisites
@@ -285,6 +286,9 @@ The assertion `$Assert.HasFieldValue($policy, "inbound.FirstChild.Name", "base")
 Before you add these scenarios, we'll first refactor the tests to make them more maintainable in the next section.
 
 ### Refactor tests
+
+
+### Integration tests
 
 
 ---
