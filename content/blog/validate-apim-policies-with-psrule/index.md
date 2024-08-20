@@ -7,11 +7,12 @@ tags: [ "Azure", "API Management", "Infra as Code", "PSRule", "Test Automation" 
 draft: true
 ---
 
-I've been working with Azure API Management for a while now, and one of the challenges I’ve faced is finding a reliable way to validate the XML policies I write. When working with .NET, tools like SonarQube are available for code quality checks, but these tools don’t support the kind of checks I want to perform on the policies used in Azure API Management.
+I’ve been working with Azure API Management for a while now, and one of the challenges I’ve faced is finding a reliable way to validate the XML policies I write. When working with .NET, tools like SonarQube are available for code quality checks, but these tools don’t support the specific checks I want to perform on the policies used in Azure API Management.
 
-After some searching, I discovered [PSRule](https://microsoft.github.io/PSRule)—a cross-platform PowerShell module to validate infrastructure as code (IaC) files and objects using PowerShell rules. It's created by Bernie White and hosted on the Microsoft Github account [here](https://github.com/microsoft/PSRule). It's also included in [Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/iac-vulnerabilities#view-details-and-remediation-information-for-applied-iac-rules) as part of Template Analyzer.
+After some searching, I discovered [PSRule](https://microsoft.github.io/PSRule)—a cross-platform PowerShell module designed to validate infrastructure as code (IaC) files and objects using PowerShell rules. PSRule was created by Bernie White and is hosted on Microsoft’s GitHub account [here](https://github.com/microsoft/PSRule). It’s also integrated into [Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/iac-vulnerabilities#view-details-and-remediation-information-for-applied-iac-rules) as part of Template Analyzer.
 
-In this blog post, I’ll demonstrate how to use PSRule to validate your Azure API Management policies. But before we start, let's start with some requirements first.
+In this blog post, I’ll demonstrate how to use PSRule to validate your Azure API Management policies.
+
 
 ### Table of Contents
 
@@ -25,27 +26,30 @@ In this blog post, I’ll demonstrate how to use PSRule to validate your Azure A
   - [Check that the subscription key header is removed](#check-that-the-subscription-key-header-is-removed)
   - [Check that a backend entity is used](#check-that-a-backend-entity-is-used)
 - [Handle invalid XML syntax](#handle-invalid-xml-syntax)
-- [Considerations](#considerations)
+- [PSRule for Azure](#psrule-for-azure)
 - [Conclusion](#conclusion)
 
 
 ### Requirements
 
-I usually use [Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview?tabs=bicep) to deploy my policies. And although you can specify your policies directly in a Bicep file, I prefer to store them in separate files. This makes it easier to manage and maintain them. I usually use the `.cshtml` file extension for these files, because this enables IntelliSense on policies when using the [Azure API Management for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-apimanagement) extension. So, PSRule will need to recognize these files as API Management policies.
+I usually use [Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview?tabs=bicep) to deploy my policies. While it’s possible to specify policies directly within a Bicep file, I prefer to store them in separate files. This approach makes the policies easier to manage and maintain. I typically use the `.cshtml` file extension for these policy files, as it enables IntelliSense for policies when using the [Azure API Management for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-apimanagement) extension. So, PSRule will need to recognize these `.cshtml` files as API Management policies.
 
-As you might be aware, policies in API Management can be applied to different [scopes](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-policies#scopes). We'll be creating several rules, where some will apply to all scopes and others to specific scopes. Because there's nothing in the policy files to indicate the scope, we'll use the file name to determine the scope. For example, a file named `test.api.cshtml` will apply to the API scope, while a file named `test.operation.cshtml` will apply to the operation scope.
+As you may know, policies in API Management can be applied at different [scopes](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-policies#scopes). We'll be creating several custom rules, some of which will apply to all scopes, while others will be specific to certain scopes. Since the policy files themselves don't indicate their scope, we'll use the file names to determine this. For example, a file named `test.api.cshtml` will apply to the API scope, while a file named `test.operation.cshtml` will apply to the operation scope.
 
 We'll create the following custom rules:
-1. The inbound section should always start with a `base` policy to make sure important logic, like security checks, are applied first. This rule should apply to all scopes, except for the global scope and policy fragments.
-1. Files with the `.cshtml` extension should following the naming convention and specify the scope.
+
+1. The inbound section should always start with a `base` policy to ensure that critical logic, such as security checks, is applied first. This rule should apply to all scopes except for the global scope and policy fragments.
+1. Files with the `.cshtml` extension should follow the naming convention and specify the scope.
 1. The subscription key header (`Ocp-Apim-Subscription-Key`) should be removed in the inbound section of the global policy to prevent it from being forwarded to the backend.
-1. A `set-backend-service` policy should use a backend entity (by setting the `backend-id` attribute) so the backend configuration is reusable and easier to maintain.
-1. Files with API Management policies should have valid XML syntax.
+1. The `set-backend-service` policy should use a backend entity (by setting the `backend-id` attribute) to make the backend configuration reusable and easier to maintain.
+1. Files containing API Management policies should have valid XML syntax.
 
 
 ### Sample policies
 
-We'll need some sample policies to test our rules against. You can download them [here](https://github.com/ronaldbosma/blog-code-examples/raw/master/validate-apim-policies-with-psrule/start-sample-policies.zip). Create a new root folder and unzip the sample policies in this folder. You should now have the following folder structure:
+We'll need some sample policies to test our rules against. You can download them [here](https://github.com/ronaldbosma/blog-code-examples/raw/master/validate-apim-policies-with-psrule/start-sample-policies.zip). 
+
+To get started, create a new root folder and unzip the sample policies into this folder. After unzipping, your folder structure should look like this:
 
 ```
 /your-root
@@ -58,14 +62,14 @@ We'll need some sample policies to test our rules against. You can download them
             bad.api.cshtml
 ```
 
-Have a look at the different policies. The files in the `good` folder conform to the rules we'll create, while the ones in the `bad` folder don't.
+Examine the different policy files provided. The files located in the `good` folder conform to the rules that we will establish, while those in the `bad` folder do not.
 
 
 ### Import policies using convention
 
 At this moment in time, PSRule doesn't support loading XML files out-of-the-box. I've created an issue for this on Github, which can be found [here](https://github.com/microsoft/PSRule/issues/1537). Luckily, PSRule is extensible, and Bernie White, the creator of PSRule, has provided a sample in my issue that we can use to load XML files. It uses a [convention](https://microsoft.github.io/PSRule/stable/concepts/PSRule/en-US/about_PSRule_Conventions/).
 
-Conventions, rules and other PSRule relates files are commonly stored in a `.ps-rule` folder in the root of your repository as described [here](https://microsoft.github.io/PSRule/v2/authoring/storing-rules/). You can create this folder in the root
+Conventions, rules and other PSRule relates files are commonly stored in a `.ps-rule` folder in the root of your repository as described [here](https://microsoft.github.io/PSRule/v2/authoring/storing-rules/). You can create this folder in your root.
 
 Inside the `.ps-rule` folder, create a file named `APIM.Policy.Conventions.Rule.ps1` (_the `.Rule.ps1` extension is required for PSRule to recognize the file_). Add the following code to the file:
 
@@ -92,13 +96,13 @@ Export-PSRuleConvention "APIM.Policy.Conventions.Import" -Initialize {
 }
 ```
 
-This convention will select all files with the `.cshtml` extension and create a custom object with the name and the XML content of the file. 
+This convention will select all files with the `.cshtml` extension and create a custom object containing the file's name and its XML content.
 
-The object's name is used by PSRule to identify the object in output and in suppressions. I prefer using the relative path because this makes it easier to manage. Any `\` in the path is also replaced with `/` to ensure the path is consistent across platforms.
+The object's name is used by PSRule to identify it in the output and suppressions. I recommend using the relative path for the name, as it simplifies management. Additionally, any `\` in the path is replaced with `/` to ensure consistency across different platforms.
 
-At the end of the convention, the policies are imported with the `APIM.Policy` type. We'll use this type to apply our rules only to API Management policies, and not to other file types and objects.
+At the end of the convention, the policies are imported with the `APIM.Policy` type. We'll use this type to ensure our rules apply only to API Management policies and not to other file types or objects.
 
-The last step is to include the convention in the PSRule configuration. Create a file named `ps-rule.yml` in the `.ps-rule` folder and add the following content:
+The final step is to include the convention in the PSRule configuration. Create a file named `ps-rule.yml` inside the `.ps-rule` folder and add the following content:
 
 ```yaml
 binding:
@@ -109,20 +113,20 @@ convention:
   - 'APIM.Policy.Conventions.Import'
 ```
 
-Setting `preferTargetInfo` to `true` will make sure that PSRule uses the `APIM.Policy` type for our policies. The convention `APIM.Policy.Conventions.Import` is included to actually import the policies.
+Setting `preferTargetInfo` to `true` ensures that PSRule uses the `APIM.Policy` type for our policies. The convention `APIM.Policy.Conventions.Import` is included to actually import the policies.
 
 
 ### Implement first rule: inbound section should start with base policy
 
-Now, if you would execute PSRule from the root folder using the following command, you'll get the message `WARNING: Could not find a matching rule. Please check that Path, Name and Tag parameters are correct` because we haven't created any rules yet. 
+If you were to execute PSRule from the root folder using the following command, you'd receive the message `WARNING: Could not find a matching rule. Please check that Path, Name and Tag parameters are correct` because we haven't created any rules yet.
 
 ```powershell
 Invoke-PSRule -InputPath ".\src\" -Option ".\.ps-rule\ps-rule.yaml"
 ```
 
-Let's start with the first rule:  
+Let's start with the first rule:
 
-_The inbound section should always start with a `base` policy to make sure important logic, like security checks, are applied first. This rule should apply to all scopes, except for the global scope and policy fragments._
+_The inbound section should always start with a `base` policy to ensure that critical logic, such as security checks, is applied first. This rule should apply to all scopes except for the global scope and policy fragments._
 
 Create a new file named `APIM.Policy.Rule.ps1` in the `.ps-rule` folder and add the following code:
 
@@ -137,13 +141,13 @@ Rule "APIM.Policy.InboundBasePolicy" -Type "APIM.Policy" {
 }
 ```
 
-The [Rule](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_Rules/) keyword is used to define a new rule. The name of the rule is `APIM.Policy.InboundBasePolicy` and it applies to the `APIM.Policy` type that we've specified in our convention. This will make sure that the rule is only executed on our API Management policies. Other files and objects will be ignored by this rule.
+The [Rule](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_Rules/) keyword is used to define a new rule. The rule named `APIM.Policy.InboundBasePolicy` applies to the `APIM.Policy` type specified in our convention. This ensures that the rule is only executed on our API Management policies, while other files and objects are ignored.
 
-The `Synopsis` is a short description of the rule. It's used in the output of PSRule to describe the rule. More information on documentation can be found [here](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_Docs/).
+The `Synopsis` comment provides a brief description of the rule and appears in the PSRule output to describe its purpose. More information on documenting rules can be found [here](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_Docs/).
 
-The [$TargetObject](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_Variables/#targetobject) is the object that is processed by the rule. In our case, it's the custom object that we created in the convention for each `.cshtml` file. The `Content` property contains the XML content of the policy file and is of type [XmlDocument](https://learn.microsoft.com/en-us/dotnet/api/system.xml.xmldocument?view=net-8.0).
+The [$TargetObject](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_Variables/#targetobject) represents the object processed by the rule. In this case, it refers to the custom object created in the convention for each `.cshtml` file. The `Content` property contains the XML content of the policy file and is of type [XmlDocument](https://learn.microsoft.com/en-us/dotnet/api/system.xml.xmldocument?view=net-8.0).
 
-Using the different [assertion methods](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_Assert/) that come with PSRule, we check that the inbound section exists, that the base policy exists inside the inbound section and that it's the first policy in the inbound section.
+Using various [assertion methods](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_Assert/) provided by PSRule, we check that the inbound section exists, that the base policy is present within the inbound section, and that it is the first policy in that section.
 
 Run PSRule again using the following command:
 
@@ -155,14 +159,21 @@ The output should look similar to this:
 
 ![Output](../../../../../images/validate-apim-policies-with-psrule/output-inboundbasepolicy-1.png)
 
-As you can see, the rule was executed on all policy files. Only the `good.api.cshtml` file conforms to the rule and passes. All other files fail the rule. 
+As shown, the rule was executed on all policy files. Only the `good.api.cshtml` file conforms to the rule and passes, while all other files fail the rule.
 
-> Although the `.cshtml` files are processed, we still get warnings from PSRule that the files have not been processed because no matching rules were found. This is most likely due to the fact that we're importing these files using a custom convention. By adding the `-WarningAction Ignore` parameter, you can suppress these warnings.
+Although the `.cshtml` files are processed, you might see warnings from PSRule indicating that no matching rules were found. This is likely because we are importing these files using a custom convention. To suppress these warnings, add the following to the end of the `ps-rule.yaml` configuration file:
+
+```yaml
+execution:
+  # Ignore warnings for resources and objects that don't have any rules.
+  unprocessedObject: Ignore
+  ruleSuppressed: Ignore
+```
 
 
 ### Filter on scope
 
-The `APIM.Policy.InboundBasePolicy` rule should have been skipped for the two global policy files because the `base` policy can't be used at the global scope since there is now higher level. We can add a filter to the rule to exclude the global scope, but first we'll need to determine the scope of the policy during the import.
+The `APIM.Policy.InboundBasePolicy` rule should have been skipped for the two global policy files because the `base` policy cannot be used at the global scope, as there is no higher level. We can add a filter to the rule to exclude the global scope, but first, we need to determine the scope of the policy during the import.
 
 Open `APIM.Policy.Conventions.Rule.ps1` and replace its contents with the following code:
 
@@ -202,9 +213,10 @@ Export-PSRuleConvention "APIM.Policy.Conventions.Import" -Initialize {
 }
 ```
 
-We determine the scope of the policy based on the file name. The scope is stored in the `Scope` property of the custom object. If we can't determine the scope, no object is created. We'll create a another rule in the next section to check if all `.cshtml` files have a valid scope.
+We determine the scope of the policy based on the file name, and the scope is stored in the `Scope` property of the custom object. If the scope cannot be determined, no object is created. In the next section, we will create another rule to ensure that all `.cshtml` files have a valid scope.
 
-Now we can add a filter to the `APIM.Policy.InboundBasePolicy` rule to exclude the global scope and policy fragments. Open `APIM.Policy.Rule.ps1` and replace its contents with the following code:
+Now, we can add a filter to the `APIM.Policy.InboundBasePolicy` rule to exclude the global scope and policy fragments. Open `APIM.Policy.Rule.ps1` and replace its contents with the following code:
+
 
 ```powershell
 # Synopsis: The first policy inside the inbound section should be the base policy... to make sure important logic like security checks are applied first.
@@ -220,33 +232,25 @@ Rule "APIM.Policy.InboundBasePolicy" `
 }
 ```
 
-The `-If` parameter is used to only execute the rule if the scope is not `Global` and not `Fragment`.
-
-Run PSRule again using the following command:
-
-```powershell
-Invoke-PSRule -InputPath ".\src\" -Option ".\.ps-rule\ps-rule.yaml" -WarningAction Ignore
-```
-
-The output should now only display the results for the API scoped files as show below:
+The `-If` parameter ensures that the rule is only executed if the scope is neither `Global` nor `Fragment`. Run PSRule again. The output should now display results only for the API-scoped files, as shown below:
 
 ![Output](../../../../../images/validate-apim-policies-with-psrule/output-inboundbasepolicy-2.png)
 
 
 ### More rules
 
-In this section, we'll create a couple more rules to validate the API Management policies.
+In this section, we'll create a couple more rules to further validate the API Management policies.
 
 
 #### Check that policy files specify the scope
 
-As mentioned in the previous section, we want to check that each `.cshtml` file has a valid scope. So, we'll create the following rule for this:
+As mentioned in the previous section, we need to verify that each `.cshtml` file has a valid scope. To achieve this, we will create the following rule:
 
-_Files with the `.cshtml` extension should following the naming convention and specify the scope._
+_Files with the `.cshtml` extension should follow the naming convention and specify the scope._
 
-Let's start by creating a new file that doesn't specify a scope in the name. Navigate to the `bad` folder, create a file named `unknown-scope.cshtml` and add the following content: `<policies/>`. When you run PSRule this file should still be ignored, because we haven't created a rule for it yet.
+First, create a new file that does not specify a scope in its name. Navigate to the `bad` folder, create a file named `unknown-scope.cshtml`, and add the following content: `<policies/>`. When you run PSRule, this file should still be ignored because we haven’t created a rule for it yet.
 
-Now, open `APIM.Policy.Rule.ps1` and add the following rule:
+Next, open `APIM.Policy.Rule.ps1` and add the following rule:
 
 ```powershell
 # Synopsis: APIM policy file name should specify the scope. The name should be global.cshtml or end with: .workspace.cshtml, .product.cshtml, .api.cshtml, .operation.cshtml, or .fragment.cshtml.
@@ -267,13 +271,13 @@ Rule "APIM.Policy.FileExtension" -Type ".cshtml" {
 }
 ```
 
-As you can see, the `-Type` parameter filters on `.cshtml` files, not on the `APIM.Policy` as was the case with the previous rule. This rule is executed on all `.cshtml` files, even if our convention didn't import them as `APIM.Policy` objects.
+As you can see, the `-Type` parameter filters `.cshtml` files directly, unlike the previous rule, which filtered based on the `APIM.Policy` type. This rule is executed on all `.cshtml` files, even if our convention did not import them as `APIM.Policy` objects.
 
-The rule checks if the file name specifies a valid scope. If the file name is `global.cshtml` or ends with `.workspace.cshtml`, `.product.cshtml`, `.api.cshtml`, `.operation.cshtml`, or `.fragment.cshtml`, the rule passes. Otherwise, it fails.
+The rule verifies if the file name specifies a valid scope. It passes if the file name is `global.cshtml` or ends with `.workspace.cshtml`, `.product.cshtml`, `.api.cshtml`, `.operation.cshtml`, or `.fragment.cshtml`. Otherwise, it fails.
 
-When you execute PSRule again, you should see that the `APIM.Policy.FileExtension` rule is executed for each `.cshtml` file. The `unknown-scope.cshtml` file should fail the rule.
+When you execute PSRule again, you should see that the `APIM.Policy.FileExtension` rule is applied to each `.cshtml` file. The `unknown-scope.cshtml` file should fail this rule.
 
-> By adding the `-Outcome Fail` parameter, PSRule will only output the failures. And if you're only interested in the results of a single rule, you can use the `-Name`. For example: `-Name "APIM.Policy.InboundBasePolicy"`.
+> To output only the failures, add the `-Outcome Fail` parameter. If you are interested in the results of a specific rule, use the `-Name` parameter. For example: `-Name "APIM.Policy.InboundBasePolicy"`.
 
 
 #### Check that the subscription key header is removed
@@ -284,11 +288,21 @@ _The subscription key header (`Ocp-Apim-Subscription-Key`) should be removed in 
 
 The rule should check that the following policy is present in the inbound section of the global policy:
 
+---
+
+One of the features of API Management is that it forwards all headers to the backend by default. While this is useful, it can also pose a security risk. For instance, the API Management subscription key header (`Ocp-Apim-Subscription-Key`) is forwarded to the backend, even though the backend usually doesn't need to know this key, especially when dealing with external backends. To mitigate this risk, we should remove this header in the inbound section of the global policy. 
+
+We'll create a rule to ensure this:
+
+_The subscription key header (`Ocp-Apim-Subscription-Key`) should be removed in the inbound section of the global policy to prevent it from being forwarded to the backend._
+
+The rule should check that the following policy is present in the inbound section of the global policy:
+
 ```xml
 <set-header name="Ocp-Apim-Subscription-Key" exists-action="delete" />
 ```
 
-The sample `global.cshtml` files that you've downloaded already have this scenario in place, so we can create a new rule right away. Open `APIM.Policy.Rule.ps1` and add the following rule:
+The sample `global.cshtml` files you've downloaded already include this scenario, so we can proceed to create the new rule immediately. Open `APIM.Policy.Rule.ps1` and add the following rule:
 
 ```powershell
 # Synopsis: The subscription key header (Ocp-Apim-Subscription-Key) should be removed in the inbound section of the global policy to prevent it from being forwarded to the backend.
@@ -306,17 +320,17 @@ Rule "APIM.Policy.RemoveSubscriptionKeyHeader" -If { $TargetObject.Scope -eq "Gl
         $_."exists-action" -eq "delete" 
     } )
 
-    if ($removeSubscriptionKeyPolicies.Count -gt 0) {
-        $Assert.Pass()
-    } else {
+    if ($removeSubscriptionKeyPolicies.Count -eq 0) {
         $Assert.Fail("Unable to find a set-header policy that removes the Ocp-Apim-Subscription-Key header as a direct child of the inbound section.")
+    } else {
+        $Assert.Pass()
     }
 }
 ```
 
-The rule is executed on every object of type `APIM.Policy` where the scope is `Global`. It checks if there's a `set-header` policy for the `Ocp-Apim-Subscription-Key` header with the `delete` action in the inbound section. If the policy is found, the rule passes. Otherwise, it fails.
+The rule is executed on every object of type `APIM.Policy` where the scope is `Global`. It checks for a `set-header` policy for the `Ocp-Apim-Subscription-Key` header and the `delete` action in the inbound section. If this policy is present, the rule passes; otherwise, it fails.
 
-When you execute PSRule again, you should see that the `APIM.Policy.RemoveSubscriptionKeyHeader` rule is executed for the `global.cshtml` files. The output should show that the rule passes for the `./src/good/global.cshtml` file and fails for the `./src/bad/global.cshtml` file.
+When you run PSRule again, you should see that the `APIM.Policy.RemoveSubscriptionKeyHeader` rule is applied to the `global.cshtml` files. The output should indicate that the rule passes for the `./src/good/global.cshtml` file and fails for the `./src/bad/global.cshtml` file.
 
 
 #### Check that a backend entity is used
@@ -327,6 +341,16 @@ _A `set-backend-service` policy should use a backend entity (by setting the `bac
 
 Here are two samples of the `set-backend-service` policy, where the first is accepted and the second is not:
 
+---
+
+In API Management, there are several methods to configure the backend service. I prefer creating a separate backend entity within the API Management service to manage the service URL and other settings, such as authentication. This approach makes the backend configuration reusable, easier to maintain, and it is also validated by various [Azure Policies](https://learn.microsoft.com/en-us/azure/api-management/policy-reference#azure-api-management). 
+
+We’ll introduce a rule to validate the use of backend entities:
+
+_The `set-backend-service` policy should use a backend entity (by setting the `backend-id` attribute) to make the backend configuration reusable and easier to maintain._
+
+Here are two samples of the `set-backend-service` policy: the first is valid, and the second is not:
+
 ```xml
 <!-- Good -->
 <set-backend-service backend-id="test" />
@@ -335,7 +359,7 @@ Here are two samples of the `set-backend-service` policy, where the first is acc
 <set-backend-service base-url="https://test.nl" />
 ```
 
-The sample `*.api.cshtml` files that you've downloaded already have this scenario in place, so we can create a new rule right away. Open `APIM.Policy.Rule.ps1` and add the following rule:
+The sample `*.api.cshtml` files you've downloaded already include this scenario, so we can proceed to create the new rule immediately. Open `APIM.Policy.Rule.ps1` and add the following rule:
 
 ```powershell
 # Synopsis: A set-backend-service policy should use a backend entity (by setting the backend-id attribute) so it's reusable and easier to maintain.
@@ -355,18 +379,18 @@ Rule "APIM.Policy.UseBackendEntity" `
 }
 ```
 
-The rule is executed on every object of type `APIM.Policy` no matter the scope. We only want to execute the rule if the policy file actually has a `set-backend-service` policy, which is achieved by the condition: `$TargetObject.Content.DocumentElement.SelectNodes(".//*[local-name()='set-backend-service']").Count -ne 0`. It performs an XPath query to select all `set-backend-service` policies in the XML content of the policy file.
+The rule is executed on every object of type `APIM.Policy`, regardless of the scope. To ensure the rule only applies to policy files containing a `set-backend-service` policy, we use the condition: `$TargetObject.Content.DocumentElement.SelectNodes(".//*[local-name()='set-backend-service']").Count -ne 0`. This condition performs an XPath query to find all `set-backend-service` policies in the XML content of the policy file.
 
-The rule itself will check that each `set-backend-service` policy has the `backend-id` attribute set. If the attribute is set, the rule passes. Otherwise, it fails.
+The rule itself checks that each `set-backend-service` policy includes the `backend-id` attribute. If this attribute is present, the rule passes; otherwise, it fails.
 
-When you execute PSRule again, you should see that the `APIM.Policy.UseBackendEntity` rule is executed for all `.cshtml` files with a valid scope. The output should show that the rule passes for the files in the `good` folder and fails for the files in the `bad` folder.
+When you run PSRule again, you should see the `APIM.Policy.UseBackendEntity` rule applied to all `.cshtml` files that include a `set-backend-service` policy. The output should show that the rule passes for files in the `good` folder and fails for those in the `bad` folder.
 
 
 ### Handle invalid XML syntax
 
-With a couple of these tests done, I thought: Great! Lets run it on an actual code base. But I immediately got an error that the XML in at least one of the files was invalid. None of the rules for the `APIM.Policy` type were executed, because the convention failed to import the policies. Only the `APIM.Policy.FileExtension` rule was executed, because it's not dependent on the convention.
+After creating and testing a few rules, I decided to run them on an actual code base. However, I encountered an error indicating that the XML in at least one of the files was invalid. As a result, none of the rules for the `APIM.Policy` type were executed because the convention failed to import the policies. Only the `APIM.Policy.FileExtension` rule ran, as it is not dependent on the convention.
 
-The problem is that API Management accepts invalid XML when dealing with policy expressions. See the following two snippets for examples:
+The problem occurs because API Management accepts invalid XML in policy expressions. Here are two examples to illustrate this:
 
 ```xml
 <!-- This will result in an error when loading the policy as XML, because of the use of < and > in the policy expression -->
@@ -383,10 +407,9 @@ The problem is that API Management accepts invalid XML when dealing with policy 
 </choose>
 ```
 
-The `set-body` snippet is invalid because of the `<string>` generic, which is recognized as a start XML tag. The second snippet is invalid because of the double quotes inside the `condition` attribute value. Even the examples in the official documentation have invalid XML. See the [set-body policy examples](https://learn.microsoft.com/en-us/azure/api-management/set-body-policy#examples).
+The `set-body` snippet is invalid due to the `<string>` generic, which is interpreted as a start XML tag that lacks a closing tag. The second snippet is invalid because of the double quotes inside the `condition` attribute value. Even the examples in the official documentation contain invalid XML. See the [set-body policy examples](https://learn.microsoft.com/en-us/azure/api-management/set-body-policy#examples).
 
-
-The easiest way to get valid XML inside an element is to use `<![CDATA[]]>`. The first snippet would look like this:
+The easiest way to ensure valid XML inside an element is to use `<![CDATA[]]>`. The first snippet would look like this:
 
 ```xml
 <set-body><![CDATA[@{
@@ -394,9 +417,9 @@ The easiest way to get valid XML inside an element is to use `<![CDATA[]]>`. The
 }]]></set-body>
 ```
 
-I was concerned that API Management would not work properly with this syntax, but it does. The policy expression is still executed as expected.
+I was initially concerned that API Management might not handle this syntax properly, but it does. The policy expression is executed as expected.
 
-For attribute values there are a couple of solutions. You can surround the value with single quotes: `'{value}'`. When you upload this snippet to API Management, it will automatically convert the single quotes to double quotes. The second solution is to use `&quot;` inside the attribute value. Here are two examples:
+For attribute values, there are a couple of solutions. You can surround the value with single quotes: `'{value}'`. When you upload the policy to API Management, it will automatically convert the single quotes to double quotes. Another solution is to use `&quot;` within the attribute value. Here are two examples:
 
 ```xml
 <choose>
@@ -413,6 +436,12 @@ To test this yourself, download [invalid-xml-1.operation.cshtml](https://raw.git
 
 When you run PRSule again, you might think that every works, because you see output for the `APIM.Policy.FileExtension` rule. However, if you scroll up to the top of the output, you'll see the following error, indicating that a policy file with invalid XML could not be loaded:
 
+---
+
+To test this yourself, download [invalid-xml-1.operation.cshtml](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/validate-apim-policies-with-psrule/src/bad/invalid-xml-1.operation.cshtml) and [invalid-xml-2.operation.cshtml](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/validate-apim-policies-with-psrule/src/bad/invalid-xml-2.operation.cshtml), and place them in the `bad` folder. Also download [good.operation.cshtml](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/validate-apim-policies-with-psrule/src/good/good.operation.cshtml) and place it in the `good` folder. This file includes the suggested solutions for the invalid XML syntax.
+
+When you run PSRule again, you might initially think everything is working because you see output for the `APIM.Policy.FileExtension` rule. However, if you scroll to the top of the output, you'll find an error indicating that a policy file with invalid XML could not be loaded:
+
 ```
 Invoke-PSRule: Cannot convert value "<policies>
     <inbound>
@@ -426,7 +455,7 @@ Invoke-PSRule: Cannot convert value "<policies>
 </policies>" to type "System.Xml.XmlDocument". Error: "The 'string' start tag on line 7 position 44 does not match the end tag of 'set-body'. Line 8, position 12."
 ```
 
-To handle policy files with invalid XML syntax gracefully, we'll need to make some changes to the convention. I also want to report on the files with invalid XML, because they won't be processed by the other rules. Open `APIM.Policy.Conventions.Rule.ps1` and replace its contents with the following code:
+To handle policy files with invalid XML syntax gracefully, we need to adjust the convention. Additionally, we should report on files with invalid XML, as they won't be processed by the other rules. Open `APIM.Policy.Conventions.Rule.ps1` and replace its contents with the following code:
 
 ```powershell
 # Synopsis: Imports the APIM XML policy file for analysis. File names should match: *.cshtml
@@ -487,6 +516,18 @@ I've chosen to import the files with invalid XML as a separate type called `APIM
 
 Now, to report on policy files with invalid XML, we'll create a new rule. Open `APIM.Policy.Rule.ps1` and add the following rule:
 
+---
+
+This snippet includes several changes compared to the previous version:
+
+1. A new array called `$policyFilesWithInvalidXml` is created at the top. This array will hold the `.cshtml` files with invalid XML.
+1. The creation of the custom object has been placed inside a `try-catch` block. If the XML content of the policy file cannot be loaded, an exception is thrown. This exception is caught, and a new custom object is created with the file name and the exception message. This object is then added to the `$policyFilesWithInvalidXml` array.
+1. At the end, the files with invalid XML are imported as a new type `APIM.PolicyWithInvalidXml`.
+
+By importing files with invalid XML as a separate type, `APIM.PolicyWithInvalidXml`, we can apply the `-Type "APIM.Policy"` filter to our validation rules without worrying about invalid XML, making it easier to create new rules.
+
+To report on policy files with invalid XML, we’ll create a new rule. Open `APIM.Policy.Rule.ps1` and add the following rule:
+
 ```powershell
 # Synopsis: A policy file should contain valid XML
 Rule "APIM.Policy.ValidXml" -Type "APIM.Policy", "APIM.PolicyWithInvalidXml" {
@@ -498,18 +539,19 @@ Rule "APIM.Policy.ValidXml" -Type "APIM.Policy", "APIM.PolicyWithInvalidXml" {
 }
 ```
 
-As you can see, the rule is executed for objects of type `APIM.Policy` and `APIM.PolicyWithInvalidXml`. When the type is `APIM.Policy`, we know the XML content was loaded successfully and the rule passes. Otherwise, the rule fails with the error message as the reason.
+As you can see, the rule is executed for both `APIM.Policy` and `APIM.PolicyWithInvalidXml` types. When the type is `APIM.Policy`, it indicates that the XML content was loaded successfully, and the rule passes. On the other hand, if the type is `APIM.PolicyWithInvalidXml`, the rule fails and reports the error message as the reason.
 
-> By filtering on both types, the `APIM.Policy.ValidXml` rule will report a `Pass` on policy files with valid XML. Which I like. You can also choose to only report on invalid XML by executing the rule for the `APIM.PolicyWithInvalidXml` type only and always failing the rule.
+> By filtering on both types, the `APIM.Policy.ValidXml` rule will report a `Pass` for policy files with valid XML, which I prefer. Alternatively, you can choose to only report on invalid XML by running the rule exclusively for the `APIM.PolicyWithInvalidXml` type and having it always fail.
 
-When you run PSRule again, you should see that all our custom rules are executed again. The rule `APIM.Policy.ValidXml` will fail for the files `invalid-xml-1.operation.cshtml` and `invalid-xml-2.operation.cshtml`, and succeed for all other policy files.
+When you run PSRule again, you should see that all our custom rules are executed again. The `APIM.Policy.ValidXml` rule will fail for `invalid-xml-1.operation.cshtml` and `invalid-xml-2.operation.cshtml`, while succeeding for all other policy files.
 
 
-### Considerations
+### PSRule for Azure
 
-Microsoft has created a module on top of PSRule to validate Azure Infrastructure as Code resources called [PSRule for Azure](https://azure.github.io/PSRule.Rules.Azure/). It comes with a standard set of rules. My colleague Caspar Eldermans has written a [blog post](https://blogs.infosupport.com/validating-azure-bicep-templates-with-psrule/) on this topic.
+Microsoft has developed a module built on top of PSRule for validating Azure Infrastructure as Code resources, known as [PSRule for Azure](https://azure.github.io/PSRule.Rules.Azure/). This module includes a standard set of rules for various Azure resources. My colleague Caspar Eldermans has written a [blog post](https://blogs.infosupport.com/validating-azure-bicep-templates-with-psrule/) about using this module for validating Azure Bicep templates.
 
-This module actually has a couple of rules that check API Management policies as well. For example the [Azure.APIM.PolicyBase](https://azure.github.io/PSRule.Rules.Azure/en/rules/Azure.APIM.PolicyBase/) rule that checks that each section of a policy has a `base` policy. Here's the implementation of this rule:
+This module includes several rules specifically for API Management policies. For instance, the [Azure.APIM.PolicyBase](https://azure.github.io/PSRule.Rules.Azure/en/rules/Azure.APIM.PolicyBase/) rule ensures that each section of a policy contains a `base` policy. Here’s the implementation of this rule:
+
 
 ```powershell
 # Synopsis: Base element for any policy element in a section should be configured.
@@ -527,19 +569,26 @@ Rule 'Azure.APIM.PolicyBase' -Ref 'AZR-000371' -Type 'Microsoft.ApiManagement/se
 }
 ```
 
-It's very similar to the rules created in this post, but the filtering is done based on the resource type that you would use in Bicep or ARM templates. They have a [similar PSRule convention](https://github.com/Azure/PSRule.Rules.Azure/blob/39aa1e45e998eb773ba804e22bc4f2a3a61823fb/src/PSRule.Rules.Azure/rules/Conventions.Rule.ps1) to the one described in this post, but instead of loading an entire file, they split up the Bicep file / ARM template into separate objects. One for each resource. This way, they can apply rules to specific resources. 
+The implementation of the rule is quite similar to the ones described in this post. However, the filtering is based on the resource type used in Bicep or ARM templates. The module has a [similar PSRule convention](https://github.com/Azure/PSRule.Rules.Azure/blob/main/src/PSRule.Rules.Azure/rules/Conventions.Rule.ps1) to the one described here. Instead of loading an entire file, it splits the Bicep file or ARM template into separate objects, one for each resource, allowing for rules to be applied to specific resources.
 
-To check an API Management policy, you would execute the rule against resources that can have a policy and use the `GetAPIMPolicyNode` function to get the actual policy XML content. This means that every rule that we've created to check our policies can also be created using this module. 
+To validate an API Management policy with this module, you would run the rule against resources that can have a policy and use the `GetAPIMPolicyNode` function to retrieve the actual policy XML content. This means that every rule we’ve created for policy validation can also be implemented using this module.
 
-An advantage of using this module is that it also works for inline policies that you define in e.g. a Bicep file. A disadvantage is that the rules won't always work for ARM templates when you load your policies from external files. Additionally, PSRule for Azure doesn't support other deployment tools, like Terraform. This module has the same issues with invalid XML syntax as the solution described in this post.
+**Advantages:**
 
-It depends on your situation which approach is better. Note, that you can also verify your API Management policies with the solution described in this post and use PSRule for Azure to validate your other Bicep/ARM configuration.
+- Supports inline policies defined in Bicep files.
+- Integrates well with Bicep and ARM templates.
+
+**Disadvantages:**
+
+- May not work for ARM templates if policies are loaded from external files.
+- Does not support other deployment tools like Terraform.
+- Faces similar issues with invalid XML syntax as the solution described in this post.
+
+The choice between approaches depends on your specific needs. You can also use the method described in this post for validating API Management policies and leverage PSRule for Azure for other Bicep or ARM configurations.
 
 
 ### Conclusion
 
-PSRule is a powerful tool that can help manage the quality of your Azure API Management policies. By creating custom rules, you can validate your policies against your own standards. 
+PSRule is a powerful tool for managing the quality of your Azure API Management policies. By creating custom rules, you can validate your policies against your own standards.
 
-The rules can be as simple or complex as you want. The same goes for the logic in the convention. Since I'm a big fan of test automation, I've written the rules using a TDD approach and created a bunch of tests. In the next blog post, I'll dive deeper into how I did this.
-
-You can find a full working sample [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/validate-apim-policies-with-psrule). I've included a couple more rules and samples.
+You can find a fully working sample [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/validate-apim-policies-with-psrule). This repository includes additional rules and samples for further exploration. It also contains unit tests for each rule, which I will cover in the next blog post.
