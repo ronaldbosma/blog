@@ -27,6 +27,7 @@ In this blog post, I’ll demonstrate how to use PSRule to validate your Azure A
   - [Check that the subscription key header is removed](#check-that-the-subscription-key-header-is-removed)
   - [Check that a backend entity is used](#check-that-a-backend-entity-is-used)
 - [Handle invalid XML syntax](#handle-invalid-xml-syntax)
+- [Suppressions](#suppressions)
 - [PSRule for Azure](#psrule-for-azure)
 - [Conclusion](#conclusion)
 
@@ -545,6 +546,61 @@ As you can see, the rule is executed for both `APIM.Policy` and `APIM.PolicyWith
 > By filtering on both types, the `APIM.Policy.ValidXml` rule will report a `Pass` for policy files with valid XML, which I prefer. Alternatively, you can choose to only report on invalid XML by running the rule exclusively for the `APIM.PolicyWithInvalidXml` type and having it always fail.
 
 When you run PSRule again, you should see that all our custom rules are executed again. The `APIM.Policy.ValidXml` rule will fail for `invalid-xml-1.operation.cshtml` and `invalid-xml-2.operation.cshtml`, while succeeding for all other policy files.
+
+
+### Suppressions
+
+In some cases, you might need to suppress a rule for a specific policy file or folder. PSRule supports [suppressions](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_Options/#suppression) to help manage these scenarios.
+
+You can exclude an entire rule from the `ps-rule.yaml` configuration file. For example, to exclude the `APIM.Policy.FileExtension` rule for all policies, add the following configuration:
+
+```yaml
+rule:
+  exclude:
+  # Ignore the following rule for all resources
+  - APIM.Policy.FileExtension
+```
+
+Alternatively, you can suppress a rule for specific files. To exclude the `APIM.Policy.RemoveSubscriptionKeyHeader` rule for the `./src/bad/global.cshtml` file, add the following to the `ps-rule.yaml` configuration file:
+
+```yaml
+suppression:
+  APIM.Policy.RemoveSubscriptionKeyHeader:
+  - './src/bad/global.cshtml'
+```
+
+You can create more complex suppressions using a [suppression group](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_SuppressionGroups/). To set this up, add a file named `APIM.Policy.Suppressions.Rule.yaml` to the `.ps-rule` folder and include the following content:
+
+```yaml
+---
+# Synopsis: Suppress APIM policy rules for all files in the 'src/bad' folder
+apiVersion: github.com/microsoft/PSRule/v1
+kind: SuppressionGroup
+metadata:
+  name: 'SuppressAPIMPolicyRulesForFilesInBadFolder'
+spec:
+  rule:
+  - 'APIM.Policy.FileExtension'
+  - 'APIM.Policy.InboundBasePolicy'
+  - 'APIM.Policy.UseBackendEntity'
+  - 'APIM.Policy.ValidXml'
+  if:
+    name: '.'
+    contains:
+    - 'src/bad/'
+```
+
+This suppression group will suppress the `APIM.Policy.FileExtension`, `APIM.Policy.InboundBasePolicy`, `APIM.Policy.UseBackendEntity`, and `APIM.Policy.ValidXml` rules for all files in the `src/bad` folder.
+
+If you want to exclude rules based on a specific scope, you can use the following `if` condition:
+
+```yaml
+if:
+  field: 'scope'
+  equals: 'Global'
+```
+
+See [the documentation](https://microsoft.github.io/PSRule/v2/concepts/PSRule/en-US/about_PSRule_Expressions/) for more examples of expressions you can use.
 
 
 ### PSRule for Azure
