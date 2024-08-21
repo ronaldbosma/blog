@@ -21,6 +21,10 @@ An explanation of the concepts of Pester is out-of-scope for this blog post. If 
   - [Should not apply to global](#should-not-apply-to-global)
   - [Other scenarios](#other-scenarios)
 - [Refactor tests](#refactor-tests)
+    - [Policy object creation](#policy-object-creation)
+    - [Execute PSRule](#execute-psrule)
+    - [Assertions](#assertions)
+    - [Update tests](#update-tests)
 - [Integration tests](#integration-tests)
 
 
@@ -274,7 +278,7 @@ When running the tests, the new test should fail. To make it pass, uncomment the
 
 #### Other scenarios
 
-The assertion `$Assert.HasFieldValue($policy, "inbound.FirstChild.Name", "base")` is still commented out. So, we're still missing at least one scenario. And f you look at the implementation of the rule, you can see that there are more scenarios missing. We could also add tests for `APIM.Policy.InboundBasePolicy`:
+The assertion `$Assert.HasFieldValue($policy, "inbound.FirstChild.Name", "base")` is still commented out in the rule. So, we're still missing at least one scenario. And f you look at the implementation of the rule, you can see that there are more scenarios missing. We could also add tests for the following scenarios:
 - Should pass if base policy is the first policy in the inbound section
 - Should fail if base policy is NOT the first policy in the inbound section
 - Should fail if the inbound section is empty
@@ -287,18 +291,115 @@ Before you add these scenarios, we'll first refactor the tests to make them more
 
 ### Refactor tests
 
+You might have noticed a lot of code duplication in each test. The creation of the custom object with the policy, the execution of PSRule, and the assertions are all very similar. We can refactor this code into reusable functions.
+
+I've placed the functions in a separate file called `Functions.ps` in the `tests` folder. You can find the full implementation [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/Functions.ps1). I'll highlight the most important parts in the following sections.
+
+#### Policy object creation
+
+The custom policy object has the same structure for all tests. Only the scope, name and XML content differ. Here is an example of the functions to create a global and API policy object:
+
+```powershell
+function New-GlobalPolicy([Parameter(Mandatory=$true)]$Xml)
+{
+    return New-Policy -Scope "Global" -Name "global.cshtml" -Xml $Xml
+}
+
+function New-APIPolicy([Parameter(Mandatory=$true)]$Xml)
+{
+    return New-Policy -Scope "API" -Name "test.api.cshtml" -Xml $Xml
+}
+
+function New-Policy([Parameter(Mandatory=$true)]$Scope, [Parameter(Mandatory=$true)]$Name, [Parameter(Mandatory=$true)]$Xml)
+{
+    return [PSCustomObject]@{
+        PSTypeName = "APIM.Policy" # This is necessary for the -Type filter on a Rule to work
+        Name = $Name
+        Scope = $Scope
+        Content = [xml]$Xml
+    }
+}
+```
+
+I've created a generic function `New-Policy` that creates a policy object with the correct structure. The other two functions are wrappers create a policy object with the correct scope and name.
+
+
+#### Execute PSRule
+
+When executing PSRule, the `-Path` and `-Option` parameters are always the same. I've created a function that executes PSRule with these parameters so we don't have to repeat them in each test. Here is the function:
+
+```powershell
+function Invoke-CustomPSRule([Parameter(Mandatory=$true)]$InputObject, [Parameter(Mandatory=$true)]$Rule)
+{
+    # The Path should point to the directory containing the rule files, else they won't be loaded
+    # The Option should point to the PSRule configuration file, else the conventions won't be loaded
+
+    return Invoke-PSRule -InputObject $InputObject -Name $Rule -Path "$PSScriptRoot/../.ps-rule" -Option "$PSScriptRoot/../.ps-rule/ps-rule.yaml"
+}
+```
+
+#### Assertions
+
+Lastly, every set of assertions can be extracted into its own function. Here are the functions to assert if a rule failed.
+
+```powershell
+function Assert-RuleFailedWithReason {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true, ValueFromPipeline)][PSRule.Rules.RuleRecord]$RuleRecord, 
+        [Parameter(Mandatory=$true)][string]$ExpectedReasonPattern
+    )
+    
+    $RuleRecord | Assert-RuleFailed
+    $RuleRecord.Reason[0] | Should -BeLike $ExpectedReasonPattern
+}
+
+function Assert-RuleFailed {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true, ValueFromPipeline)][PSRule.Rules.RuleRecord]$RuleRecord
+    )
+    
+    $RuleRecord | Should -not -BeNullOrEmpty
+    $RuleRecord.IsSuccess() | Should -Be $False
+    $RuleRecord.Reason.Length | Should -BeGreaterOrEqual 1
+}
+```
+
+As you can see, they perform the assertions on the `RuleRecord` object, which is the result of the `Invoke-PSRule` function. The result of the `Invoke-PSRule` can be piped to the assertion functions.
+
+
+#### Update tests
+
+To use these functions in the tests yourself, download [Functions.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/Functions.ps1) and place it in the `tests` folder. Then open `APIM.Policy.InboundBasePolicy.Tests.ps1` and add the following code to the end of the `BeforeAll` block to load the functions:
+
+```powershell
+# Load functions
+. $PSScriptRoot/Functions.ps1
+```
+
+With the functions in place, the tests can be refactored. The test for scenario _"Should fail if the inbound section is missing"_ can be changed to the following for example:
+
+```powershell
+    It "Should fail if the inbound section is missing" {
+        $policy = New-APIPolicy "<policies></policies>"
+        $result = Invoke-CustomPSRule $policy "APIM.Policy.InboundBasePolicy"
+        $result | Assert-RuleFailedWithReason -ExpectedReasonPattern "*inbound*not exist*"
+    }
+```
+
+The old test was 13 lines long, while the refactored implementation only has 5 lines. It is more readable and easier to maintain.
+
+You can find the final implementation of `APIM.Policy.InboundBasePolicy.Tests.ps1` with refactored tests and all scenarios [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/APIM.Policy.InboundBasePolicy.Tests.ps1).
+
 
 ### Integration tests
 
 
----
 
-### Old stuff
+### Pipeline
 
-
-As you can see, both tests succeeded. We can now create more tests to cover other scenarios, like when the `base` policy is not the first policy in the inbound section or to check that the rule is skipped for a policy fragment. I've already done the legwork for you so you can find the complete test file [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/APIM.Policy.InboundBasePolicy.Tests.ps1).
-
-Note that these tests look a little bit different (cleaner in my opinion) than the sample above. There's a lot of code in the tests that is duplicated. So, I've created reusable functions inside [Functions.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/Functions.ps1) to create the policy objects, execute PSRule and perform assertions on the result.
+> TODO
 
 I've also included the [Invoke-PesterTests.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/Invoke-PesterTests.ps1) script to execute the tests. It's based on an example from the blog post [Increase the success rate of Azure DevOps pipelines using Pester](https://www.logitblog.com/increase-the-success-rate-of-azure-devops-pipelines-using-pester/) by Ryan Ververs-Bijkerk and includes additional logic to run the tests from a pipeline.
 
