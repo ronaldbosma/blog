@@ -392,6 +392,9 @@ The old test was 13 lines long, while the refactored implementation only has 5 l
 
 You can find the final implementation of `APIM.Policy.InboundBasePolicy.Tests.ps1` with refactored tests and all scenarios [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/APIM.Policy.InboundBasePolicy.Tests.ps1). I've also created tests for the other rules. See for example [APIM.Policy.UseBackendEntity.Tests.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/APIM.Policy.UseBackendEntity.Tests.ps1) and [APIM.Policy.FileExtension.Tests.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/APIM.Policy.FileExtension.Tests.ps1).
 
+### Test convention
+
+> TODO
 
 ### Integration tests
 
