@@ -284,7 +284,11 @@ The rule verifies if the file name specifies a valid scope. It passes if the fil
 
 When you execute PSRule again, you should see that the `APIM.Policy.FileExtension` rule is applied to each `.cshtml` file. The `unknown-scope.cshtml` file should fail this rule.
 
-> To output only the failures, add the `-Outcome Fail` parameter. If you are interested in the results of a specific rule, use the `-Name` parameter. For example: `-Name "APIM.Policy.FileExtension"`.
+If the rule is not executed, ensure that the `src` folder name is followed by a `\`, as shown in the command below. Without it, PSRule may not find the `.cshtml` files to execute the rule on.
+
+```powershell
+Invoke-PSRule -InputPath ".\src\" -Option ".\.ps-rule\ps-rule.yaml"
+```
 
 
 #### Check that the subscription key header is removed
