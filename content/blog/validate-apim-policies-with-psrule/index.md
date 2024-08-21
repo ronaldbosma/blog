@@ -376,6 +376,8 @@ Rule "APIM.Policy.UseBackendEntity" `
 
 The rule is executed on every object of type `APIM.Policy`, regardless of the scope. To ensure the rule only applies to policy files containing a `set-backend-service` policy, we use the condition: `$TargetObject.Content.DocumentElement.SelectNodes(".//*[local-name()='set-backend-service']").Count -ne 0`. This condition performs an XPath query to find all `set-backend-service` policies in the XML content of the policy file.
 
+> Note that a rule will fail by default if no assertions are performed. If the `-If` condition is not present, you would need to use `$Assert.Pass()` to ensure the rule passes when no `set-backend-service` policies are found. However, I find that not executing the rule in this situation is a cleaner solution.
+
 The rule itself checks that each `set-backend-service` policy includes the `backend-id` attribute. If this attribute is present, the rule passes; otherwise, it fails.
 
 When you run PSRule again, you should see the `APIM.Policy.UseBackendEntity` rule applied to all `.cshtml` files that include a `set-backend-service` policy. The output should show that the rule passes for files in the `good` folder and fails for those in the `bad` folder.
