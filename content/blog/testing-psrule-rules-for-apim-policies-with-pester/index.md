@@ -7,7 +7,7 @@ tags: [ "Azure", "API Management", "Infra as Code", "Pester", "PSRule", "Test Au
 draft: true
 ---
 
-In my previous blog post, [Validate API Management policies with PSRule](/blog/2024/08/12/validate-api-management-policies-with-psrule/), I showed you how to use PSRule to validate Azure API Management policy files. We created a PSRule convention and several custom rules, which all contain logic. Since I'm a big fan of Test Driven Development, I created these rules using a test-first approach. So, in this blog post, I'll show you how to create automated tests for these rules using [Pester](https://pester.dev/)-a testing and mocking framework for PowerShell.
+In my previous blog post, [Validate API Management policies with PSRule](/blog/2024/09/02/validate-api-management-policies-with-psrule/), I showed you how to use PSRule to validate Azure API Management policy files. We created a PSRule convention and several custom rules, which all contain logic. Since I'm a big fan of Test Driven Development, I created these rules using a test-first approach. So, in this blog post, I'll show you how to create automated tests for these rules using [Pester](https://pester.dev/)-a testing and mocking framework for PowerShell.
 
 An explanation of the concepts of Pester is out-of-scope for this blog post. If you're new to Pester, I recommend having a look at the [Quick Start](https://pester.dev/docs/quick-start) documentation.
 
