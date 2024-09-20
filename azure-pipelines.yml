@@ -56,5 +56,6 @@ stages:
         githubaccesstoken: '$(github-personal-access-token)'
         repositoryname: '$(repository)'
         branchname: 'master'
-        commitmessage: 'Automated Pipeline $(Build.BuildNumber): $(replace(Build.SourceVersionMessage, '"', '')'
+        # Remove any " from the commit message because it breaks the task
+        commitmessage: 'Automated Pipeline $(Build.BuildNumber): $(replace(Build.SourceVersionMessage, '"', ''))'
         
