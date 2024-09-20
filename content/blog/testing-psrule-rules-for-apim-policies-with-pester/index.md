@@ -526,3 +526,10 @@ I tried using the `Pester` task from the [Pester Test Runner](https://marketplac
 So instead, I'm using a PowerShell script to execute the tests. It's based on an example from the blog post [Increase the success rate of Azure DevOps pipelines using Pester](https://www.logitblog.com/increase-the-success-rate-of-azure-devops-pipelines-using-pester/) by Ryan Ververs-Bijkerk. I've added additional logic to install both the PSRule and Pester modules. You can find the PowerShell script [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/Invoke-PesterTests.ps1).
 
 The pipeline will execute the PowerShell script to run the tests and generate test results. The test results are then published. You can find the pipeline [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/pipelines/pester-azure-pipelines.yml).
+
+
+## Conclusion
+
+Pester and PSRule are a great combination. By using a test driven approach, I found it much easier to create new rules and update existing ones. Testing the custom convention to load the API Management policy files was a bit more difficult, but I'm happy a found a usable workaround.
+
+You can find the combined sample of my [previous posts](/blog/2024/09/02/validate-api-management-policies-with-psrule/) and this post [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/validate-apim-policies-with-psrule).
