@@ -3,7 +3,7 @@ title: "Validate API Management policies with PSRule"
 date: 2024-09-02T19:30:00+02:00
 publishdate: 2024-09-02T19:30:00+02:00
 lastmod: 2024-09-02T19:30:00+02:00
-tags: [ "Azure", "API Management", "Infra as Code", "PSRule" ]
+tags: [ "Azure", "API Management", "Azure Integration Services", "Infra as Code", "PSRule" ]
 summary: "I've been working with Azure API Management for a while now, and one of the challenges I've faced is finding a reliable way to validate the XML policies I write. While tools like SonarQube are excellent for code quality checks, they don't support the specific checks required for Azure API Management policies. In this blog post, I'll demonstrate how to use PSRule to validate your Azure API Management policies effectively."
 ---
 
