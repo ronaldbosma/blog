@@ -26,6 +26,7 @@ An explanation of the concepts of Pester is out-of-scope for this blog post. If 
     - [Assertions](#assertions)
     - [Update tests](#update-tests)
 - [Test convention](#test-convention)
+- [Run tests in Azure pipeline](#run-tests-in-azure-pipeline)
 
 
 ### Prerequisites
@@ -516,12 +517,12 @@ We can add similar a test for policy files with invalid XML by adding the follow
 You can find the fully implemented `APIM.Policy.Conventions.Import.Tests.ps1` file [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/APIM.Policy.Conventions.Import.Tests.ps1).
 
 
-### Pipeline
+### Run tests in Azure pipeline
 
-> TODO
+With all tests in place, we can now create a pipeline to execute them. I've created an example pipeline that executes the tests in an Azure DevOps pipeline. 
 
-I've also included the [Invoke-PesterTests.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/Invoke-PesterTests.ps1) script to execute the tests. It's based on an example from the blog post [Increase the success rate of Azure DevOps pipelines using Pester](https://www.logitblog.com/increase-the-success-rate-of-azure-devops-pipelines-using-pester/) by Ryan Ververs-Bijkerk and includes additional logic to run the tests from a pipeline.
+I tried using the `Pester` task from the [Pester Test Runner](https://marketplace.visualstudio.com/items?itemName=Pester.PesterRunner) Azure DevOps extension, but all tests related to rules that should be skipped (e.g. for a specific scope) failed. It seems the results from PSRule are different when using task compared to running Pester using the Powershell cmdlet.
 
-```powershell
-.\Invoke-PesterTests.ps1 -ModulePath .
-```
+So instead, I'm using a PowerShell script to execute the tests. It's based on an example from the blog post [Increase the success rate of Azure DevOps pipelines using Pester](https://www.logitblog.com/increase-the-success-rate-of-azure-devops-pipelines-using-pester/) by Ryan Ververs-Bijkerk. I've added additional logic to install both the PSRule and Pester modules. You can find the PowerShell script [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/Invoke-PesterTests.ps1).
+
+The pipeline will execute the PowerShell script to run the tests and generate test results. The test results are then published. You can find the pipeline [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/pipelines/pester-azure-pipelines.yml).
