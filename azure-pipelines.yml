@@ -41,10 +41,10 @@ stages:
   - job: # chose to use a normal job instead of a deployment job because I don't need an environment
     pool:
       vmImage: 'windows-latest'  # need a Windows host because the GitHubPagesPublish task uses PowerShell
-      
+
     variables:
       # Remove any " from the commit message because it breaks the GitHubPagesPublish task
-      sanitizedBuildSourceVersionMessage: $[ replace(variables['Build.SourceVersionMessage', '"', '') ]
+      sanitizedBuildSourceVersionMessage: ${{ replace(variables['Build.SourceVersionMessage', '"', '') }}
 
     steps:
     - checkout: none  # no need to checkout any code because we only need the artifact
