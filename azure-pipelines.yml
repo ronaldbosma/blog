@@ -44,7 +44,7 @@ stages:
 
     variables:
       # Remove any " from the commit message because it breaks the GitHubPagesPublish task
-      sanitizedBuildSourceVersionMessage: ${{ replace(variables['Build.SourceVersionMessage', '"', '') }}
+      sanitizedBuildSourceVersionMessage: ${{ replace(variables['Build.SourceVersionMessage'], '"', '') }}
 
     steps:
     - checkout: none  # no need to checkout any code because we only need the artifact
