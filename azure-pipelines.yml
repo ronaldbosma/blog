@@ -43,7 +43,7 @@ stages:
       vmImage: 'windows-latest'  # need a Windows host because the GitHubPagesPublish task uses PowerShell
 
     variables:
-      # Remove any " from the commit message because it breaks the GitHubPagesPublish task
+      # Remove any " from the source version message because it breaks the GitHubPagesPublish task
       sanitizedBuildSourceVersionMessage: ${{ replace(variables['Build.SourceVersionMessage'], '"', '') }}
 
     steps:
