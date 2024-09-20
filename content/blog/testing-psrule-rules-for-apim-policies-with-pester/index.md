@@ -25,7 +25,7 @@ An explanation of the concepts of Pester is out-of-scope for this blog post. If 
     - [Execute PSRule](#execute-psrule)
     - [Assertions](#assertions)
     - [Update tests](#update-tests)
-- [Integration tests](#integration-tests)
+- [Test convention](#test-convention)
 
 
 ### Prerequisites
@@ -392,17 +392,16 @@ The old test was 13 lines long, while the refactored implementation only has 5 l
 
 You can find the final implementation of `APIM.Policy.InboundBasePolicy.Tests.ps1` with refactored tests and all scenarios [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/APIM.Policy.InboundBasePolicy.Tests.ps1). I've also created tests for the other rules. See for example [APIM.Policy.UseBackendEntity.Tests.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/APIM.Policy.UseBackendEntity.Tests.ps1) and [APIM.Policy.FileExtension.Tests.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/APIM.Policy.FileExtension.Tests.ps1).
 
+
 ### Test convention
-
-> TODO
-
-### Integration tests
 
 As I mentioned before, I prefer creating the custom object with policy inside my test so I have the policy XML directly in the test. There is however a downside to this approach. Our custom convention, that we've defined in [APIM.Policy.Conventions.Rule.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/.ps-rule/APIM.Policy.Conventions.Rule.ps1), is not executed and tested by these tests. 
 
-I tried the [Get-PSRuleTarget](https://microsoft.github.io/PSRule/v2/commands/PSRule/en-US/Get-PSRuleTarget/) to get a list with all the `APIM.Policy` and `APIM.PolicyWithInvalidXml` types, but this only seems to return the `.cshtml` type. So instead, I've created integration tests that execute the rules on all the actual policy files like we would do in a real-world scenario.
+I tried the [Get-PSRuleTarget](https://microsoft.github.io/PSRule/v2/commands/PSRule/en-US/Get-PSRuleTarget/) cmdlet to get a list with all the `APIM.Policy` and `APIM.PolicyWithInvalidXml` types, but this only seems to return the `.cshtml` type. 
 
-To create these tests, create a file called `APIM.Policy.Tests.ps1` in the `tests` folder and add the following code to the file:
+When you execute PSRule on the `src` folder, an array of results is returned. These contain information about the target type (e.g. `APIM.Policy` or `APIM.PolicyWithInvalidXml`) and the target object, which on our case is the custom object we create in the convention. So, I've created tests that execute the rules on all the actual policy files like we would do in a real-world scenario, and then check if the target type and object are correct.
+
+To create these tests, create a file called `APIM.Policy.Conventions.Import.Tests.ps1` in the `tests` folder and add the following code to the file:
 
 ```powershell
 BeforeAll {
@@ -421,7 +420,8 @@ BeforeAll {
     # If you execute Invoke-PSRule from inside the test folder, no files will be analysed. So, we go up one level.
     Push-Location "$PSScriptRoot/.."
     try {
-        # Analyse policies in src folder using PSRule
+        # Note that I tried using https://microsoft.github.io/PSRule/v2/commands/PSRule/en-US/Get-PSRuleTarget/ to get the targets, 
+        # but it didn't return the custom objects we created in the convention. So, I'm using the PSRule analysis result instead.
         $result = Invoke-PSRule -InputPath "./src/" -Option "./.ps-rule/ps-rule.yaml"
     }
     finally {
@@ -429,51 +429,91 @@ BeforeAll {
     }
 }
 
-Describe "APIM.Policy" {
+Describe "APIM.Policy.Conventions.Import" {
 
 }
 ```
 
-Similar to the other test files, we setup error handling, verbose logging and load the functions in the `BeforeAll` block. The difference is that we also execute PSRule on the `src` folder and store the result in a variable.
+Similar to the other test files, we setup error handling, verbose logging and load the functions in the `BeforeAll` block. The difference is that we also execute PSRule on the `src` folder. The result is stored in a variable, so we can use it in the tests.
 
 > Note that we use `Push-Location` and `Pop-Location` to change the current location to the root folder and back. This is necessary because otherwise PSRule won't find any files to analyse.
 
-Now, let's add a test to check if the `APIM.Policy.InboundBasePolicy` rule is executed on the correct policy files in the `src` folder. Add the following code to the `Describe` block:
+Now, let's add a test to check if policy files with valid XML are imported as `APIM.Policy` correctly. Add the following code to the `Describe` block:
 
 ```powershell
-It "InboundBasePolicy" {
-    $ruleResults = @( $result | Where-Object { $_.RuleName -eq 'APIM.Policy.InboundBasePolicy' } );
-    $ruleResults.Count | Should -Be 8
+It "should import policy files with valid XML as APIM.Policy" {
+    $expectedPolicyFiles = @(
+        [PSCustomObject]@{ Name = "./src/bad/bad.api.cshtml"; Scope = "API" },
+        [PSCustomObject]@{ Name = "./src/bad/bad.fragment.cshtml"; Scope = "Fragment" },
+        [PSCustomObject]@{ Name = "./src/bad/bad.operation.cshtml"; Scope = "Operation" },
+        [PSCustomObject]@{ Name = "./src/bad/bad.product.cshtml"; Scope = "Product" },
+        [PSCustomObject]@{ Name = "./src/bad/bad.workspace.cshtml"; Scope = "Workspace" },
+        [PSCustomObject]@{ Name = "./src/bad/global.cshtml"; Scope = "Global" },
+        [PSCustomObject]@{ Name = "./src/good/global.cshtml"; Scope = "Global" },
+        [PSCustomObject]@{ Name = "./src/good/good.api.cshtml"; Scope = "API" },
+        [PSCustomObject]@{ Name = "./src/good/good.fragment.cshtml"; Scope = "Fragment" },
+        [PSCustomObject]@{ Name = "./src/good/good.operation.cshtml"; Scope = "Operation" },
+        [PSCustomObject]@{ Name = "./src/good/good.product.cshtml"; Scope = "Product" },
+        [PSCustomObject]@{ Name = "./src/good/good.workspace.cshtml"; Scope = "Workspace" }
+    )
 
-    Assert-RulePassedForTarget $ruleResults "good.workspace.cshtml"
-    Assert-RulePassedForTarget $ruleResults "good.product.cshtml"
-    Assert-RulePassedForTarget $ruleResults "good.api.cshtml"
-    Assert-RulePassedForTarget $ruleResults "good.operation.cshtml"
+    # Get the actual policy files based on the PSRule result. 
+    # The TargetObject holds the custom object we created in the convention.
+    # Because multiple rules can be applied to the same target, we need to get the unique policy files.
+    $actualPolicyFiles = $result | Where-Object { $_.TargetType -eq "APIM.Policy" } | Select-Object -ExpandProperty TargetObject | Get-Unique -AsString
+
+    # Assert that the correct number of policy files were found
+    $actualPolicyFiles.Length | Should -Be $expectedPolicyFiles.Length
     
-    Assert-RuleFailedForTarget $ruleResults "bad.workspace.cshtml"
-    Assert-RuleFailedForTarget $ruleResults "bad.product.cshtml"
-    Assert-RuleFailedForTarget $ruleResults "bad.api.cshtml"
-    Assert-RuleFailedForTarget $ruleResults "bad.operation.cshtml"
+    foreach ($expectedPolicyFile in $expectedPolicyFiles) {
+        # Find the actual policy file with the same name
+        $actualPolicyFile = $actualPolicyFiles | Where-Object { $_.Name -eq $expectedPolicyFile.Name }
+
+        # Assert that the policy file exists and that it has the correct data
+        $actualPolicyFile | Should -Not -BeNullOrEmpty -Because "a policy file with name '$($expectedPolicyFile.Name)' should exist"
+        $actualPolicyFile.Scope | Should -Be $expectedPolicyFile.Scope -Because "the scope of the policy file '$($expectedPolicyFile.Name)' should be '$($expectedPolicyFile.Scope)'"
+        $actualPolicyFile.Content | Should -BeOfType [xml] -Because "the content of the policy file '$($expectedPolicyFile.Name)' should be of type 'xml'"
+    }
 }
 ```
 
-This test selects all results related to the `APIM.Policy.InboundBasePolicy` rule and asserts that the correct number of results is found. It then asserts that the rule passed for the good policy files and failed for the bad. The files in the `suppressed` folder should not be included, because these are skipped.
+First, we create an array of all the expected policy files. The array contains the name and expected scope of each policy file. 
 
-The `Assert-RulePassedForTarget` and `Assert-RuleFailedForTarget` functions only check if the rule passed or failed without checking the reason, since this is already checked using the unit tests. The functions can be found in [Functions.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/Functions.ps1).
+> Note that we don't include the policy files in the folder `/src/suppressed`. Although the convention will process them, PSRule will skip them because no rules are executed on them due to several suppressions that have been configured.
 
-We can add similar tests for the other rules. For example, the `APIM.Policy.RemoveSubscriptionKeyHeader` rule:
+Next, we take the analysis result from PSRule and filter out results for the `APIM.Policy` target type. We then extract the target object from each result. Because multiple rules can be applied to the same target, we need to get the unique policy files.
+
+Lastly, we assert that the actual policy files match the expected policy files by checking the name and scope of each item. We also assert that the content of the actual policy file is of type `xml`.
+
+We can add similar a test for policy files with invalid XML by adding the following code to the `Describe` block:
 
 ```powershell
-It "RemoveSubscriptionKeyHeader" {
-    $ruleResults = @( $result | Where-Object { $_.RuleName -eq 'APIM.Policy.RemoveSubscriptionKeyHeader' } );
-    $ruleResults.Count | Should -Be 2
+    It "should import policy files with invalid XML as APIM.PolicyWithInvalidXml" {
+        $expectedPolicyFiles = @(
+            "./src/bad/invalid-xml-1.operation.cshtml"
+            "./src/bad/invalid-xml-2.operation.cshtml"
+        )
 
-    Assert-RulePassedForTarget $ruleResults "good/global.cshtml"
-    Assert-RuleFailedForTarget $ruleResults "bad/global.cshtml"
-}
+        # Get the actual policy files based on the PSRule result. 
+        # The TargetObject holds the custom object we created in the convention.
+        # Because multiple rules can be applied to the same target, we need to get the unique policy files.
+        $actualPolicyFiles = $result | Where-Object { $_.TargetType -eq "APIM.PolicyWithInvalidXml" } | Select-Object -ExpandProperty TargetObject | Get-Unique -AsString
+
+        # Assert that the correct number of policy files with invalid XML were found
+        $actualPolicyFiles.Length | Should -Be $expectedPolicyFiles.Length
+        
+        foreach ($expectedPolicyFile in $expectedPolicyFiles) {
+            # Find the actual policy file with the same name
+            $actualPolicyFile = $actualPolicyFiles | Where-Object { $_.Name -eq $expectedPolicyFile }
+
+            # Assert that the policy file exists and that it has an error message set
+            $actualPolicyFile | Should -Not -BeNullOrEmpty -Because "a policy file with name '$expectedPolicyFile' should exist"
+            $actualPolicyFile.Error | Should -Not -BeNullOrEmpty -Because "the policy file '$expectedPolicyFile' should have an error message"
+        }
+    }
 ```
 
-You can find the fully implemented `APIM.Policy.Tests.ps1` file [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/APIM.Policy.Tests.ps1).
+You can find the fully implemented `APIM.Policy.Conventions.Import.Tests.ps1` file [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/APIM.Policy.Conventions.Import.Tests.ps1).
 
 
 ### Pipeline
