@@ -3,7 +3,7 @@ title: "Validate client certificates in API Management"
 date: 2024-02-02T11:00:00+01:00
 publishdate: 2024-02-02T11:00:00+01:00
 lastmod: 2024-02-02T11:00:00+01:00
-tags: [ "Azure", "API Management", "APIM mTLS", "Bicep", "Client Certificates", "Infra as Code", "mTLS", "Security" ]
+tags: [ "Azure", "API Management", "APIM mTLS", "Azure Integration Services", "Bicep", "Client Certificates", "Infra as Code", "mTLS", "Security" ]
 summary: "This blog post is the start of a series on how to work with client certificates in Azure API Management to setup a mutual TLS (mTLS) connection. While Azure's official documentation provides excellent guidance on setting up client certificates via the Azure Portal, we'll dive into utilizing Bicep and the Azure CLI, to automate the process. In this first post, we'll cover the basics of how to validate client certificates in API Management."
 ---
 
