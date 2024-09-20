@@ -57,5 +57,6 @@ stages:
         repositoryname: '$(repository)'
         branchname: 'master'
         # Remove any " from the commit message because it breaks the task
-        commitmessage: 'Automated Pipeline $(Build.BuildNumber): $(replace(Build.SourceVersionMessage, '"', ''))'
+        commitmessage: |
+          Automated Pipeline $(Build.BuildNumber): $(replace(Build.SourceVersionMessage, '"', ''))
         
