@@ -622,4 +622,4 @@ The choice between the approach described in this post and using PSRule for Azur
 
 PSRule is a powerful tool for managing the quality of your Azure API Management policies. By creating custom rules, you can validate your policies against your own standards.
 
-You can find a fully working sample [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/validate-apim-policies-with-psrule). The full sample includes a few additional rules and sample policies for further exploration. It also includes automated tests for each rule, which I discuss in [Testing PSRule Rules for API Management Policies with Pester](/blog/2024/09/26/testing-psrule-rules-for-api-management-policies-with-pester/).
+You can find a fully functional example [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/validate-apim-policies-with-psrule). This sample includes additional rules and sample policies for further exploration, along with automated tests for each rule, which I discuss in [Testing PSRule Rules for API Management Policies with Pester](/blog/2024/09/26/testing-psrule-rules-for-api-management-policies-with-pester/).
