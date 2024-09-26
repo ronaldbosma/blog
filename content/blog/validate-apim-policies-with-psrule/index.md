@@ -279,7 +279,11 @@ The rule verifies if the file name specifies a valid scope. It passes if the fil
 
 When you execute PSRule again, you should see that the `APIM.Policy.FileExtension` rule is applied to each `.cshtml` file. The `unknown-scope.cshtml` file should fail this rule.
 
-> To output only the failures, add the `-Outcome Fail` parameter. If you are interested in the results of a specific rule, use the `-Name` parameter. For example: `-Name "APIM.Policy.FileExtension"`.
+If the rule is not executed, ensure that the `src` folder name is followed by a `\`, as shown in the command below. Without it, PSRule may not find the `.cshtml` files to execute the rule on.
+
+```powershell
+Invoke-PSRule -InputPath ".\src\" -Option ".\.ps-rule\ps-rule.yaml"
+```
 
 
 #### The subscription key header is removed
@@ -366,6 +370,8 @@ Rule "APIM.Policy.UseBackendEntity" `
 ```
 
 The rule is executed on every object of type `APIM.Policy`, regardless of the scope. To ensure the rule only applies to policy files containing a `set-backend-service` policy, we use the condition: `$TargetObject.Content.DocumentElement.SelectNodes(".//*[local-name()='set-backend-service']").Count -ne 0`. This condition performs an XPath query to find all `set-backend-service` policies in the XML content of the policy file.
+
+> Note that a rule will fail by default if no assertions are performed. If the `-If` condition is not present, you would need to use `$Assert.Pass()` to ensure the rule passes when no `set-backend-service` policies are found. However, I find that not executing the rule in this situation is a cleaner solution.
 
 The rule itself checks that each `set-backend-service` policy includes the `backend-id` attribute. If this attribute is present, the rule passes; otherwise, it fails.
 
@@ -616,4 +622,4 @@ The choice between the approach described in this post and using PSRule for Azur
 
 PSRule is a powerful tool for managing the quality of your Azure API Management policies. By creating custom rules, you can validate your policies against your own standards.
 
-You can find a fully working sample [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/validate-apim-policies-with-psrule). The full sample includes a few additional rules and sample policies for further exploration. It also contains automated tests for each rule, which I will cover in the next blog post.
+You can find a fully functional example [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/validate-apim-policies-with-psrule). This sample includes additional rules and sample policies for further exploration, along with automated tests for each rule, which I discuss in [Testing PSRule Rules for API Management Policies with Pester](/blog/2024/09/26/testing-psrule-rules-for-api-management-policies-with-pester/).
