@@ -2,7 +2,7 @@
 title: "Validate API Management policies with PSRule"
 date: 2024-09-02T19:30:00+02:00
 publishdate: 2024-09-02T19:30:00+02:00
-lastmod: 2024-09-02T19:30:00+02:00
+lastmod: 2024-10-15T07:30:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Infra as Code", "PSRule" ]
 summary: "I've been working with Azure API Management for a while now, and one of the challenges I've faced is finding a reliable way to validate the XML policies I write. While tools like SonarQube are excellent for code quality checks, they don't support the specific checks required for Azure API Management policies. In this blog post, I'll demonstrate how to use PSRule to validate your Azure API Management policies effectively."
 ---
@@ -72,7 +72,7 @@ Examine the different policy files provided. The files located in the `good` fol
 
 At this moment in time, PSRule doesn't support loading XML files out-of-the-box. I've created an issue for this on Github, which can be found [here](https://github.com/microsoft/PSRule/issues/1537). Luckily, PSRule is extensible, and Bernie White, the creator of PSRule, has provided a sample in my issue that we can use to load XML files. It uses a [convention](https://microsoft.github.io/PSRule/stable/concepts/PSRule/en-US/about_PSRule_Conventions/).
 
-Conventions, rules and other PSRule relates files are commonly stored in a `.ps-rule` folder in the root of your repository as described [here](https://microsoft.github.io/PSRule/v2/authoring/storing-rules/). You can create this folder in your root.
+Conventions, rules and other PSRule related files are commonly stored in a `.ps-rule` folder in the root of your repository as described [here](https://microsoft.github.io/PSRule/v2/authoring/storing-rules/). You can create this folder in your root.
 
 Inside the `.ps-rule` folder, create a file named `APIM.Policy.Conventions.Rule.ps1` (_the `.Rule.ps1` extension is required for PSRule to recognize the file_). Add the following code to the file:
 
