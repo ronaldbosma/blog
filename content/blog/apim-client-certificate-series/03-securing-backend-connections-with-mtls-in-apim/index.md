@@ -2,7 +2,7 @@
 title: "Securing backend connections with mTLS in API Management"
 date: 2024-05-24T10:15:00+02:00
 publishdate: 2024-05-24T10:15:00+02:00
-lastmod: 2024-05-24T10:15:00+02:00
+lastmod: 2024-11-08T11:30:00+01:00
 tags: [ "Azure", "API Management", "APIM mTLS", "Azure Integration Services", "Bicep", "Client Certificates", "Infra as Code", "mTLS", "Security" ]
 summary: "In this third post on working with client certificates in Azure API Management, we’ll focus on securing backend connections with mTLS. We’ll deploy two API Management instances. The first will serve as the backend and require a client certificate for authentication. The second will act as the client. We will call the client using TLS, and it will, in turn, connect to the backend using mTLS."
 ---
@@ -16,7 +16,6 @@ Topics covered in this series:
 1. [Validate client certificates in API Management](/blog/2024/02/02/validate-client-certificates-in-api-management/)
 1. [Validate client certificates in API Management when its behind an Application Gateway](/blog/2024/02/19/validate-client-certificates-in-api-management-when-its-behind-an-application-gateway/)
 1. Securing backend connections with mTLS in API Management _**(current)**_
-1. Deploying certificates into Key Vault _(coming soon)_
 
 ### Table of Contents
 
@@ -343,5 +342,3 @@ As a workaround, we've added a boolean parameter to our deployment, which we can
 ### Conclusion
 
 In comparison to validating a client certificate in API Management, as we did in previous posts, using a client certificate to connect to a backend is fairly easy to set up. You only need to create a client certificate in the Key Vault and reference it in the backend configuration of API Management.
-
-In this post, we created a client certificate in the Key Vault using an Azure CLI command. But what if you've been given a .pfx file and you need to import that into the Key Vault? In the next post, we'll cover how to import a certificate into the Key Vault from an Azure Pipeline.
