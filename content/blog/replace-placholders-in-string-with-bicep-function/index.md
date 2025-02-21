@@ -2,7 +2,7 @@
 title: "Replace placeholders in string with user-defined Bicep function"
 date: 2024-06-21T15:00:00+02:00
 publishdate: 2024-06-21T15:00:00+02:00
-lastmod: 2024-06-21T15:00:00+02:00
+lastmod: 2025-02-20T10:00:00+01:00
 summary: When you have a string value in Bicep with multiple placeholders that you want to replace, it can be tricky to find a good way to do this. In this blog post, I will show you how you can replace placeholders in a string with a couple of user-defined functions.
 tags: [ "Azure", "Bicep", "Infra as Code", "Test Automation" ]
 ---
@@ -21,7 +21,7 @@ var input = '''
   '''
 ```
 
-Here's the continuation with the reviewed and refined text:
+And we have the following placeholders and values:
 
 ```bicep
 var placeholders = {
@@ -149,6 +149,6 @@ var placeholders = {
 var result = replacePlaceholders(input, placeholders)
 ```
 
-You can access the final Bicep code [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/replace-placholders-in-string-with-bicep-function/replace-placeholders.bicep).
+You can find the final Bicep code [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/replace-placholders-in-string-with-bicep-function/replace-placeholders.bicep).
 
 Similar to my previous blog post, I've included tests to validate the functionality of the `replacePlaceholders` function. You can view the test cases and implementation details [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/replace-placholders-in-string-with-bicep-function/tests.bicep). For more insights on the (experimental) Bicep Testing Framework used, refer to [my previous blog post](/blog/2024/06/05/apply-azure-naming-convention-using-bicep-functions/#testing-the-function).
