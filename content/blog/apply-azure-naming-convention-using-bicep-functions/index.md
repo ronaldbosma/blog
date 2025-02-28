@@ -2,7 +2,7 @@
 title: "Apply Azure naming convention using Bicep functions"
 date: 2024-06-05T08:00:00+02:00
 publishdate: 2024-06-05T08:00:00+02:00
-lastmod: 2024-06-05T08:00:00+02:00
+lastmod: 2025-02-28T15:30:00+01:00
 tags: [ "Azure", "Bicep", "Infra as Code", "Test Automation" ]
 summary: "When deploying Azure resources, it's a good practice to apply a naming convention to your resources. This will help you to identify the purpose of the resource and the environment it belongs to. In this blog post, I will show you how to apply a naming convention using Bicep user-defined functions. This post also includes a short introduction to the (experimental) Bicep Testing Framework."
 ---
@@ -71,7 +71,7 @@ That being said, creating the logic to apply the naming convention is a bit more
 
 In this section, we'll explore the various functions required to apply the naming convention. As you'll discover, much of the logic revolves around creating concise resource names, which is crucial given the limitations on name length. For instance, a Key Vault or Storage Account name can only be 24 characters long, while a Windows virtual machine name is even shorter, capped at 15 characters.
 
-You can find the end result with all functions [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/naming-conventions.bicep).
+You can find the end result with all functions [here](https://github.com/ronaldbosma/bicep-samples/tree/main/naming-conventions/naming-convention-caf/naming-conventions.bicep).
 
 
 #### Get Resource Type Prefix
@@ -224,7 +224,7 @@ func getResourceName(resourceType string, workload string, environment string, r
     : getResourceNameByConvention(resourceType, workload, environment, region, instance)
 ```
 
-Note the `export` decorator. This is required to make the function available to other Bicep files. The final result can be found in [naming-conventions.bicep](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/naming-conventions.bicep).
+Note the `export` decorator. This is required to make the function available to other Bicep files. The final result can be found in [naming-conventions.bicep](https://github.com/ronaldbosma/bicep-samples/tree/main/naming-conventions/naming-convention-caf/naming-conventions.bicep).
 
 
 ### Using the Function
@@ -262,7 +262,7 @@ output outputExample string = getResourceName('vnet', workload, environment, loc
 
 There is quite a bit of logic necessary to get a resource name. To ensure everything works as expected, I’ve written some tests with the Bicep Testing Framework. The blog post [Exploring the awesome Bicep Test Framework](https://rios.engineer/exploring-the-bicep-test-framework-%F0%9F%A7%AA/) by Dan Rios explains how to use the framework, but I'll cover the basics here.
 
-Currently, the testing framework is still experimental, so you'll need to enable it in your Bicep config file. You need to create a [bicepconfig.json](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/bicepconfig.json) file and add the following configuration:
+Currently, the testing framework is still experimental, so you'll need to enable it in your Bicep config file. You need to create a [bicepconfig.json](https://github.com/ronaldbosma/bicep-samples/tree/main/naming-conventions/naming-convention-caf/bicepconfig.json) file and add the following configuration:
 
 ```json
 {
@@ -273,7 +273,7 @@ Currently, the testing framework is still experimental, so you'll need to enable
 }
 ```
 
-Our `getResourceName` function can't be directly invoked from a Bicep test. Instead, we'll need to create a Bicep module that calls the function and asserts the result. To do this, create a file called [test-get-resource-name.bicep](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/test-get-resource-name.bicep) and add the following Bicep:
+Our `getResourceName` function can't be directly invoked from a Bicep test. Instead, we'll need to create a Bicep module that calls the function and asserts the result. To do this, create a file called [test-get-resource-name.bicep](https://github.com/ronaldbosma/bicep-samples/tree/main/naming-conventions/naming-convention-caf/test-get-resource-name.bicep) and add the following Bicep:
 
 ```bicep
 // Arrange
@@ -302,7 +302,7 @@ As you can see, the module:
 - Calls the `getResourceName` function.
 - Asserts that the actual result is equal to the expected result.
 
-Now, create a file called [tests.bicep](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/tests.bicep) that will contain the tests. Here's an example of a test that checks if the name of a virtual network is created correctly:
+Now, create a file called [tests.bicep](https://github.com/ronaldbosma/bicep-samples/tree/main/naming-conventions/naming-convention-caf/tests.bicep) that will contain the tests. Here's an example of a test that checks if the name of a virtual network is created correctly:
 
 ```bicep
 test testPrefixVirtualNetwork 'test-get-resource-name.bicep' = {
@@ -329,7 +329,7 @@ The test results will look like this:
 
 In this example the test `testPrefixResourceGroup` has failed. The output could be improved by adding the actual and expected result. I'm hoping the Bicep team will add this in the future.
 
-You can find the full suite of tests in [tests.bicep](https://github.com/ronaldbosma/blog-code-examples/blob/master/apply-azure-naming-convention-using-bicep-functions/tests.bicep).
+You can find the full suite of tests in [tests.bicep](https://github.com/ronaldbosma/bicep-samples/tree/main/naming-conventions/naming-convention-caf/tests.bicep).
 
 
 ### Conclusion
