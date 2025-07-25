@@ -134,6 +134,11 @@ When provided with bullet points or notes, follow this process:
 - [ ] Clear problem-solution narrative
 - [ ] Conclusion ties back to opening problem
 
+### Quality Standards
+- Technical accuracy is paramount - verify all code examples and links
+- Ensure all examples are practical and runnable
+- Double-check Microsoft technology references and version numbers
+
 ## Copilot Prompt Template
 
 Use this template when requesting a new blog post:
