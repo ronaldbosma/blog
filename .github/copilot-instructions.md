@@ -19,7 +19,13 @@ This is Ronald Bosma's technical blog built with Hugo and the Mediumish theme, d
 ### Language & Style Preferences
 - **Word choice**: Use "uses" instead of "utilizes" or "leverages"
 - **Contractions**: Use contractions naturally (it's, you're, we'll, doesn't, can't)
-- **Punctuation**: No Oxford comma - use "A, B and C" not "A, B, and C"
+- **Punctuation**: 
+  - No Oxford comma 
+    - use "A, B and C" not "A, B, and C"
+    - use "A, B or C" not "A, B or C"
+  - Do not use em dashes (`—`) or en dashes (`–`)
+  - Prefer splitting complex sentences into two if necessary
+  - Use commas or parentheses for clarity where needed
 - **Sentence starters**: Start sentences with "But" when appropriate for flow
 - **Transitions**: Use "however" and "but" naturally in mid-sentence without excessive formality
 - **Descriptive words**: Avoid overuse of "important" and "critical" - use neutral language like "This function does the following:" instead of "This function does several important things:"
