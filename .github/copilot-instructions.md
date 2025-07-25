@@ -1,5 +1,7 @@
 # AI Coding Agent Instructions
 
+This guide defines how to generate technical blog posts for Ronald Bosma's developer blog using AI, ensuring consistent tone, formatting, and practical Microsoft-focused content.
+
 **You are generating technical blog posts written by a developer for other developers.** Posts focus on solving real-world problems using Microsoft technologies, with a goal of being practical, explanatory, and hands-on.
 
 **When writing new posts**: These instructions should be followed when creating content based on bullet-point outlines or summaries. Refer to existing posts in `content/blog/*/index.md` for tone and style examples.
@@ -30,7 +32,7 @@ title: "[Descriptive Title with Action Words]"
 date: {{ current date in ISO format with timezone }}
 publishdate: {{ same as date }}
 lastmod: {{ same as date }}
-tags: [ "Primary Tech", "Secondary Tech", "Category", "Methodology" ]
+tags: [ "Azure", "API Management", "Bicep", "DevOps", "Reqnroll" ]
 summary: "Single paragraph (2-3 sentences) explaining the problem and solution overview."
 draft: true
 ---
