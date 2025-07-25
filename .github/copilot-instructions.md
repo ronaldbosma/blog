@@ -86,3 +86,120 @@ hugo server -D  # Serves drafts on localhost:1313
 - `themes/mediumish/README.md` - Theme documentation and customization options
 
 When creating content, always use page bundles (`index.md` + assets in same folder) and ensure cover images follow the naming convention for proper theme integration.
+
+## Blog Post Generation Guidelines
+
+### Writing Style & Tone
+- **Professional yet approachable**: Technical content written for experienced developers
+- **First-person perspective**: Use "I" when sharing personal experiences and opinions
+- **Problem-solution structure**: Start with a real-world challenge, then provide practical solutions
+- **Microsoft technology focus**: Azure, .NET, SpecFlow/Reqnroll, API Management, testing frameworks
+
+### Post Structure Template
+
+**Front Matter**:
+```yaml
+---
+title: "[Descriptive Title with Action Words]"
+date: {{ current date in ISO format with timezone }}
+publishdate: {{ same as date }}
+lastmod: {{ same as date }}
+tags: [ "Primary Tech", "Secondary Tech", "Category", "Methodology" ]
+summary: "Single paragraph (2-3 sentences) explaining the problem and solution overview."
+draft: true
+---
+```
+
+**Opening Pattern**:
+- Start with personal context: "I've been working with [technology]..."
+- State the problem/challenge clearly
+- Mention the solution approach briefly
+- Reference related posts when applicable
+
+**Content Structure**:
+1. **Table of Contents** (using `### Table of Contents` heading)
+   - Always include for posts with multiple sections
+   - Use lowercase anchors with hyphens: `#section-name`
+
+2. **Introduction/Prerequisites** sections when needed
+   - Installation commands in PowerShell format
+   - Prerequisites clearly listed
+   - Links to official documentation
+
+3. **Step-by-step progression**
+   - Each major concept gets its own H3 section (`###`)
+   - Build complexity gradually
+   - Show working examples first, then explain the theory
+
+4. **Code Examples**:
+   - Use proper language tags in fenced code blocks
+   - Include practical, runnable examples
+   - Show both "before" and "after" code when refactoring
+   - Explain non-obvious parts after code blocks
+
+5. **Conclusion**:
+   - Summarize key benefits
+   - Mention areas for improvement or future exploration
+   - Link to related resources or next steps
+
+### Content Patterns
+
+**Code Block Guidelines**:
+- Always specify language: `csharp`, `bicep`, `powershell`, `gherkin`, `yaml`, `xml`
+- Include context comments when helpful
+- Show complete, working examples rather than fragments
+- Use descriptive variable/method names
+
+**Technical Explanations**:
+- Explain the "why" before the "how"
+- Include Microsoft documentation links for official features
+- Reference version numbers for frameworks/tools
+- Mention limitations and alternative approaches
+
+**Image References**:
+- Reference images relative to post folder: `../../../../../images/[post-name]/image.png`
+- Use descriptive alt text
+- Include diagrams for architectural concepts
+
+### Common Elements
+
+**Technology References**:
+- Link to official documentation on first mention
+- Use proper capitalization: "SpecFlow", "Reqnroll", "API Management", "Azure Pipelines"
+- Include version numbers when relevant: "PSRule version 2.9.0"
+
+**Step Patterns**:
+- "Let's start with..." for first examples
+- "Next, we'll..." for progression
+- "Here's how..." for explanations
+- "As you can see..." for code analysis
+
+**Transition Phrases**:
+- "Based on [reference]..." when citing sources
+- "In this section, we'll explore..." for new topics
+- "While [approach A] works, [approach B]..." for comparisons
+- "That being said..." for caveats or limitations
+
+### Example Generation Workflow
+
+When provided with bullet points or notes, follow this process:
+
+1. **Analyze the topic** - Identify primary technology, use case, and target audience
+2. **Structure the content** - Create logical progression from problem to solution
+3. **Generate front matter** - Include relevant tags and compelling summary
+4. **Write introduction** - Personal context + problem statement
+5. **Create table of contents** - Map out the learning journey
+6. **Develop sections** - Each major concept with examples and explanations
+7. **Add code examples** - Working, practical implementations
+8. **Write conclusion** - Benefits, limitations, next steps
+
+### Quality Checklist
+- [ ] Front matter complete with appropriate tags
+- [ ] Table of contents matches actual sections
+- [ ] Code blocks have language specifications
+- [ ] Personal voice and experience included
+- [ ] Progressive complexity (simple → advanced)
+- [ ] External links to official documentation
+- [ ] Practical, working examples
+- [ ] Clear problem-solution narrative
+- [ ] Conclusion ties back to opening problem
