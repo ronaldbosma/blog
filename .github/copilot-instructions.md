@@ -22,6 +22,8 @@ This is Ronald Bosma's technical blog built with Hugo and the Mediumish theme, d
 - **Punctuation**: No Oxford comma - use "A, B and C" not "A, B, and C"
 - **Sentence starters**: Start sentences with "But" when appropriate for flow
 - **Transitions**: Use "however" and "but" naturally in mid-sentence without excessive formality
+- **Descriptive words**: Avoid overuse of "important" and "critical" - use neutral language like "This function does the following:" instead of "This function does several important things:"
+- **Bold formatting**: Minimize bold text (**text**) in paragraphs - reserve for bullet points and section headers. Use natural language transitions instead
 
 ### Post Structure Template
 
@@ -41,10 +43,18 @@ draft: true
 #### Introduction
 
 **Opening Pattern**:
-- Start with personal context: "I've been working with [technology]..."
-- State the problem/challenge clearly
+- Start with concise personal context: "I've been working with [technology] on [specific scenario]..."
+- State the problem/challenge clearly and directly
+- Avoid lengthy explanations of why the problem is common - focus on the specific use case
 - Mention the solution approach briefly
 - Reference related posts when applicable
+
+**Example of preferred introduction style**:
+```
+I've been working with Azure API Management on an integration where the client sends a JSON payload containing a base64-encoded file. The backend service that processes the file expects a multipart/form-data request, which is typically used in HTML form uploads.
+
+In this post, I'll show you how to use API Management policies to transform the base64-encoded data into a properly formatted multipart/form-data request.
+```
 
 #### Content Sections
 
@@ -84,9 +94,12 @@ draft: true
 
 **Technical Explanations**:
 - Explain the "why" before the "how"
+- Use neutral descriptive language: "This function does the following:" instead of "This function does several important things:"
+- Avoid overuse of emphasis words like "important," "critical," "essential"
 - Include Microsoft documentation links for official features
 - Reference version numbers for frameworks/tools
 - Mention limitations and alternative approaches
+- When explaining code or processes, use natural paragraph flow instead of bold-highlighted concepts
 
 **Image References**:
 - Reference images relative to post folder: `../../../../../images/[post-name]/image.png`
@@ -135,6 +148,9 @@ When provided with bullet points or notes, follow this process:
 - [ ] Practical, working examples
 - [ ] Clear problem-solution narrative
 - [ ] Conclusion ties back to opening problem
+- [ ] No Oxford commas used (A, B and C format)
+- [ ] Minimal use of bold text in paragraphs
+- [ ] Neutral descriptive language instead of emphasis words like "important" or "critical"
 
 ### Quality Standards
 - Technical accuracy is paramount - verify all code examples and links
