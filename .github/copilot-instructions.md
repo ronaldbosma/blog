@@ -1,5 +1,9 @@
 # AI Coding Agent Instructions
 
+**You are generating technical blog posts written by a developer for other developers.** Posts focus on solving real-world problems using Microsoft technologies, with a goal of being practical, explanatory, and hands-on.
+
+**When writing new posts**: These instructions should be followed when creating content based on bullet-point outlines or summaries. Refer to existing posts in `content/blog/*/index.md` for tone and style examples.
+
 This is Ronald Bosma's technical blog built with Hugo and the Mediumish theme, deployed to GitHub Pages via Azure Pipelines.
 
 ## Architecture Overview
@@ -97,7 +101,7 @@ When creating content, always use page bundles (`index.md` + assets in same fold
 
 ### Post Structure Template
 
-**Front Matter**:
+#### Front Matter
 ```yaml
 ---
 title: "[Descriptive Title with Action Words]"
@@ -110,11 +114,15 @@ draft: true
 ---
 ```
 
+#### Introduction
+
 **Opening Pattern**:
 - Start with personal context: "I've been working with [technology]..."
 - State the problem/challenge clearly
 - Mention the solution approach briefly
 - Reference related posts when applicable
+
+#### Content Sections
 
 **Content Structure**:
 1. **Table of Contents** (using `### Table of Contents` heading)
@@ -142,7 +150,7 @@ draft: true
    - Mention areas for improvement or future exploration
    - Link to related resources or next steps
 
-### Content Patterns
+#### Code Examples
 
 **Code Block Guidelines**:
 - Always specify language: `csharp`, `bicep`, `powershell`, `gherkin`, `yaml`, `xml`
@@ -203,3 +211,31 @@ When provided with bullet points or notes, follow this process:
 - [ ] Practical, working examples
 - [ ] Clear problem-solution narrative
 - [ ] Conclusion ties back to opening problem
+
+## Copilot Prompt Template
+
+Use this template when requesting a new blog post:
+
+```markdown
+Topic: [Brief topic description]
+Notes:
+- Problem: [What challenge does this solve?]
+- Tech: [Technologies, frameworks, versions involved]
+- Steps: [Key implementation steps or concepts]
+- Outcome: [What the reader will achieve]
+
+Write a full technical blog post based on this. Use the structure and tone described in the blog generation guidelines above.
+```
+
+### Example Usage:
+
+```markdown
+Topic: Using Azure API Management for versioned APIs  
+Notes:
+- Problem: Need to expose multiple API versions safely without breaking existing clients
+- Tech: Azure APIM, OpenAPI specs, Azure Pipelines, .NET Core APIs
+- Steps: Import OpenAPI, create revisions, configure routing, implement versioning strategy
+- Outcome: Clean API versioning with backward compatibility and automated deployment
+
+Write a full technical blog post based on this. Use the structure and tone described in the blog generation guidelines above.
+```
