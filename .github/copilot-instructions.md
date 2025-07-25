@@ -14,6 +14,13 @@ This is Ronald Bosma's technical blog built with Hugo and the Mediumish theme, d
 - **Problem-solution structure**: Start with a real-world challenge, then provide practical solutions
 - **Microsoft technology focus**: Azure, .NET, SpecFlow/Reqnroll, API Management, testing frameworks
 
+### Language & Style Preferences
+- **Word choice**: Use "uses" instead of "utilizes" or "leverages"
+- **Contractions**: Use contractions naturally (it's, you're, we'll, doesn't, can't)
+- **Punctuation**: No Oxford comma - use "A, B and C" not "A, B, and C"
+- **Sentence starters**: Start sentences with "But" when appropriate for flow
+- **Transitions**: Use "however" and "but" naturally in mid-sentence without excessive formality
+
 ### Post Structure Template
 
 #### Front Matter
