@@ -2,7 +2,7 @@
 title: "Apply Azure naming convention using Bicep functions"
 date: 2024-06-05T08:00:00+02:00
 publishdate: 2024-06-05T08:00:00+02:00
-lastmod: 2025-02-28T15:30:00+01:00
+lastmod: 2025-06-08T10:45:00+02:00
 tags: [ "Azure", "Bicep", "Infra as Code", "Test Automation" ]
 summary: "When deploying Azure resources, it's a good practice to apply a naming convention to your resources. This will help you to identify the purpose of the resource and the environment it belongs to. In this blog post, I will show you how to apply a naming convention using Bicep user-defined functions. This post also includes a short introduction to the (experimental) Bicep Testing Framework."
 ---
@@ -151,7 +151,7 @@ Here’s a sample function that sanitizes the input values by removing a trailin
 ```bicep
 func sanitizeResourceName(value string) string => toLower(removeTrailingHyphen(removeColons(removeCommas(removeDots(removeSemicolons(removeUnderscores(removeWhiteSpaces(value))))))))
 
-func removeTrailingHyphen(value string) string => endsWith(value, '-') ? substring(value, 0, length(value)-1) : value
+func removeTrailingHyphen(value string) string => endsWith(value, '-') ? substring(value, 0, max(0, length(value)-1)) : value
 func removeColons(value string) string => replace(value, ':', '')
 func removeCommas(value string) string => replace(value, ',', '')
 func removeDots(value string) string => replace(value, '.', '')
