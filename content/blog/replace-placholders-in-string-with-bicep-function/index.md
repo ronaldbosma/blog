@@ -2,7 +2,7 @@
 title: "Replace placeholders in string with user-defined Bicep function"
 date: 2024-06-21T15:00:00+02:00
 publishdate: 2024-06-21T15:00:00+02:00
-lastmod: 2025-02-28T15:30:00+01:00
+lastmod: 2025-08-25T20:15:00+02:00
 summary: When you have a string value in Bicep with multiple placeholders that you want to replace, it can be tricky to find a good way to do this. In this blog post, I will show you how you can replace placeholders in a string with a couple of user-defined functions.
 tags: [ "Azure", "Bicep", "Infra as Code", "Test Automation" ]
 ---
@@ -125,9 +125,9 @@ func replacePlaceholder(originalString string, placeholder string, value string)
 
 As you can see, I've created 3 functions:
 
-1. The `replacePlaceholders` function is the one you can call from your Bicep code. It takes the original string and a object with placeholders and values. The values have to be of type string as specified by `{ *: string }`. It converts the `placeholders` object into an array and calls `replacePlaceholderInternal`.
-1. The `replacePlaceholderInternal` function uses the `reduce` function to loop over the placeholders and call the `replacePlaceholder` function for each placeholder.
-1. The `replacePlaceholder` function replaces the placeholder with the actual value. I've made this a separate function, so you can call it directly if you want to replace a single placeholder.
+1. The `replacePlaceholders` function is the main entry point. You call it from your Bicep code, passing the original string and an object with placeholders and their string values. It converts the placeholders object into an array and calls `replacePlaceholderInternal`.
+2. The `replacePlaceholderInternal` function uses the `reduce` function to iterate over the array of placeholders. For each placeholder, it calls `replacePlaceholder` to perform the replacement.
+3. The `replacePlaceholder` function handles the actual replacement of a single placeholder with its value. You can also use this function directly if you only need to replace one placeholder in a string.
 
 And here's a sample of how you can use the `replacePlaceholders` function in your Bicep code:
 
