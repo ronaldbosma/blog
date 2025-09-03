@@ -178,9 +178,9 @@ Open the HTML file in your browser, enter a file ID and select a file. The form 
 
 ![Test HTML form](../../../../../../images/convert-base64-to-multipart-formdata-with-api-management/test-html-form.png)
 
-To see how the multipart/form-data request is structured, first open your browser's developer tools. Then submit the form - you should see the file downloaded back to your browser. In the Network tab, you can inspect the request to see how the multipart/form-data is formatted.
+To see how the multipart/form-data request is structured, open your browser's developer tools before submitting the form. When you submit the form, you should see the file downloaded back to your browser. In the Network tab, you can inspect the request structure - it will look similar to the example shown in the [Understanding multipart/form-data](#understanding-multipartform-data) section.
 
-If you have Application Insights configured, you can also check the logs to see the file ID being logged by the function.
+If you have Application Insights configured, you can also check the logs to see the file ID and file details being logged by the function.
 
 ### Creating the API Management Transformation
 
