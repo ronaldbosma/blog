@@ -4,13 +4,13 @@ date: 2025-09-03T00:00:00+02:00
 publishdate: 2025-09-03T00:00:00+02:00
 lastmod: 2025-09-03T00:00:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services" ]
-summary: "In this post, I’ll show you how to use Azure API Management policies to transform a JSON request containing a base64-encoded file into a multipart/form-data request. This is useful when your client sends files as base64 in JSON, but your backend expects a form upload."
+summary: "In this post, I'll show you how to use Azure API Management policies to transform a JSON request containing a base64-encoded file into a multipart/form-data request. This is useful when your client sends files as base64 in JSON, but your backend expects a form upload."
 draft: true
 ---
 
 I've been working with Azure API Management on an integration where the client sends a JSON payload containing a base64-encoded file. The backend service that processes the file expects a multipart/form-data request, which is typically used in HTML form uploads.
 
-In this post, I’ll show you how to use API Management policies to transform the base64-encoded data into a properly formatted multipart/form-data request. I’ll use a .NET Azure Function as the backend, but the approach works for any service that expects form uploads.
+In this post, I'll show you how to use API Management policies to transform the base64-encoded data into a properly formatted multipart/form-data request. I'll use a .NET Azure Function as the backend, but the approach works for any service that expects form uploads.
 
 ### Table of Contents
 
@@ -24,7 +24,7 @@ In this post, I’ll show you how to use API Management policies to transform th
 
 ### Prerequisites
 
-To follow along, you’ll need:
+To follow along, you'll need:
 
 - An Azure API Management (APIM) instance
 - An Azure Function App (using .NET)
@@ -33,11 +33,11 @@ If you want to deploy both quickly, you can use my [Azure Integration Services Q
 
 ### Understanding multipart/form-data in .NET
 
-Converting a base64 string to a multipart/form-data request is straightforward in .NET using the [`MultipartFormDataContent`](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.multipartformdatacontent?view=net-9.0) class. If you want to understand the structure of multipart requests, I recommend [Andrew Lock’s post](https://andrewlock.net/reading-json-and-binary-data-from-multipart-form-data-sections-in-aspnetcore/). It explains how to read and construct multipart requests in ASP.NET Core.
+Converting a base64 string to a multipart/form-data request is straightforward in .NET using the [`MultipartFormDataContent`](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.multipartformdatacontent?view=net-9.0) class. If you want to understand the structure of multipart requests, I recommend [Andrew Lock's post](https://andrewlock.net/reading-json-and-binary-data-from-multipart-form-data-sections-in-aspnetcore/). It explains how to read and construct multipart requests in ASP.NET Core.
 
 ### Sample Azure Function for File Uploads
 
-Let’s start with a simple Azure Function that accepts a file upload as multipart/form-data. This function reads the file and returns it as a download.
+Let's start with a simple Azure Function that accepts a file upload as multipart/form-data. This function reads the file and returns it as a download.
 
 ```csharp
 using Microsoft.AspNetCore.Http;
@@ -104,13 +104,13 @@ Deploy this function to your Azure Function App.
 
 ### Testing with an HTML Form
 
-To verify the function, you can use a simple HTML form. Download [test-form.html](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/test-form.html) and update the `action` attribute to point to your function app’s URL (e.g., `https://<your-function-app-name>.azurewebsites.net/api/process-file`).
+To verify the function, you can use a simple HTML form. Download [test-form.html](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/test-form.html) and update the `action` attribute to point to your function app's URL (e.g., `https://<your-function-app-name>.azurewebsites.net/api/process-file`).
 
-Open the HTML file in your browser, upload a file, and submit the form. The function will return the file as a download. You can inspect the multipart/form-data request in your browser’s developer tools. If you have Application Insights enabled, you’ll also see the file ID in your logs.
+Open the HTML file in your browser, upload a file, and submit the form. The function will return the file as a download. You can inspect the multipart/form-data request in your browser's developer tools. If you have Application Insights enabled, you'll also see the file ID in your logs.
 
 ### API Management: Transforming Base64 to multipart/form-data
 
-Now let’s tackle the main challenge: converting a JSON request with a base64-encoded file to a multipart/form-data request in APIM.
+Now let's tackle the main challenge: converting a JSON request with a base64-encoded file to a multipart/form-data request in APIM.
 
 Suppose your client sends a request like this:
 
@@ -123,7 +123,7 @@ Suppose your client sends a request like this:
 }
 ```
 
-But your backend expects a multipart/form-data request. Here’s what the equivalent multipart request looks like (simplified for clarity):
+But your backend expects a multipart/form-data request. Here's what the equivalent multipart request looks like (simplified for clarity):
 
 ```
 --b5f36865-8df9-4d14-8d2c-4ae2eb78d0ec
@@ -140,7 +140,7 @@ Content-Type: image/jpeg
 
 #### APIM Policy Transformation
 
-We’ll create an API in APIM with a POST operation. In the inbound policy, add the following steps:
+We'll create an API in APIM with a POST operation. In the inbound policy, add the following steps:
 
 1. **Configure the backend** (replace `<your-function-app-name>`):
 
@@ -214,14 +214,14 @@ We’ll create an API in APIM with a POST operation. In the inbound policy, add 
 
 - The boundary (`b5f36865-8df9-4d14-8d2c-4ae2eb78d0ec`) is used to separate parts in the multipart request. It must match the value in the `Content-Type` header.
 - Each part starts with `--<boundary>`, and the final boundary ends with `--`.
-- I’m using a static GUID for readability, but you can generate a unique value if you prefer. Just make sure it matches everywhere.
+- I'm using a static GUID for readability, but you can generate a unique value if you prefer. Just make sure it matches everywhere.
 - The file content is added as raw binary, not as a string, to avoid corrupting the file.
 
 ### Testing the Transformation
 
 You can test the API using a tool like [test.http](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/test.http). Update the URL to point to your APIM instance (replace `<your-apim-service-name>`).
 
-Send a request with a base64-encoded file. If everything is set up correctly, you’ll get the file back as a download.
+Send a request with a base64-encoded file. If everything is set up correctly, you'll get the file back as a download.
 
 If you want to validate the request size or content type, you can add a `validate-content` policy. By default, the max size is 4MB. To support larger files, set `size-exceeded-action="ignore"`.
 
