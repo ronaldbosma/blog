@@ -312,9 +312,10 @@ For production use, consider adding content validation to protect against large 
 </validate-content>
 ```
 
-This policy limits uploads to 4MB. Set `size-exceeded-action` to `ignore` if you need to support larger files.
+This policy limits uploads to 4MB, which is the current limit for the `max-size` attribute. 
+Set `size-exceeded-action` to `ignore` if you need to support larger files.
 
-You can find the complete policy with all the transformations and validation rules in my [Azure APIM samples repository](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/convert-file.policy.xml).
+You can find the complete policy with all the transformations [here](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/convert-file.policy.xml).
 
 ### Conclusion
 
