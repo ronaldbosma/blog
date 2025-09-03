@@ -286,6 +286,8 @@ Here's how to set up the transformation for the 'Convert a Base64-encoded file' 
 
 #### Understanding the Transformation
 
+> TODO: add a more detailed explanation of the transformation process.
+
 The transformation works by:
 
 1. **Boundary usage**: The boundary `b5f36865-8df9-4d14-8d2c-4ae2eb78d0ec` is used to separate different parts of the form data. Each section starts with `--` followed by the boundary, and the final boundary is surrounded by `--` on both sides.
