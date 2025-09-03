@@ -33,7 +33,36 @@ If you don't have these resources yet, you can use my [Azure Integration Service
 
 ### Understanding multipart/form-data
 
-Before diving into the implementation, it's worth understanding what multipart/form-data requests look like. Converting base64 to multipart/form-data is actually straightforward in .NET using the [MultipartFormDataContent](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.multipartformdatacontent?view=net-9.0) class.
+Before diving into the implementation, it's worth understanding what multipart/form-data requests look like.
+
+A multipart/form-data request consists of multiple sections separated by boundaries. These sections can contain form field values, files, or other data types.
+
+When uploading a file using an HTML form like the following:
+
+![Test HTML form](../../../../../../images/convert-base64-to-multipart-formdata-with-api-management/test-html-form.png)
+
+The browser creates a request that includes a `Content-Type` header specifying the type as `multipart/form-data` and the boundary string:
+
+```
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryKWINm4cKboHb55vB
+```
+
+Here's an example of what the request body looks like:
+
+```
+------WebKitFormBoundaryKWINm4cKboHb55vB
+Content-Disposition: form-data; name="fileId"
+
+123
+------WebKitFormBoundaryKWINm4cKboHb55vB
+Content-Disposition: form-data; name="file"; filename="sample.jpg"
+Content-Type: image/jpeg
+
+... BINARY DATA ...
+------WebKitFormBoundaryKWINm4cKboHb55vB--
+```
+
+Each section starts with a boundary (prefixed with `--`), followed by headers that describe the form field. The `Content-Disposition` header specifies the field name and, for file uploads, the filename. File sections include a `Content-Type` header that specifies the media type (like `image/jpeg`). Text fields typically don't include this header and default to `text/plain`. The actual data follows after a blank line.
 
 For a deeper understanding of multipart/form-data requests, I recommend reading [Reading JSON and binary data from multipart/form-data sections in ASP.NET Core](https://andrewlock.net/reading-json-and-binary-data-from-multipart-form-data-sections-in-aspnetcore/) by Andrew Lock. It provides excellent examples of how to construct and handle these requests in .NET.
 
