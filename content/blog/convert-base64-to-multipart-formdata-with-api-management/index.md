@@ -120,15 +120,36 @@ Deploy this function to your Azure Function App before proceeding to the next st
 
 ### Testing with an HTML Form
 
-To understand how multipart/form-data works, let's test our function with a simple HTML form. Download the test form from my [Azure APIM samples repository](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/test-form.html).
-
-Update the `action` attribute in the HTML form to point to your function app URL:
+To understand how multipart/form-data works, let's test our function with a simple HTML form. Create a new HTML file using the sample below or download the test form [here](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/test-form.html):
 
 ```html
-<form action="https://<your-function-app-name>.azurewebsites.net/api/process-file" method="post" enctype="multipart/form-data">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload File</title>
+</head>
+<body>
+    <form action="https://<your-function-app-name>.azurewebsites.net/api/process-file" method="post" enctype="multipart/form-data">
+        <label for="fileId">File ID:</label>
+        <input type="text" id="fileId" name="fileId" required>
+        <br><br>
+        <label for="file">Select file:</label>
+        <input type="file" id="file" name="file" required>
+        <br><br>
+        <button type="submit">Upload</button>
+    </form>
+</body>
+</html>
 ```
 
-Open the HTML file in your browser, upload a file, and submit the form. You should see the file downloaded back to your browser. Use the browser's developer tools to inspect the network request and see how the multipart/form-data is structured.
+Update the `action` attribute in the HTML form to point to your Function App URL by replacing `<your-function-app-name>` with your actual Function App name.
+
+Open the HTML file in your browser, enter a file ID and select a file. The form will look like this:  
+
+![Test HTML form](../../../../../../images/convert-base64-to-multipart-formdata-with-api-management/test-html-form.png)
+
+To see how the multipart/form-data request is structured, first open your browser's developer tools. Then submit the form - you should see the file downloaded back to your browser. In the Network tab, you can inspect the request to see how the multipart/form-data is formatted.
 
 If you have Application Insights configured, you can also check the logs to see the file ID being logged by the function.
 
@@ -162,7 +183,7 @@ First, create a new API in API Management with a POST operation. In the inbound 
 <rewrite-uri template="/api/process-file" copy-unmatched-params="false" />
 ```
 
-Replace `<your-function-app-name>` with your actual function app name.
+Replace `<your-function-app-name>` with your actual Function App name.
 
 #### Set the Content-Type Header
 
