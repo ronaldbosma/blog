@@ -3,7 +3,7 @@ title: "Converting Base64 Files to multipart/form-data with Azure API Management
 date: 2025-09-03T00:00:00+02:00
 publishdate: 2025-09-03T00:00:00+02:00
 lastmod: 2025-09-03T00:00:00+02:00
-tags: [ "Azure", "API Management", "Azure Functions", "Integration", "Bicep" ]
+tags: [ "Azure", "API Management", "Azure Integration Services" ]
 summary: "In this post, I’ll show you how to use Azure API Management policies to transform a JSON request containing a base64-encoded file into a multipart/form-data request. This is useful when your client sends files as base64 in JSON, but your backend expects a form upload."
 draft: true
 ---
