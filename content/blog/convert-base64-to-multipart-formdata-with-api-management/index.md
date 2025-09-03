@@ -12,6 +12,8 @@ I've been working with Azure API Management on an integration where the client s
 
 In this post, I'll show you how to use API Management policies to transform the base64-encoded data into a properly formatted multipart/form-data request.
 
+> TODO: perhaps add a sequence diagram here with the flow.
+
 ### Table of Contents
 
 - [Prerequisites](#prerequisites)
@@ -328,3 +330,6 @@ The key benefits of this approach include:
 - Support for different file types and metadata
 
 You can find the complete sample code in my [Azure APIM samples repository](https://github.com/ronaldbosma/azure-apim-samples/tree/main/convert-base64-to-multipart-formdata). For more complex scenarios, consider implementing additional validation, error handling, and monitoring to ensure robust file processing.
+
+> TODO: mention that it's more difficult to construct a multipart/form-data request via APIM than in .NET.
+> TODO: mention that we can't use [MultipartFormDataContent](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.multipartformdatacontent?view=net-9.0) in APIM.
