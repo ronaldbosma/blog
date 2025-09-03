@@ -186,7 +186,9 @@ If you have Application Insights configured, you can also check the logs to see 
 
 Now let's create an API in API Management that transforms a JSON request with base64-encoded content into the multipart/form-data format our function expects.
 
-We'll transform this JSON request:
+You can create the API using this [OpenAPI specification](https://raw.githubusercontent.com/ronaldbosma/azure-apim-samples/refs/heads/main/convert-base64-to-multipart-formdata/convert-file-api.openapi.yaml). 
+This will create an API called 'Convert File API' with a 'Convert a Base64-encoded file' operation. 
+It expects a JSON request with the following structure:
 
 ```json
 {
@@ -197,90 +199,88 @@ We'll transform this JSON request:
 }
 ```
 
-Into a multipart/form-data request with these parts:
+We'll transform that JSON request into a multipart/form-data request with these parts:
 - `fileId`: The ID from the JSON
 - `file`: The binary file data with proper metadata
 
-Here's how to set up the transformation:
+Here's how to set up the transformation for the 'Convert a Base64-encoded file' operation. In the inbound processing section, add the following policies:
 
-First, create a new API in API Management with a POST operation. In the inbound processing section, add the following policies:
+1. **Configure the backend** to forward the request to the Azure Function:
 
-#### Configure the Backend
+    ```xml
+    <set-backend-service base-url="https://<your-function-app-name>.azurewebsites.net" />
+    <rewrite-uri template="/api/process-file" copy-unmatched-params="false" />
+    ```
 
-```xml
-<set-backend-service base-url="https://<your-function-app-name>.azurewebsites.net" />
-<rewrite-uri template="/api/process-file" copy-unmatched-params="false" />
-```
+    Replace `<your-function-app-name>` with your actual Function App name.
 
-Replace `<your-function-app-name>` with your actual Function App name.
+2. **Set the Content-Type header** to multipart/form-data with a boundary:
 
-#### Set the Content-Type Header
+    ```xml
+    <set-header name="Content-Type" exists-action="override">
+        <value>multipart/form-data; boundary=b5f36865-8df9-4d14-8d2c-4ae2eb78d0ec</value>
+    </set-header>
+    ```
 
-```xml
-<set-header name="Content-Type" exists-action="override">
-    <value>multipart/form-data; boundary=b5f36865-8df9-4d14-8d2c-4ae2eb78d0ec</value>
-</set-header>
-```
+3. **Transform the request body** from JSON to multipart/form-data:
 
-#### Transform the Request Body
+    ```xml
+    <set-body>@{
+        // The Process File function expects a multipart/form-data request with the following parts:
+        // - fileId: string           - Id of the file to be processed
+        // - file:   string($binary)  - The file that is to be processed
+        //
+        // We're not constructing the entire request as a string where the file contents is converted using Encoding.UTF8.GetString(),
+        // because that would corrupt the binary data of the file.
 
-```xml
-<set-body>@{
-    // The Process File function expects a multipart/form-data request with the following parts:
-    // - fileId: string           - Id of the file to be processed
-    // - file:   string($binary)  - The file that is to be processed
-    //
-    // See https://andrewlock.net/reading-json-and-binary-data-from-multipart-form-data-sections-in-aspnetcore/
-    // for an excellent explanation of how a multipart/form-data request is structured.
-    //
-    // We're not constructing the entire request as a string where the file contents is converted using Encoding.UTF8.GetString(),
-    // because that would corrupt the binary data of the file.
+        var request = context.Request.Body.As<JObject>();
+        string id = request.Value<string>("id");
+        string name = request.Value<string>("name");
+        string mimeType = request.Value<string>("mimeType");
 
-    var request = context.Request.Body.As<JObject>();
-    string id = request.Value<string>("id");
-    string name = request.Value<string>("name");
-    string mimeType = request.Value<string>("mimeType");
+        // Convert file to binary data
+        string base64Content = request.Value<string>("base64Content");
+        byte[] binaryData = Convert.FromBase64String(base64Content);
+        
+        var formData = new List<byte>();
 
-    // Convert file to binary data
-    string base64Content = request.Value<string>("base64Content");
-    byte[] binaryData = Convert.FromBase64String(base64Content);
-    
-    var formData = new List<byte>();
+        // Part 1: file id
+        AppendLine($"--b5f36865-8df9-4d14-8d2c-4ae2eb78d0ec");
+        AppendLine("Content-Disposition: form-data; name=\"fileId\"");
+        AppendLine("");
+        AppendLine(id);
 
-    // Part 1: file id
-    AppendLine($"--b5f36865-8df9-4d14-8d2c-4ae2eb78d0ec");
-    AppendLine("Content-Disposition: form-data; name=\"fileId\"");
-    AppendLine("");
-    AppendLine(id);
+        // Part 2: file metadata
+        AppendLine($"--b5f36865-8df9-4d14-8d2c-4ae2eb78d0ec");
+        AppendLine($"Content-Disposition: form-data; name=\"file\"; filename=\"{name}\"");
+        AppendLine($"Content-Type: {mimeType}");
+        AppendLine("");
 
-    // Part 2: file metadata
-    AppendLine($"--b5f36865-8df9-4d14-8d2c-4ae2eb78d0ec");
-    AppendLine($"Content-Disposition: form-data; name=\"file\"; filename=\"{name}\"");
-    AppendLine($"Content-Type: {mimeType}");
-    AppendLine("");
+        // Part 3: file content (raw bytes, not base64)
+        formData.AddRange(binaryData);
+        AppendLine("");
 
-    // Part 3: file content (raw bytes, not base64)
-    formData.AddRange(binaryData);
-    AppendLine("");
+        // End boundary
+        AppendLine($"--b5f36865-8df9-4d14-8d2c-4ae2eb78d0ec--");
 
-    // End boundary
-    AppendLine($"--b5f36865-8df9-4d14-8d2c-4ae2eb78d0ec--");
+        return formData.ToArray();
+        
 
-    return formData.ToArray();
-    
+        // Helper methods to add strings with proper encoding
+        void AppendLine(string s)
+        {
+            AppendString(s + "\r\n");
+        }
 
-    // Helper methods to add strings with proper encoding
-    void AppendLine(string s)
-    {
-        AppendString(s + "\r\n");
-    }
+        void AppendString(string s)
+        {
+            formData.AddRange(Encoding.UTF8.GetBytes(s));
+        }
+    }</set-body>
+    ```
 
-    void AppendString(string s)
-    {
-        formData.AddRange(Encoding.UTF8.GetBytes(s));
-    }
-}</set-body>
-```
+4. **Save the changes** to apply the transformation.
+
 
 #### Understanding the Transformation
 
@@ -313,6 +313,8 @@ For production use, consider adding content validation to protect against large 
 ```
 
 This policy limits uploads to 4MB. Set `size-exceeded-action` to `ignore` if you need to support larger files.
+
+You can find the complete policy with all the transformations and validation rules in my [Azure APIM samples repository](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/convert-file.policy.xml).
 
 ### Conclusion
 
