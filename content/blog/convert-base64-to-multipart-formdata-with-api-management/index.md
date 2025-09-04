@@ -29,7 +29,7 @@ To follow along with this post, you'll need:
 - An Azure API Management service instance
 - An Azure Function App (.NET)
 
-If you don't have these resources yet, you can use my [Azure Integration Services Quickstart](https://github.com/ronaldbosma/azure-integration-services-quickstart) template to deploy them. See the [Getting Started](https://github.com/ronaldbosma/azure-integration-services-quickstart?tab=readme-ov-file#getting-started) section for instructions. When requested during deployment, set the `includeApiManagement` and `includeFunctionApp` parameters to `true` and the rest to `false`.
+If you don't have these resources yet, you can use my [Azure Integration Services Quickstart](https://github.com/ronaldbosma/azure-integration-services-quickstart) template to deploy them. See the [Getting Started](https://github.com/ronaldbosma/azure-integration-services-quickstart?tab=readme-ov-file#getting-started) section for instructions. During deployment, set `includeApiManagement` and `includeFunctionApp` to `true`. All other parameters can be set to `false`.
 
 ### Understanding multipart/form-data
 
@@ -98,10 +98,10 @@ public class ProcessFileFunction
         try
         {
             // 1. Read the form data
-            var formdata = await request.ReadFormAsync();
+            var formData = await request.ReadFormAsync();
 
             // 2. Extract the file ID from the form data and log it
-            string? fileId = formdata["fileId"];
+            string? fileId = formData["fileId"];
             _logger.LogInformation("File ID: {FileID}", fileId);
 
             // 3. Extract the binary file from the form data. Throw an exception if it's not present.
@@ -135,7 +135,6 @@ public class ProcessFileFunction
         }
     }
 }
-
 ```
 
 This function does the following:
@@ -284,25 +283,50 @@ Here's how to set up the transformation for the 'Convert a Base64-encoded file' 
 
 #### Understanding the Transformation
 
-> TODO: add a more detailed explanation of the transformation process.
+The transformation from JSON to multipart/form-data requires careful handling of both text and binary data. Unlike in .NET where you can use [`MultipartFormDataContent`](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.multipartformdatacontent?view=net-9.0) to construct these requests easily, API Management policies require manual construction of the entire request body.
 
-The transformation works by:
+Here's what happens step by step:
 
-1. **Boundary usage**: The boundary `b5f36865-8df9-4d14-8d2c-4ae2eb78d0ec` is used to separate different parts of the form data. Each section starts with `--` followed by the boundary, and the final boundary is surrounded by `--` on both sides.
+**1. JSON Parsing and Data Extraction**
+```csharp
+var request = context.Request.Body.As<JObject>();
+string id = request.Value<string>("id");
+string name = request.Value<string>("name");
+string mimeType = request.Value<string>("mimeType");
 
-2. **Binary data handling**: Instead of converting the entire request to a string (which would corrupt binary data), we work with byte arrays and only convert text portions to UTF-8 bytes.
+string base64Content = request.Value<string>("base64Content");
+byte[] binaryData = Convert.FromBase64String(base64Content);
+```
 
-3. **Form structure**: We create two form fields:
-   - `fileId`: A simple text field containing the ID
-   - `file`: A file field with proper filename and content-type metadata
+The policy first parses the incoming JSON request and extracts all the required fields. The base64-encoded file content is converted to binary data. We don't use `Encoding.UTF8.GetString()`, because this would corrupt the binary data.
 
-I'm using a static GUID for the boundary for readability, but you can generate a unique value as long as it matches between the Content-Type header and the request body.
+**2. Boundary Management**  
+The boundary `b5f36865-8df9-4d14-8d2c-4ae2eb78d0ec` serves as a delimiter between different parts of the multipart request. Each section starts with `--` followed by the boundary, and the final boundary is surrounded by `--` on both sides to indicate the end of the request.
+
+I've chosen a static boundary for readability, but you can generate a unique boundary for each request.
+
+**3. Building the Form Data Structure**  
+The policy constructs the multipart request by appending data to a byte array:
+
+- **Text Field (`fileId`)**: Simple form field with just the Content-Disposition header
+- **File Field (`file`)**: More complex field that includes:
+  - Content-Disposition header with field name and filename
+  - Content-Type header specifying the file's MIME type
+  - The actual binary file data
+
+**4. Binary Data Preservation**  
+The critical aspect of this transformation is preserving binary integrity. Instead of converting everything to strings (which would corrupt binary data using UTF-8 encoding), the policy:
+
+- Converts text portions to UTF-8 bytes using `Encoding.UTF8.GetBytes()`
+- Appends raw binary data directly using `formData.AddRange(binaryData)`
+- Returns the final result as a byte array
+
 
 ### Testing the API
 
-You can test the API using an HTTP client. Download the test file from my [Azure APIM samples repository](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/test-request.http) and replace `<your-apim-service-name>` with your API Management service name.
+You can test the API using an HTTP client. Download [this test HTTP file](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/tests.http) and replace `<your-apim-service-name>` with your API Management service name.
 
-Execute the test request and verify that the image is returned correctly.
+Execute the test request and verify that an image is returned correctly.
 
 ### Content Validation
 
