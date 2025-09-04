@@ -5,7 +5,6 @@ publishdate: 2025-09-04T18:30:00+02:00
 lastmod: 2025-09-04T18:30:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services" ]
 summary: "In this post, I'll show you how to use Azure API Management policies to transform a JSON request containing a base64-encoded file into a multipart/form-data request. This lets you connect clients that send files in JSON with backends that require standard form uploads."
-draft: true
 ---
 
 I've been working with Azure API Management on an integration where the client sends a JSON payload containing a base64-encoded file. The backend service that processes the file expects a multipart/form-data request, which is typically used in HTML form uploads.
