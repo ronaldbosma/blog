@@ -1,8 +1,8 @@
 ---
 title: "Convert Base64 to multipart/form-data with API Management"
-date: 2025-09-03T17:30:00+02:00
-publishdate: 2025-09-03T17:30:00+02:00
-lastmod: 2025-09-03T17:30:00+02:00
+date: 2025-09-04T18:30:00+02:00
+publishdate: 2025-09-04T18:30:00+02:00
+lastmod: 2025-09-04T18:30:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services" ]
 summary: "In this post, I'll show you how to use Azure API Management policies to transform a JSON request containing a base64-encoded file into a multipart/form-data request. This is useful when your client sends files as base64 in JSON, but your backend expects a form upload."
 draft: true
@@ -146,7 +146,7 @@ public class ProcessFileFunction
 This function does the following:
 1. Reads the form data from the incoming request
 1. Extracts the `fileId` field and logs it
-1. Retrieves the uploaded file and validates it is present
+1. Retrieves the uploaded file and validates that it is present
 1. Logs the file details
 1. Returns the file as a downloadable stream
 
@@ -337,7 +337,7 @@ You can test the API using an HTTP client.
 Download [this test HTTP file](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/tests.http) and replace `<your-apim-service-name>` with your API Management service name. 
 If you specified an API URL suffix when creating the API, be sure to include it in the request URL.
 
-Send the test request and verify that the image is returned correctly. 
+Send the test request and verify the image is returned correctly. 
 If you receive a `401 Access Denied` error, add a subscription key to the request or configure the API to allow anonymous access.
 
 
@@ -360,7 +360,7 @@ Using API Management policies, we can transform JSON requests with base64-encode
 While this process is more complex in API Management than in .NET, where you can use built-in helpers like `MultipartFormDataContent`, it is still achievable with careful policy design. 
 
 The key benefits of this approach include:
-- No code changes required on the client side
+- No code changes are required on the client side
 - Proper handling of binary data without corruption
 - Centralized transformation logic in API Management
 - Support for different file types and metadata
