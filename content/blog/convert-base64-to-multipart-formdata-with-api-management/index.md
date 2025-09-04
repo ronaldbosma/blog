@@ -17,7 +17,7 @@ In this post, I'll show you how to use API Management policies to transform the 
 - [Prerequisites](#prerequisites)
 - [Understanding multipart/form-data](#understanding-multipartform-data)
 - [Creating the Backend Function](#creating-the-backend-function)
-- [Testing with an HTML Form](#testing-with-an-html-form)
+- [Test Function with an HTML Form](#test-function-with-an-html-form)
 - [Creating the API Management Transformation](#creating-the-api-management-transformation)
 - [Testing the API](#testing-the-api)
 - [Conclusion](#conclusion)
@@ -35,13 +35,15 @@ If you don't have these resources yet, you can use my [Azure Integration Service
 
 Before diving into the implementation, it's worth understanding what multipart/form-data requests look like.
 
-A multipart/form-data request consists of multiple sections separated by boundaries. These sections can contain form field values, files, or other data types.
+A multipart/form-data request consists of multiple sections separated by boundaries. These sections can contain form field values, files or other data types.
 
-When uploading a file using an HTML form like the following:
+
+For example, here's an HTML form where you can specify a file ID and select a file to upload:
 
 ![Test HTML form](../../../../../../images/convert-base64-to-multipart-formdata-with-api-management/test-html-form.png)
 
-The browser creates a request that includes a `Content-Type` header specifying the type as `multipart/form-data` and the boundary string:
+
+When submitting this form, the browser creates a request that includes a `Content-Type` header specifying the type as `multipart/form-data` and a unique boundary string:
 
 ```
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryKWINm4cKboHb55vB
@@ -64,11 +66,15 @@ Content-Type: image/jpeg
 
 Each section starts with a boundary (prefixed with `--`), followed by headers that describe the form field. The `Content-Disposition` header specifies the field name and, for file uploads, the filename. File sections include a `Content-Type` header that specifies the media type (like `image/jpeg`). Text fields typically don't include this header and default to `text/plain`. The actual data follows after a blank line.
 
+The browser automatically generates a unique boundary string for each request, so the value will be different every time you submit the form.
+
 For a deeper understanding of multipart/form-data requests, I recommend reading [Reading JSON and binary data from multipart/form-data sections in ASP.NET Core](https://andrewlock.net/reading-json-and-binary-data-from-multipart-form-data-sections-in-aspnetcore/) by Andrew Lock. It provides excellent examples of how to construct and handle these requests in .NET.
 
 ### Creating the Backend Function
 
-Let's start by creating an Azure Function that can receive multipart/form-data requests. This function will extract a file from the form data and return it as a downloadable file.
+Let's start by creating an Azure Function that can receive multipart/form-data requests. 
+This function will extract a file from the form data and return it as a downloadable file.
+Use the following code for the function:
 
 ```csharp
 using Microsoft.AspNetCore.Http;
@@ -79,7 +85,7 @@ using Microsoft.Extensions.Logging;
 namespace AISQuick.FunctionApp;
 
 /// <summary>
-/// Function that retrieves a file as part of a multipart form data request
+/// Function that receives a file as part of a multipart form data request
 /// and returns it as a file stream.
 /// </summary>
 public class ProcessFileFunction
@@ -140,15 +146,15 @@ public class ProcessFileFunction
 This function does the following:
 1. Reads the form data from the incoming request
 1. Extracts the `fileId` field and logs it
-1. Retrieves the uploaded file and validates it exists
+1. Retrieves the uploaded file and validates it is present
 1. Logs the file details
 1. Returns the file as a downloadable stream
 
 Deploy this function to your Azure Function App before proceeding to the next step.
 
-### Testing with an HTML Form
+### Test Function with an HTML Form
 
-To understand how multipart/form-data works, let's test our function with a simple HTML form. Create a new HTML file using the sample below or download the test form [here](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/test-form.html):
+Let's test our function with a simple HTML form. Create a new HTML file using the sample below or download the HTML file [here](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/test-form.html):
 
 ```html
 <!DOCTYPE html>
@@ -185,7 +191,8 @@ If you have Application Insights configured, you can also check the logs to see 
 
 Now let's create an API in API Management that transforms a JSON request with base64-encoded content into the multipart/form-data format our function expects.
 
-You can create the API using this [OpenAPI specification](https://raw.githubusercontent.com/ronaldbosma/azure-apim-samples/refs/heads/main/convert-base64-to-multipart-formdata/convert-file-api.openapi.yaml). 
+Navigate to your API Management instance in the Azure portal and create a new API based on OpenAPI.
+Use this [OpenAPI specification](https://raw.githubusercontent.com/ronaldbosma/azure-apim-samples/refs/heads/main/convert-base64-to-multipart-formdata/convert-file-api.openapi.yaml). 
 This will create an API called 'Convert File API' with a 'Convert a Base64-encoded file' operation. 
 It expects a JSON request with the following structure:
 
@@ -202,7 +209,8 @@ We'll transform that JSON request into a multipart/form-data request with these 
 - `fileId`: The ID from the JSON
 - `file`: The binary file data with proper metadata
 
-Here's how to set up the transformation for the 'Convert a Base64-encoded file' operation. In the inbound processing section, add the following policies:
+Here's how to set up the transformation for the 'Convert a Base64-encoded file' operation. 
+Open the policy editor for this operation and add the following policies to the `inbound`` section:
 
 1. **Configure the backend** to forward the request to the Azure Function:
 
@@ -280,6 +288,7 @@ Here's how to set up the transformation for the 'Convert a Base64-encoded file' 
 
 4. **Save the changes** to apply the transformation.
 
+You can find the complete policy XML [here](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/convert-file.policy.xml).
 
 #### Understanding the Transformation
 
@@ -298,7 +307,7 @@ string base64Content = request.Value<string>("base64Content");
 byte[] binaryData = Convert.FromBase64String(base64Content);
 ```
 
-The policy first parses the incoming JSON request and extracts all the required fields. The base64-encoded file content is converted to binary data. We don't use `Encoding.UTF8.GetString()`, because this would corrupt the binary data.
+The policy first parses the incoming JSON request and extracts all the required fields. The base64-encoded file content is converted to binary data.
 
 **2. Boundary Management**  
 The boundary `b5f36865-8df9-4d14-8d2c-4ae2eb78d0ec` serves as a delimiter between different parts of the multipart request. Each section starts with `--` followed by the boundary, and the final boundary is surrounded by `--` on both sides to indicate the end of the request.
@@ -324,9 +333,13 @@ The critical aspect of this transformation is preserving binary integrity. Inste
 
 ### Testing the API
 
-You can test the API using an HTTP client. Download [this test HTTP file](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/tests.http) and replace `<your-apim-service-name>` with your API Management service name.
+You can test the API using an HTTP client. 
+Download [this test HTTP file](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/tests.http) and replace `<your-apim-service-name>` with your API Management service name. 
+If you specified an API URL suffix when creating the API, be sure to include it in the request URL.
 
-Execute the test request and verify that an image is returned correctly.
+Send the test request and verify that the image is returned correctly. 
+If you receive a `401 Access Denied` error, add a subscription key to the request or configure the API to allow anonymous access.
+
 
 ### Content Validation
 
@@ -338,14 +351,13 @@ For production use, consider adding content validation to protect against large 
 </validate-content>
 ```
 
-This policy limits uploads to 4MB, which is the current limit for the `max-size` attribute. 
-Set `size-exceeded-action` to `ignore` if you need to support larger files.
-
-You can find the complete policy with all the transformations [here](https://github.com/ronaldbosma/azure-apim-samples/blob/main/convert-base64-to-multipart-formdata/convert-file.policy.xml).
+This policy restricts uploads to 4MB, which is the maximum value allowed for the `max-size` attribute in API Management. 
+If you want to allow larger files, set `size-exceeded-action` to `ignore`.
 
 ### Conclusion
 
-Using API Management policies, we can seamlessly transform JSON requests with base64-encoded files into multipart/form-data requests that backend services expect. This approach is particularly useful when integrating with legacy systems or third-party APIs that require specific content types.
+Using API Management policies, we can transform JSON requests with base64-encoded files into multipart/form-data requests that backend services expect. 
+While this process is more complex in API Management than in .NET, where you can use built-in helpers like `MultipartFormDataContent`, it is still achievable with careful policy design. 
 
 The key benefits of this approach include:
 - No code changes required on the client side
@@ -353,7 +365,4 @@ The key benefits of this approach include:
 - Centralized transformation logic in API Management
 - Support for different file types and metadata
 
-You can find the complete sample code in my [Azure APIM samples repository](https://github.com/ronaldbosma/azure-apim-samples/tree/main/convert-base64-to-multipart-formdata). For more complex scenarios, consider implementing additional validation, error handling, and monitoring to ensure robust file processing.
-
-> TODO: mention that it's more difficult to construct a multipart/form-data request via APIM than in .NET.
-> TODO: mention that we can't use [MultipartFormDataContent](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.multipartformdatacontent?view=net-9.0) in APIM.
+You can find the complete sample code in my [Azure APIM samples repository](https://github.com/ronaldbosma/azure-apim-samples/tree/main/convert-base64-to-multipart-formdata).
