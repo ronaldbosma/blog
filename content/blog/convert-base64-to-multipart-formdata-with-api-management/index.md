@@ -12,8 +12,6 @@ I've been working with Azure API Management on an integration where the client s
 
 In this post, I'll show you how to use API Management policies to transform the base64-encoded data into a properly formatted multipart/form-data request.
 
-> TODO: perhaps add a sequence diagram here with the flow.
-
 ### Table of Contents
 
 - [Prerequisites](#prerequisites)
