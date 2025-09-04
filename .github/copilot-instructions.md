@@ -90,6 +90,11 @@ In this post, I'll show you how to use API Management policies to transform the 
    - Mention areas for improvement or future exploration
    - Link to related resources or next steps
 
+#### Table of Contents and Headings Formatting
+
+In the Table of Contents, use standard title casing for the link text and lower case and kebab-case for the actual anchor links (e.g., [Prerequisites](#prerequisites)).
+For all section headers (###), use standard title casing (e.g., ### Prerequisites, ### Testing with an HTML Form). Do not use lower case for section headers.
+
 #### Code Examples
 
 **Code Block Guidelines**:
