@@ -18,7 +18,7 @@ This is the first post in a series about OAuth and API Management where we'll ex
 
 - [Why Protect APIs with OAuth](#why-protect-apis-with-oauth)
 - [Solution Overview](#solution-overview)
-- [Microsoft Graph Bicep Extension and Entra ID Configuration](#microsoft-graph-bicep-extension-and-entra-id-configuration)
+- [Entra ID Configuration](#entra-id-configuration)
 - [API Management Policy Configuration](#api-management-policy-configuration)
 - [Testing the Protected API](#testing-the-protected-api)
 - [Conclusion](#conclusion)
@@ -50,7 +50,7 @@ The template creates:
   - One client with 'read' and 'write' permissions  
   - One client with no API access (for testing authorization failures)
 
-## Microsoft Graph Bicep Extension and Entra ID Configuration
+## Entra ID Configuration
 
 The key to deploying Entra ID resources with Bicep is the [Microsoft Graph Bicep Extension](https://learn.microsoft.com/en-us/community/content/microsoft-graph-bicep-extension), which has recently been released as GA. This extension allows you to manage Microsoft Graph resources like app registrations directly from Bicep templates.
 
@@ -128,6 +128,18 @@ Key configuration points:
 - The `guid(tenantId, name, 'Sample.Read')` function generates a unique deterministic ID so the value is the same for every deployment
 - The `appRoleAssignmentRequired` property ensures only clients with assigned roles can get tokens
 
+After deployment, you can see the created app registration in the Azure portal with the client ID and identifier URI:
+
+![APIM App Registration Details](../../../../../images/apim-oauth-series/protect-apim-with-oauth/apim-app-registration-details.jpg)
+
+In this image, you can see two important values highlighted:
+- **Application ID URI** (e.g., `api://apim-oauth-uks-ledm7`): This is the scope to use when retrieving an access token from Entra ID
+- **Application (client) ID**: This is the audience value in the JWT token and can be used to verify that the token was issued for this specific app registration
+
+The available roles are also visible in the app registration under the "App roles" section:
+
+![App Roles](../../../../../images/apim-oauth-series/protect-apim-with-oauth/app-roles.png)
+
 **Naming tip**: Don't use the exact name of your API Management service for the app registration. When you enable the system-assigned managed identity on a resource like API Management, a service principal with the same name is created. Using the same name for the app registration would result in two service principals with the same name, which can cause issues when you're trying to assign permissions.
 
 ### Client App Registrations
@@ -176,6 +188,12 @@ resource assignSampleWriteToValidClient 'Microsoft.Graph/appRoleAssignedTo@v1.0'
 ```
 
 Note that assigning roles immediately after creating client app registrations might fail because the service principal might not be provisioned yet. In the template, I've worked around this by assigning the roles after APIM is deployed because that takes some time. In the future, I'm hoping to use the [waitUntil decorator](https://github.com/Azure/bicep/issues/1013) instead.
+
+Once deployed, you can verify the role assignments in the Azure portal under the client app's API permissions:
+
+![Client API Permissions](../../../../../images/apim-oauth-series/protect-apim-with-oauth/client-api-permissions.png)
+
+**Important limitation**: The Microsoft Graph Bicep extension doesn't currently support generating client secrets. This means you'll need to manually create client secrets for your client applications through the Azure portal after deployment. This is typically done in the "Certificates & secrets" section of each client app registration.
 
 In the actual template ([apim-app-registration.bicep](https://github.com/ronaldbosma/protect-apim-with-oauth/blob/main/infra/modules/entra-id/apim-app-registration.bicep) and [assign-app-roles.bicep](https://github.com/ronaldbosma/protect-apim-with-oauth/blob/main/infra/modules/entra-id/assign-app-roles.bicep)), I've optimized the Bicep code by configuring the roles in a variable and using a for loop.
 
