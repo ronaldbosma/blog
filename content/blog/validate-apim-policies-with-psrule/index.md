@@ -2,7 +2,7 @@
 title: "Validate API Management policies with PSRule"
 date: 2024-09-02T19:30:00+02:00
 publishdate: 2024-09-02T19:30:00+02:00
-lastmod: 2024-10-15T07:30:00+02:00
+lastmod: 2025-09-12T10:00:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Infra as Code", "PSRule" ]
 summary: "I've been working with Azure API Management for a while now, and one of the challenges I've faced is finding a reliable way to validate the XML policies I write. While tools like SonarQube are excellent for code quality checks, they don't support the specific checks required for Azure API Management policies. In this blog post, I'll demonstrate how to use PSRule to validate your Azure API Management policies effectively."
 ---
@@ -167,6 +167,12 @@ execution:
   unprocessedObject: Ignore
   ruleSuppressed: Ignore
 ```
+
+> **UPDATE (2025-09-12):** Microsoft has released the new built-in Azure policy: [API Management policies should inherit parent scope policies using `<base />`](https://portal.azure.com/#view/Microsoft_Azure_Policy/PolicyDetailAdaptor.ReactView/definitionId/%2Fproviders%2FMicrosoft.Authorization%2FpolicyDefinitions%2Fd5448c98-e503-4fdd-bcd2-784960c00d04).
+> It checks that each section contains the `<base />` policy. 
+> This built-in policy may be used instead of the `APIM.Policy.InboundBasePolicy` rule.
+> However, the Azure policy requires the `<base />` policy to be the first policy in each section. 
+> If you want to allow other policies before the `<base />` policy, for example to set a variable to influence logic on a higher level, you can use this custom PSRule rule instead and customize it to your needs.
 
 
 ### Filter on scope
