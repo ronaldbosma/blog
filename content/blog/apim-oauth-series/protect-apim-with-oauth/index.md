@@ -35,6 +35,8 @@ API Management provides several security mechanisms, but OAuth 2.0 with Microsof
 
 The traditional approach requires manual configuration of app registrations in Entra ID, which can be error-prone and difficult to reproduce across environments. Using Bicep with the Microsoft Graph extension solves this by treating identity configuration as infrastructure-as-code.
 
+It's worth noting that while this post focuses on API Management, the same Entra ID configuration can be used to protect other types of APIs, such as Azure Functions, ASP.NET Core Web APIs, or any other application that supports OAuth 2.0 authentication with Entra ID.
+
 ## Solution Overview
 
 The solution deploys the following architecture:
@@ -74,9 +76,6 @@ The `Microsoft.Graph/applications` resource creates an app registration in Entra
 
 ```bicep
 extension microsoftGraphV1
-
-var name = 'appreg-oauth-uks-apim-ledm7'
-var identifierUri = 'api://apim-oauth-uks-ledm7'
 
 resource apimAppRegistration 'Microsoft.Graph/applications@v1.0' = {
   uniqueName: name
@@ -140,6 +139,8 @@ The available roles are also visible in the app registration under the "App role
 
 ![App Roles](../../../../../images/apim-oauth-series/protect-apim-with-oauth/app-roles.png)
 
+For the complete implementation of the API Management app registration, see the [apim-app-registration.bicep](https://github.com/ronaldbosma/protect-apim-with-oauth/blob/main/infra/modules/entra-id/apim-app-registration.bicep) template in the project repository. The Bicep file uses a variable to define the roles and a for loop to create them, which makes the code more readable and easier to maintain.
+
 **Naming tip**: Don't use the exact name of your API Management service for the app registration. When you enable the system-assigned managed identity on a resource like API Management, a service principal with the same name is created. Using the same name for the app registration would result in two service principals with the same name, which can cause issues when you're trying to assign permissions.
 
 ### Client App Registrations
@@ -147,26 +148,17 @@ The available roles are also visible in the app registration under the "App role
 Client applications are configured to authenticate using the client credentials flow. Here's an example showing both a valid client and an invalid client:
 
 ```bicep
-// Valid client with permissions
-resource validClientAppRegistration 'Microsoft.Graph/applications@v1.0' = {
-  uniqueName: 'appreg-oauth-uks-validclient-ledm7'
-  displayName: 'appreg-oauth-uks-validclient-ledm7'
+resource clientAppRegistration 'Microsoft.Graph/applications@v1.0' = {
+  uniqueName: name
+  displayName: name
 }
 
-resource validClientServicePrincipal 'Microsoft.Graph/servicePrincipals@v1.0' = {
-  appId: validClientAppRegistration.appId
-}
-
-// Invalid client without permissions
-resource invalidClientAppRegistration 'Microsoft.Graph/applications@v1.0' = {
-  uniqueName: 'appreg-oauth-uks-invalidclient-ledm7'
-  displayName: 'appreg-oauth-uks-invalidclient-ledm7'
-}
-
-resource invalidClientServicePrincipal 'Microsoft.Graph/servicePrincipals@v1.0' = {
-  appId: invalidClientAppRegistration.appId
+resource clientServicePrincipal 'Microsoft.Graph/servicePrincipals@v1.0' = {
+  appId: clientAppRegistration.appId
 }
 ```
+
+For the complete client app registration implementation, I've created a reusable Bicep module [client-app-registration.bicep](https://github.com/ronaldbosma/protect-apim-with-oauth/blob/main/infra/modules/entra-id/client-app-registration.bicep) that can be used to create both the valid client (with permissions) and the invalid client (without permissions) for testing different authorization scenarios.
 
 Assigning roles can be done using the `Microsoft.Graph/appRoleAssignedTo` resource. Here's how to assign the `Sample.Read` and `Sample.Write` roles to the valid client:
 
@@ -177,25 +169,27 @@ func getAppRoleIdByValue(appRoles array, value string) string =>
 resource assignSampleReadToValidClient 'Microsoft.Graph/appRoleAssignedTo@v1.0' = {
   resourceId: apimServicePrincipal.id
   appRoleId: getAppRoleIdByValue(apimAppRegistration.appRoles, 'Sample.Read')
-  principalId: validClientServicePrincipal.id
+  principalId: clientServicePrincipal.id
 }
 
 resource assignSampleWriteToValidClient 'Microsoft.Graph/appRoleAssignedTo@v1.0' = {
   resourceId: apimServicePrincipal.id
   appRoleId: getAppRoleIdByValue(apimAppRegistration.appRoles, 'Sample.Write')
-  principalId: validClientServicePrincipal.id
+  principalId: clientServicePrincipal.id
 }
 ```
 
-Note that assigning roles immediately after creating client app registrations might fail because the service principal might not be provisioned yet. In the template, I've worked around this by assigning the roles after APIM is deployed because that takes some time. In the future, I'm hoping to use the [waitUntil decorator](https://github.com/Azure/bicep/issues/1013) instead.
+The `getAppRoleIdByValue` function is a helper that finds the app role ID by its value name. Role assignments require the unique role ID, but using the role name (like 'Sample.Read') makes the template more readable and reusable across environments where the actual IDs might differ.
+
+Note that assigning roles immediately after creating the app registrations might fail because the service principals might not be provisioned yet. In the template, I've worked around this by assigning the roles after API Management is deployed because that takes some time. In the future, I'm hoping to use the [waitUntil decorator](https://github.com/Azure/bicep/issues/1013) instead.
+
+For the complete role assignment implementation, see the [assign-app-roles.bicep](https://github.com/ronaldbosma/protect-apim-with-oauth/blob/main/infra/modules/entra-id/assign-app-roles.bicep) template in the project repository.
 
 Once deployed, you can verify the role assignments in the Azure portal under the client app's API permissions:
 
 ![Client API Permissions](../../../../../images/apim-oauth-series/protect-apim-with-oauth/client-api-permissions.png)
 
-**Important limitation**: The Microsoft Graph Bicep extension doesn't currently support generating client secrets. This means you'll need to manually create client secrets for your client applications through the Azure portal after deployment. This is typically done in the "Certificates & secrets" section of each client app registration.
-
-In the actual template ([apim-app-registration.bicep](https://github.com/ronaldbosma/protect-apim-with-oauth/blob/main/infra/modules/entra-id/apim-app-registration.bicep) and [assign-app-roles.bicep](https://github.com/ronaldbosma/protect-apim-with-oauth/blob/main/infra/modules/entra-id/assign-app-roles.bicep)), I've optimized the Bicep code by configuring the roles in a variable and using a for loop.
+**Important limitation**: The Microsoft Graph Bicep extension doesn't support generating client secrets. This means you'll need to manually create client secrets for your client applications after deployment—either through the Azure portal (in the "Certificates & secrets" section of each client app registration) or by using the Azure CLI.
 
 ## API Management Policy Configuration
 
@@ -221,9 +215,9 @@ The API is protected using an API Management policy that validates OAuth tokens 
 </policies>
 ```
 
-The [validate-azure-ad-token](https://learn.microsoft.com/en-us/azure/api-management/validate-azure-ad-token-policy) policy uses two named values to verify token authenticity: `tenant-id` contains your Entra ID tenant ID to ensure the token was issued by the correct identity provider, and `oauth-audience` contains the 'Application (client) ID' of the API Management app registration to verify the token was retrieved for the expected resource. This combination ensures that only tokens issued by your tenant for the correct API Management app registration are accepted, along with validating that the token contains the required role.
+The [validate-azure-ad-token](https://learn.microsoft.com/en-us/azure/api-management/validate-azure-ad-token-policy) policy uses two named values to verify token authenticity: `tenant-id` contains your Entra ID tenant ID to ensure the token was issued by the correct identity provider, and `oauth-audience` contains the 'Application (client) ID' of the API Management app registration to verify the token was retrieved for the expected resource. This combination ensures that only tokens issued by your tenant for the correct API Management app registration are accepted, along with validating that the token contains the required role (e.g. `Sample.Read`).
 
-In production scenarios, I usually configure the `validate-azure-ad-token` policy at the global scope to enforce OAuth authentication for all APIs in the API Management instance. This provides consistent security across your entire API surface without having to configure it individually for each API.
+In production scenarios, I usually configure the `validate-azure-ad-token` policy at the global scope to enforce OAuth authentication for all APIs in the API Management instance, then configure the specific required roles at the API or operation scope by setting them in a variable before the token validation occurs. This approach provides consistent security across your entire API surface while making it easy to enforce different role requirements for different endpoints or operations, keeping your policy logic both centralized and flexible.
 
 You can find the full policy example with role determination based on HTTP methods in the [project repository](https://github.com/ronaldbosma/protect-apim-with-oauth/blob/main/infra/modules/application/protected-api.xml).
 
