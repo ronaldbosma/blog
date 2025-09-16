@@ -89,7 +89,7 @@ resource apimAppRegistration 'Microsoft.Graph/applications@v1.0' = {
 
   appRoles: [
     {
-      id: guid(tenantId, name, 'Sample.Read') // Generates a unique deterministic ID
+      id: guid(tenantId, name, 'Sample.Read')
       description: 'Sample read application role'
       displayName: 'Sample.Read'
       value: 'Sample.Read'
@@ -113,11 +113,14 @@ resource apimAppRegistration 'Microsoft.Graph/applications@v1.0' = {
       isEnabled: true
     }
   ]
+  
+  // Add a 'HideApp' tag to hide the app from the end-users in the My Apps portal
+  tags: ['HideApp']
 }
 
 resource apimServicePrincipal 'Microsoft.Graph/servicePrincipals@v1.0' = {
   appId: apimAppRegistration.appId
-  appRoleAssignmentRequired: true // Clients must have an app role assigned
+  appRoleAssignmentRequired: true // When true, clients must have an app role assigned in order to retrieve an access token
 }
 ```
 
@@ -126,6 +129,7 @@ Key configuration points:
 - The `requestedAccessTokenVersion` is set to `2` for OAuth 2.0 tokens
 - Three application roles are defined: `Sample.Read`, `Sample.Write`, and `Sample.Delete` for different API operations
 - The `guid(tenantId, name, 'Sample.Read')` function generates a unique deterministic ID so the value is the same for every deployment
+- The `HideApp` tag prevents the app from appearing in the My Apps portal for end-users
 - The `appRoleAssignmentRequired` property ensures only clients with assigned roles can get tokens
 
 After deployment, you can see the created app registration in the Azure portal with the client ID and identifier URI:
@@ -152,10 +156,17 @@ Client applications are configured to authenticate using the client credentials 
 resource clientAppRegistration 'Microsoft.Graph/applications@v1.0' = {
   uniqueName: name
   displayName: name
+  
+  // Add a 'HideApp' tag to hide the app from the end-users in the My Apps portal
+  tags: ['HideApp']
 }
 
 resource clientServicePrincipal 'Microsoft.Graph/servicePrincipals@v1.0' = {
   appId: clientAppRegistration.appId
+  
+  // Enforces that users/clients must be assigned an app role to access the application.
+  // This is not strictly required for this scenario, but it adds an extra layer of security.
+  appRoleAssignmentRequired: true
 }
 ```
 
