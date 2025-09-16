@@ -298,7 +298,7 @@ The authentication method your clients use affects both security and implementat
 
 **Certificates** are Microsoft's recommended best practice over client secrets. The private key stays with the client and doesn't travel over the network, making it more secure. However, certificate management can be more complex for clients to implement.
 
-**Client secrets** are the simplest option from a client implementation perspective but less secure since the secret is transmitted with each token request. You'll also need to plan for secret rotation since client secrets have expiration dates.
+**Client secrets** are the simplest option from a client implementation perspective but less secure since the secret is transmitted with each token request. You'll also need to plan for secret rotation since client secrets have expiration dates, and you need a secure way to distribute the secrets to your clients without exposing them in code repositories or configuration files.
 
 **Federated credentials** can be a good alternative to managed identities for external clients that support this authentication method, though the setup can be more complex.
 
