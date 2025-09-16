@@ -1,5 +1,5 @@
 ---
-title: "Protect APIs in Azure API Management with OAuth using Bicep"
+title: "Protect APIs in Azure API Management with OAuth"
 date: 2025-09-16T19:30:00+02:00
 publishdate: 2025-09-16T19:30:00+02:00
 lastmod: 2025-09-16T19:30:00+02:00
