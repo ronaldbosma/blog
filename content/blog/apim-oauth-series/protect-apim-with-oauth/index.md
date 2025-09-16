@@ -21,6 +21,7 @@ This is the first post in a series about OAuth and API Management where we'll ex
 - [Entra ID Configuration](#entra-id-configuration)
 - [API Management Policy Configuration](#api-management-policy-configuration)
 - [Testing the Protected API](#testing-the-protected-api)
+- [Considerations](#considerations)
 - [Conclusion](#conclusion)
 
 ## Why Protect APIs with OAuth
@@ -276,6 +277,32 @@ Authorization: Bearer {{getToken.response.body.access_token}}
 The API will return a 200 OK response if the token is valid and the client has the required role, or a 401 Unauthorized response if authorization fails.
 
 You can inspect the access token at [jwt.ms](https://jwt.ms/) to see the claims, including the `roles` claim that contains the assigned application roles.
+
+## Considerations
+
+When implementing OAuth protection for API Management, there are several architectural decisions to consider that will impact your security model, performance and maintenance overhead.
+
+### App Registration Strategy
+
+You'll need to decide how many app registrations to create for your APIs. The choice depends on your specific requirements.
+
+**Single app registration approach**: Create one app registration that represents all APIs in your API Management instance, with different roles for each API or operation. This is the approach shown in this post. The main benefit is that clients only need to retrieve one token to access multiple APIs they're authorized for, reducing the number of calls to Entra ID. However, if clients have many role assignments, the JWT token can become large, potentially impacting performance or causing issues with firewalls that limit header sizes.
+
+**Multiple app registrations approach**: Create a separate app registration for each API in API Management. This results in smaller JWT tokens with fewer roles, but clients need to retrieve and cache separate tokens for each API since the OAuth 2.0 client credentials flow in Entra ID only supports one scope per token request. This also increases the number of app registrations you need to maintain.
+
+### Client Authentication Methods
+
+The authentication method your clients use affects both security and implementation complexity.
+
+**Managed identities** should always be your first choice when clients run on Azure resources within the same Entra ID tenant. This eliminates secret management entirely and provides the highest security with the least operational overhead.
+
+**Certificates** are Microsoft's recommended best practice over client secrets. The private key stays with the client and doesn't travel over the network, making it more secure. However, certificate management can be more complex for clients to implement.
+
+**Client secrets** are the simplest option from a client implementation perspective but less secure since the secret is transmitted with each token request. You'll also need to plan for secret rotation since client secrets have expiration dates.
+
+**Federated credentials** can be a good alternative to managed identities for external clients that support this authentication method, though the setup can be more complex.
+
+If you want to enforce that clients use certificates or managed identities instead of client secrets, you can add an additional check in your API Management policy that requires the `azpacr` claim in the token to equal `2`, indicating that certificate-based authentication was used.
 
 ## Conclusion
 
