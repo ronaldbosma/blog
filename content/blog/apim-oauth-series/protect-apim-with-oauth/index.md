@@ -152,7 +152,6 @@ For the complete implementation of the API Management app registration, see the 
 
 You can create an app registration for a client application using Bicep. The following example demonstrates how to define such a client app registration:
 
-
 ```bicep
 resource clientAppRegistration 'Microsoft.Graph/applications@v1.0' = {
   uniqueName: name
@@ -173,7 +172,7 @@ resource clientServicePrincipal 'Microsoft.Graph/servicePrincipals@v1.0' = {
 
 For the complete client app registration implementation, I've created a reusable Bicep module [client-app-registration.bicep](https://github.com/ronaldbosma/protect-apim-with-oauth/blob/main/infra/modules/entra-id/client-app-registration.bicep) that can be used to create both the valid client (with permissions) and the invalid client (without permissions) for testing different authorization scenarios.
 
-Assigning roles can be done using the `Microsoft.Graph/appRoleAssignedTo` resource. Here's how to assign the `Sample.Read` and `Sample.Write` roles to the valid client:
+Assigning roles can be done using the `Microsoft.Graph/appRoleAssignedTo` resource. Here's how to assign the `Sample.Read` and `Sample.Write` roles to the a client:
 
 ```bicep
 func getAppRoleIdByValue(appRoles array, value string) string =>
@@ -256,7 +255,7 @@ After deployment, you can test the OAuth-protected API using the OAuth 2.0 clien
 
 ![Sequence Diagram](../../../../../images/apim-oauth-series/protect-apim-with-oauth/diagrams-sequence-diagram.png)
 
-For a detailed explanation on how to test the API with the VS Code REST Client extension, see the ['Test the protected API' section](https://github.com/ronaldbosma/protect-apim-with-oauth/blob/main/demos/demo.md#test-the-protected-api) in the template's demo guide.
+For a detailed explanation on how to test the API with the VS Code REST Client extension, see the ['Test the protected API' section](https://github.com/ronaldbosma/protect-apim-with-oauth/blob/main/demos/demo.md#test-the-protected-api) in the template's demo guide. But you can use any tool that supports HTTP requests.
 
 Here are the basic HTTP requests you'll use:
 
@@ -321,7 +320,7 @@ If you want to enforce that clients use certificates or managed identities inste
 
 Deploying OAuth-protected APIs in Azure API Management using Bicep provides several benefits:
 
-- **Infrastructure as code**: Complete environment reproducibility including identity configuration
+- **Infrastructure as code**: You can reproduce your environment, including identity configuration, every time you deploy
 - **Role-based security**: Fine-grained access control using application roles
 - **Enterprise integration**: Native integration with Microsoft Entra ID
 
