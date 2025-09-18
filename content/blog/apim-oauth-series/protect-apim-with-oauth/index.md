@@ -2,7 +2,7 @@
 title: "Protect APIs in Azure API Management with OAuth"
 date: 2025-09-16T19:30:00+02:00
 publishdate: 2025-09-16T19:30:00+02:00
-lastmod: 2025-09-16T19:30:00+02:00
+lastmod: 2025-09-18T17:45:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "OAuth", "Bicep", "Entra ID", "Microsoft Graph" ]
 summary: "Discover how to secure APIs in Azure API Management with OAuth 2.0 and Microsoft Entra ID using a fully automated, infrastructure-as-code approach. This post walks through deploying everything with Bicep, including app registrations via the Microsoft Graph Bicep extension, so you can avoid manual portal setup and ensure repeatable deployments."
 ---
@@ -49,6 +49,7 @@ The complete solution includes:
   - One app registration representing the APIs in API Management
   - One client with 'read' and 'write' permissions  
   - One client with no API access (for testing authorization failures)
+- Application Insights and Log Analytics Workspace for monitoring and logging purposes
 
 To make deployment easier, I've created an Azure Developer CLI (`azd`) template: [Protect API Management with OAuth](https://github.com/ronaldbosma/protect-apim-with-oauth). If you want to use it, check out the [getting started section](https://github.com/ronaldbosma/protect-apim-with-oauth?tab=readme-ov-file#getting-started) for the prerequisites and deployment instructions.
 
