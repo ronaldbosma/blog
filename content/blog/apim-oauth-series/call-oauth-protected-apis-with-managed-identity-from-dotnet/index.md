@@ -48,7 +48,7 @@ The solution includes the following components:
 - **Entra ID App Registration**: Represents the protected APIs in API Management and defines available app roles
 - **Supporting Resources**: Application Insights, Log Analytics workspace and Storage Account
 
-While this example uses an API on API Management, the same approach applies when calling any other API protected with OAuth.
+While this example uses an API on API Management, the same approach applies when calling any other API protected with OAuth using Entra ID.
 
 The Entra ID configuration follows the same pattern described in [Protect APIs in Azure API Management with OAuth](https://ronaldbosma.github.io/blog/2025/09/16/protect-apis-in-azure-api-management-with-oauth/). The key difference is that we assign the `Sample.Read` and `Sample.Write` app roles to the Function App's system-assigned managed identity instead of client app registrations.
 
