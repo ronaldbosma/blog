@@ -11,7 +11,17 @@ I've been working on securing APIs in Azure API Management and wanted to show yo
 
 In this post, I'll show you how to deploy everything using Bicep, including the necessary Microsoft Entra ID app registrations. This approach gives you a fully automated, repeatable infrastructure-as-code solution for protecting your APIs with OAuth.
 
-This is the first post in a series about OAuth and API Management where we'll explore different scenarios and implementation patterns.
+This is the first post in a series about OAuth and API Management where we'll explore different scenarios and implementation patterns. The series covers both protecting APIs with OAuth and calling OAuth-protected resources from various Azure services:
+
+- **Protect APIs in Azure API Management with OAuth - _this post_**
+- Calling OAuth-Protected APIs with Managed Identity
+  - [Part 1: In .NET (Azure Function)](/blog/2025/09/20/call-oauth-protected-apis-with-managed-identity-from-.net/)
+  - Part 2: In Logic Apps - *coming soon*
+  - Part 3: In API Management - *coming soon*
+- Calling OAuth-Protected Backends from API Management - *coming later*
+  - Part 1: With Credential Manager
+  - Part 2: With Client Secret  
+  - Part 3: With Client Certificate
 
 ### Table of Contents
 
