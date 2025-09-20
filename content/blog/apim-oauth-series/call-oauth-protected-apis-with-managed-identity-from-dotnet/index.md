@@ -262,6 +262,8 @@ internal static class ServiceCollectionExtensions
 }
 ```
 
+This extension method is called from the [Program.cs](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/src/functionApp/FunctionApp/Program.cs) file to configure all services during application startup.
+
 Key configuration points:
 - **Options validation**: Configuration is validated at startup using data annotations
 - **Scoped handler**: The authorization handler is registered as scoped to align with HTTP client lifetime
