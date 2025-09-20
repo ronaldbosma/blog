@@ -277,7 +277,7 @@ After deploying the solution (from the azd template), you can test the OAuth-pro
 
 The flow shows how the access token is retrieved during the initial GET request and then cached for subsequent requests. The DELETE request fails because the managed identity is not assigned the required `Sample.Delete` role.
 
-You can test the implementation using any HTTP client. Here are examples using the REST Client extension for VS Code. Replace `<your-function-app-name>` with your actual Function App hostname:
+You can test the implementation using any HTTP client. For example using the REST Client extension for VS Code. Replace `<your-function-app-name>` with your actual Function App hostname:
 
 ```
 #=============================================================================
