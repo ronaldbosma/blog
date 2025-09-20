@@ -112,7 +112,7 @@ This implementation shows the essential steps:
 3. **Set authorization header**: Add the Bearer token to the HTTP request in the Authorization header
 4. **Call the API**: Send the request to the protected endpoint
 
-While this works, it has some limitations. You're creating a new `HttpClient` for each request, retrieving tokens repeatedly and mixing authentication logic with business logic.
+While this works, it has some limitations. You're creating a new `HttpClient` for each request and authentication logic is mixed with other logic which has to be repeated in every function that calls a protected API.
 
 
 ### Refactored Implementation
