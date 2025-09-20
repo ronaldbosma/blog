@@ -17,7 +17,7 @@ This post is part of a series about OAuth and API Management:
   - Part 1: In .NET (Azure Function) - *this post*
   - Part 2: In Logic Apps - *coming soon*
   - Part 3: In API Management - *coming soon*
-- **Calling a Backend API from API Management with OAuth** - *coming later*
+- **Calling OAuth-Protected Backends from API Management** - *coming later*
   - Part 1: With Credential Manager
   - Part 2: With Client Secret  
   - Part 3: With Client Certificate
