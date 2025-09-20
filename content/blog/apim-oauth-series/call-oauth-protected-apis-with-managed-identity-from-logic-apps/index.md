@@ -4,7 +4,7 @@ date: 2025-09-20T15:30:00+02:00
 publishdate: 2025-09-20T15:30:00+02:00
 lastmod: 2025-09-20T15:30:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "Logic Apps", "Managed Identity", "OAuth" ]
-summary: "Learn how to call OAuth-protected APIs from Azure Logic Apps Standard workflows using managed identity. This post shows how to configure the HTTP action with system-assigned managed identity authentication to securely call protected APIs without managing secrets."
+summary: "Configure Azure Logic Apps Standard workflows to call OAuth-protected APIs using managed identity. This post demonstrates how to set up HTTP action authentication settings, handle token caching automatically and test API calls with role-based access control."
 draft: true
 ---
 
