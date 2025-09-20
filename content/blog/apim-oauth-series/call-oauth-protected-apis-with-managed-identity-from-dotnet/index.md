@@ -12,11 +12,11 @@ I've been working with OAuth-protected APIs in Azure API Management and wanted t
 This post is part of a series about OAuth and API Management:
 
 - [Protect APIs in Azure API Management with OAuth](/blog/2025/09/16/protect-apis-in-azure-api-management-with-oauth/)
-- **Calling OAuth-Protected APIs with Managed Identity**
-  - Part 1: In .NET (Azure Function) - *this post*
+- Calling OAuth-Protected APIs with Managed Identity
+  - **Part 1: In .NET (Azure Function) - _this post_**
   - Part 2: In Logic Apps - *coming soon*
   - Part 3: In API Management - *coming soon*
-- **Calling OAuth-Protected Backends from API Management** - *coming later*
+- Calling OAuth-Protected Backends from API Management - *coming later*
   - Part 1: With Credential Manager
   - Part 2: With Client Secret  
   - Part 3: With Client Certificate
