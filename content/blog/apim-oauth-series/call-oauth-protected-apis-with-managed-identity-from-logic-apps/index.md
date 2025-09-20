@@ -62,20 +62,18 @@ The workflow that's deployed in the template looks like:
 
 ![Workflow Overview](../../../../../images/apim-oauth-series/call-oauth-protected-apis-with-managed-identity-from-logic-apps/call-protected-api-workflow.png)
 
-The workflow consists of three main components:
-
-1. **When an HTTP request is received trigger**: Receives a JSON  request that specifies which HTTP method to use when calling the protected API. The request body schema is defined as: 
-   ```json
-   {
-       "httpMethod": "GET"
-   }
-   ```
-2. **HTTP action**: Calls the protected API on API Management with managed identity authentication. The `httpMethod` in the request specifies the HTTP method that's used when calling the protected API. The HTTP action is wrapped in a scope action so we can return error details if an exception occurs.
+1. **When an HTTP request is received trigger**: Receives a JSON request specifying the HTTP method to use when calling the protected API. For example:
+    ```json
+    {
+         "httpMethod": "GET"
+    }
+    ```
+2. **HTTP action**: Calls the protected API on API Management with managed identity authentication. The `httpMethod` value in the request specifies the HTTP method that's used when calling the protected API. The HTTP action is wrapped in a scope action so we can return error details if an exception occurs.
 3. **Response action**: Returns the API response with the JWT token details or detailed error information. This is for demo purposes, don't return this in a real world scenario.
 
 #### Configuring Managed Identity Authentication
 
-To enable managed identity authentication on the HTTP action, you need to configure the advanced authentication settings. For detailed information, see [Authenticate access with managed identity](https://learn.microsoft.com/en-us/azure/logic-apps/authenticate-with-managed-identity?tabs=standard#authenticate-access-with-managed-identity).
+To enable managed identity authentication on the HTTP action, you need to configure the advanced authentication settings. For official documentation, see [Authenticate access with managed identity](https://learn.microsoft.com/en-us/azure/logic-apps/authenticate-with-managed-identity?tabs=standard#authenticate-access-with-managed-identity).
 
 Here's how to configure it:
 
@@ -149,8 +147,6 @@ The expected results are:
 - **GET request**: Should succeed (200 OK) - the protected API requires `Sample.Read` role
 - **POST request**: Should succeed (200 OK) - the protected API requires `Sample.Write` role  
 - **DELETE request**: Should fail (401 Unauthorized) - the protected API requires `Sample.Delete` role which is not assigned to the managed identity
-
-The DELETE request fails because the managed identity is not assigned the required `Sample.Delete` role, demonstrating how role-based access control works with OAuth-protected APIs.
 
 The Logic Apps workflow automatically handles access token caching and renewal. If you execute the GET and POST requests multiple times, you'll notice that the `IssuedAt` value in the response doesn't change initially, showing that the platform caches tokens for improved performance.
 
