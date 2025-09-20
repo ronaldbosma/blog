@@ -148,19 +148,7 @@ services.AddOptionsWithValidateOnStart<ApiManagementOptions>()
         .ValidateDataAnnotations();
 ```
 
-Configure the values in your `local.settings.json` for local development:
-
-```json
-{
-  // ... OTHER SETTINGS ...
-  "ApiManagement": {
-    "GatewayUrl": "https://<your-api-management-service-name>.azure-api.net",
-    "OAuthTargetResource": "<your-application-id-uri>"
-  }
-}
-```
-
-For Azure deployment, these values would be configured as application settings on the Function App. In the sample azd template, the environment variables `ApiManagement__OAuthTargetResource` and `ApiManagement__GatewayUrl` are used for the configuration. See [function-app.bicep](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/infra/modules/services/function-app.bicep).
+The configuration values are provided through application settings when deployed to Azure. In the sample azd template, the environment variables `ApiManagement__OAuthTargetResource` and `ApiManagement__GatewayUrl` are automatically configured during deployment. See [function-app.bicep](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/infra/modules/services/function-app.bicep) for the configuration.
 
 #### Authorization Handler
 
