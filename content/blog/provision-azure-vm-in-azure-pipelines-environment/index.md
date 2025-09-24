@@ -7,7 +7,7 @@ tags: [ "Azure", "Azure CLI", "Azure DevOps", "Azure Pipelines", "Continuous Int
 summary: "In the past I've created a custom Azure Pipelines task to install .NET Core on a Windows server. To test this task, I had to manually setup an environment with virtual machines. I wanted to automate this process, so I created a YAML pipeline in Azure DevOps that automatically provisions an Azure virtual machine and registers the virtual machine in an Azure Pipelines environment."
 ---
 
-In the past I've written the post [How to install .NET Core on a Windows server](https://ronaldbosma.github.io/blog/2020/05/07/how-to-install-.net-core-on-a-windows-server/) where I talked about a custom Azure Pipelines task I build. To test this task in an actual pipeline I used an Azure virtual machine that I created manually and kept around for this specific purpose. Every time I wanted to test something I had to start the machine, test my task, log on to the server and check if .NET Core was installed successfully. If I wanted to test a clean install I had to uninstall .NET Core first. Which meant uninstalling 3 different pieces of software for each supported .NET Core version.
+In the past I've written the post [How to install .NET Core on a Windows server](/blog/2020/05/07/how-to-install-.net-core-on-a-windows-server/) where I talked about a custom Azure Pipelines task I build. To test this task in an actual pipeline I used an Azure virtual machine that I created manually and kept around for this specific purpose. Every time I wanted to test something I had to start the machine, test my task, log on to the server and check if .NET Core was installed successfully. If I wanted to test a clean install I had to uninstall .NET Core first. Which meant uninstalling 3 different pieces of software for each supported .NET Core version.
 
 As you can see, a lot of manual steps were involved. So, I automated the process in a YAML pipeline with 3 simple stages:
 
@@ -302,7 +302,7 @@ A full example of the pipeline can be found [here](https://github.com/ronaldbosm
 
 #### Related links
 
-- [How to install .NET Core on a Windows server](https://ronaldbosma.github.io/blog/2020/05/07/how-to-install-.net-core-on-a-windows-server/)
+- [How to install .NET Core on a Windows server](/blog/2020/05/07/how-to-install-.net-core-on-a-windows-server/)
 - [Create a PAT](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page#create-a-pat)
 - [Connect to Microsoft Azure](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/connect-to-azure?view=azure-devops)
 - [Use predefined variables](https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml)

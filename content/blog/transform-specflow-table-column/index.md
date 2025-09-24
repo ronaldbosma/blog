@@ -8,7 +8,7 @@ summary: "In a previous blog post I wrote about a trick on how to remove technic
 draft: false
 ---
  
-In my blog post [Handling technical ids in Gherkin with SpecFlow](https://ronaldbosma.github.io/blog/2020/08/08/handling-technical-ids-in-gherkin-with-specflow/) I wrote about a trick on how to remove technical ids from Gherkin scenarios while still using technical ids in the step definitions. The proposed solution worked well for the given scenario, but not for other cases.
+In my blog post [Handling technical ids in Gherkin with SpecFlow](/blog/2020/08/08/handling-technical-ids-in-gherkin-with-specflow/) I wrote about a trick on how to remove technical ids from Gherkin scenarios while still using technical ids in the step definitions. The proposed solution worked well for the given scenario, but not for other cases.
 
 
 ### Table of contents
@@ -47,7 +47,7 @@ Then the following weather forecast is returned
     | 28 October 2022 | London   | 8           |
 ```
 
-The `Given` step definition uses the `CreateSet` extension method on `Table` to create a collection of weather forecasts. The `CompareToInstance` extension method is used in the `Then` step definition to assert that the correct weather forecast is returned. There's also a simple method to generate a location id based on the name of a location (similar to what is used in [Handling technical ids in Gherkin with SpecFlow](https://ronaldbosma.github.io/blog/2020/08/08/handling-technical-ids-in-gherkin-with-specflow/)).
+The `Given` step definition uses the `CreateSet` extension method on `Table` to create a collection of weather forecasts. The `CompareToInstance` extension method is used in the `Then` step definition to assert that the correct weather forecast is returned. There's also a simple method to generate a location id based on the name of a location (similar to what is used in [Handling technical ids in Gherkin with SpecFlow](/blog/2020/08/08/handling-technical-ids-in-gherkin-with-specflow/)).
 
 See the full code below. A working example can be found in [this project](https://github.com/ronaldbosma/blog-code-examples/tree/master/TransformSpecFlowTableColumn/01-Init).
 
