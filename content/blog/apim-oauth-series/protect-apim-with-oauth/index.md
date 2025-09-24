@@ -16,7 +16,7 @@ This is the first post in a series about OAuth and API Management where we'll ex
 - **Protect APIs in Azure API Management with OAuth - _this post_**
 - Calling OAuth-Protected APIs with Managed Identity
   - [Part 1: In .NET (Azure Function)](/blog/2025/09/20/call-oauth-protected-apis-with-managed-identity-from-.net/)
-  - Part 2: In Logic Apps - *coming soon*
+  - [Part 2: In Logic Apps](/blog/2025/09/24/call-oauth-protected-apis-with-managed-identity-from-logic-apps/)
   - Part 3: In API Management - *coming soon*
 - Calling OAuth-Protected Backends from API Management - *coming later*
   - Part 1: With Credential Manager
@@ -337,3 +337,4 @@ Deploying OAuth-protected APIs in Azure API Management using Bicep provides seve
 This approach eliminates manual configuration steps and provides a solid foundation for securing APIs in enterprise environments. In upcoming posts in this series, we'll explore additional OAuth scenarios.
 
 You can find the complete working example in my [protect-apim-with-oauth](https://github.com/ronaldbosma/protect-apim-with-oauth) repository, which includes detailed deployment instructions and testing examples.
+

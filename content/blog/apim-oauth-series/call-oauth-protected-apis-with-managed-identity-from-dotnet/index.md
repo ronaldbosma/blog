@@ -14,7 +14,7 @@ This post is part of a series about OAuth and API Management:
 - [Protect APIs in Azure API Management with OAuth](/blog/2025/09/16/protect-apis-in-azure-api-management-with-oauth/)
 - Calling OAuth-Protected APIs with Managed Identity
   - **Part 1: In .NET (Azure Function) - _this post_**
-  - Part 2: In Logic Apps - *coming soon*
+  - [Part 2: In Logic Apps](/blog/2025/09/24/call-oauth-protected-apis-with-managed-identity-from-logic-apps/)
   - Part 3: In API Management - *coming soon*
 - Calling OAuth-Protected Backends from API Management - *coming later*
   - Part 1: With Credential Manager
@@ -48,9 +48,9 @@ The solution includes the following components:
 - **Entra ID App Registration**: Represents the protected APIs in API Management and defines available app roles
 - **Supporting Resources**: Application Insights, Log Analytics workspace and Storage Account
 
-While this example uses an API on API Management, the same approach applies when calling any other API protected with OAuth.
+While this example uses an API on API Management, the same approach applies when calling any other API protected with OAuth using Entra ID.
 
-The Entra ID configuration follows the same pattern described in [Protect APIs in Azure API Management with OAuth](https://ronaldbosma.github.io/blog/2025/09/16/protect-apis-in-azure-api-management-with-oauth/). The key difference is that we assign the `Sample.Read` and `Sample.Write` app roles to the Function App's system-assigned managed identity instead of client app registrations.
+The Entra ID configuration follows the same pattern described in [Protect APIs in Azure API Management with OAuth](/blog/2025/09/16/protect-apis-in-azure-api-management-with-oauth/). The key difference is that we assign the `Sample.Read` and `Sample.Write` app roles to the Function App's system-assigned managed identity instead of client app registrations.
 
 I've created an Azure Developer CLI (`azd`) template called [Call API Management with Managed Identity](https://github.com/ronaldbosma/call-apim-with-managed-identity) that demonstrates three scenarios: .NET Azure Functions, Logic Apps and API Management calling protected APIs. If you want to deploy and try the solution, check out the [getting started section](https://github.com/ronaldbosma/call-apim-with-managed-identity#getting-started) for the prerequisites and deployment instructions. This post focuses on the .NET implementation.
 
@@ -277,7 +277,7 @@ After deploying the solution (from the azd template), you can test the OAuth-pro
 
 The flow shows how the access token is retrieved during the initial GET request and then cached for subsequent requests. The DELETE request fails because the managed identity is not assigned the required `Sample.Delete` role.
 
-You can test the implementation using any HTTP client. Here are examples using the REST Client extension for VS Code. Replace `<your-function-app-name>` with your actual Function App hostname:
+You can test the implementation with the following requests using any HTTP client. For example, you can use the REST Client extension for VS Code. Replace `<your-function-app-name>` with your actual Function App hostname:
 
 ```
 #=============================================================================
@@ -321,3 +321,4 @@ Key takeaways from this implementation:
 In the next posts in this series, we'll explore how to call OAuth-protected APIs from Logic Apps and from other API Management APIs using similar managed identity patterns.
 
 You can find the complete working example in my [call-apim-with-managed-identity](https://github.com/ronaldbosma/call-apim-with-managed-identity) repository, which includes detailed deployment instructions and testing examples for multiple scenarios.
+
