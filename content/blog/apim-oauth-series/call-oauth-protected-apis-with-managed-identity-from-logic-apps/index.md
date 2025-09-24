@@ -48,7 +48,7 @@ The solution includes the following components:
 
 While this example uses an API on API Management, the same approach applies when calling any other API protected with OAuth using Entra ID.
 
-The Entra ID configuration follows the same pattern described in [Protect APIs in Azure API Management with OAuth](https://ronaldbosma.github.io/blog/2025/09/16/protect-apis-in-azure-api-management-with-oauth/). The key difference is that we assign the `Sample.Read` and `Sample.Write` app roles to the Logic App's system-assigned managed identity instead of client app registrations.
+The Entra ID configuration follows the same pattern described in [Protect APIs in Azure API Management with OAuth](/blog/2025/09/16/protect-apis-in-azure-api-management-with-oauth/). The key difference is that we assign the `Sample.Read` and `Sample.Write` app roles to the Logic App's system-assigned managed identity instead of client app registrations.
 
 I've created an Azure Developer CLI (`azd`) template called [Call API Management with Managed Identity](https://github.com/ronaldbosma/call-apim-with-managed-identity) that demonstrates three scenarios: .NET Azure Functions, Logic Apps and API Management calling protected APIs. If you want to deploy and try the solution, check out the [getting started section](https://github.com/ronaldbosma/call-apim-with-managed-identity#getting-started) for the prerequisites and deployment instructions. This post focuses on the Logic Apps implementation.
 
@@ -73,7 +73,9 @@ The workflow that's deployed in the template looks like:
 
 #### Configuring Managed Identity Authentication
 
-To enable managed identity authentication on the HTTP action, you need to configure the advanced authentication settings. For official documentation, see [Authenticate access with managed identity](https://learn.microsoft.com/en-us/azure/logic-apps/authenticate-with-managed-identity?tabs=standard#authenticate-access-with-managed-identity).
+To enable managed identity authentication on the HTTP action, you need to configure the advanced authentication settings. For the official documentation, see [Authenticate access with managed identity](https://learn.microsoft.com/en-us/azure/logic-apps/authenticate-with-managed-identity?tabs=standard#authenticate-access-with-managed-identity).
+
+> Note: The "Call an Azure API Management API" action in Logic Apps does not support configuring additional authentication such as managed identities. You must use the generic HTTP action instead.
 
 Here's how to configure it:
 
@@ -87,7 +89,7 @@ Here's how to configure it:
 
    The audience must match the Application ID URI of the Entra ID app registration representing the protected API. For example, `api://apim-managedidentity-nwe-i2jdr`.
 
-You can find the complete workflow definition in [workflow.json](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/src/logicApp/Workflows/call-protected-api-workflow/workflow.json). The audience is set through a parameter so the workflow can be deployed in different environments. It's configured through an environment variable in [logic-app.bicep](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/infra/modules/services/logic-app.bicep).
+You can find the complete workflow definition in [workflow.json](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/src/logicApp/Workflows/call-protected-api-workflow/workflow.json). The audience is set through a [parameter](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/src/logicApp/Workflows/parameters.json) so the workflow can be deployed in different environments. It's configured through an environment variable in [logic-app.bicep](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/infra/modules/services/logic-app.bicep).
 
 ### Testing the Implementation
 
@@ -161,3 +163,4 @@ Azure Logic Apps Standard provides a clean and straightforward way to call OAuth
 This approach works with any OAuth-protected API that supports Entra ID authentication, not just API Management. Whether you're calling Microsoft Graph, custom APIs or third-party services that integrate with Entra ID, the same pattern applies.
 
 The next post in this series will cover how to call OAuth-protected APIs from within API Management policies, completing the three main scenarios for Azure Integration Services.
+
