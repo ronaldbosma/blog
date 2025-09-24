@@ -4,7 +4,7 @@ date: 2025-09-24T17:00:00+02:00
 publishdate: 2025-09-24T17:00:00+02:00
 lastmod: 2025-09-24T17:00:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "Logic Apps", "Managed Identity", "OAuth" ]
-summary: "Configure Azure Logic Apps Standard workflows to call OAuth-protected APIs using managed identity. This post demonstrates how to set up HTTP action authentication settings, handle token caching automatically and test API calls with role-based access control."
+summary: "Azure Logic Apps Standard makes it easy to call OAuth-protected APIs using managed identity. This post demonstrates how to use the HTTP action’s built-in authentication and token caching for secure, reliable calls."
 ---
 
 In my [previous post](/blog/2025/09/20/call-oauth-protected-apis-with-managed-identity-from-.net/), I showed how to call an OAuth-protected API from .NET using an Azure Function. In most projects that use Azure Integration Services, I also use Logic Apps Standard workflows. This post shows how to call OAuth-protected APIs with managed identity from Logic Apps Standard workflows.
@@ -162,5 +162,6 @@ Azure Logic Apps Standard provides a clean and straightforward way to call OAuth
 This approach works with any OAuth-protected API that supports Entra ID authentication, not just API Management. Whether you're calling Microsoft Graph, custom APIs or third-party services that integrate with Entra ID, the same pattern applies.
 
 The next post in this series will cover how to call OAuth-protected APIs from within API Management policies, completing the three main scenarios for Azure Integration Services.
+
 
 
