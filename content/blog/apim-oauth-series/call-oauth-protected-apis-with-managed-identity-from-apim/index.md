@@ -1,11 +1,10 @@
 ---
 title: "Call OAuth-Protected APIs with Managed Identity from API Management"
-date: 2025-09-26T11:00:00+02:00
-publishdate: 2025-09-26T11:00:00+02:00
-lastmod: 2025-09-26T11:00:00+02:00
+date: 2025-09-29T16:00:00+02:00
+publishdate: 2025-09-29T16:00:00+02:00
+lastmod: 2025-09-29T16:00:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "Managed Identity", "OAuth" ]
 summary: "Learn how to use API Management to call OAuth-protected APIs with managed identity. This enables secure API-to-API communication and privilege delegation patterns without managing secrets."
-draft: true
 ---
 
 In my previous posts I showed how to call OAuth-protected APIs from .NET and Logic Apps using managed identity. This post demonstrates how to call OAuth-protected APIs from within API Management policies using the system-assigned managed identity.
