@@ -186,4 +186,4 @@ API Management's `authentication-managed-identity` policy provides a simple way 
 - **Built-in token management**: The platform handles token acquisition, caching and renewal automatically
 - **Simple policy configuration**: Authentication is configured through a single policy element
 
-This approach works with any OAuth-protected API that supports Entra ID authentication, making it a versatile solution for secure API-to-API communication in Azure Integration Services architectures.
+This approach works with any OAuth-protected API that supports Entra ID authentication, whether the API is hosted within the same API Management instance or externally. This makes it a versatile solution for secure API-to-API communication in Azure Integration Services architectures.
