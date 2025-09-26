@@ -4,7 +4,7 @@ date: 2025-09-26T11:00:00+02:00
 publishdate: 2025-09-26T11:00:00+02:00
 lastmod: 2025-09-26T11:00:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "Managed Identity", "OAuth" ]
-summary: "Learn how to use API Management's built-in authentication-managed-identity policy to call OAuth-protected APIs. This enables secure API-to-API communication and privilege delegation patterns without managing secrets."
+summary: "Learn how to use API Management to call OAuth-protected APIs with managed identity. This enables secure API-to-API communication and privilege delegation patterns without managing secrets."
 draft: true
 ---
 
