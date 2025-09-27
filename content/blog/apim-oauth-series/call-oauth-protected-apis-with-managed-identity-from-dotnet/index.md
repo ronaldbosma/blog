@@ -2,7 +2,7 @@
 title: "Call OAuth-Protected APIs with Managed Identity from .NET"
 date: 2025-09-20T14:30:00+02:00
 publishdate: 2025-09-20T14:30:00+02:00
-lastmod: 2025-09-20T14:30:00+02:00
+lastmod: 2025-09-27T10:30:00+02:00
 tags: [ ".NET", "Azure", "API Management", "Azure Functions", "Azure Integration Services", "Entra ID", "Managed Identity", "OAuth" ]
 summary: "Learn how to call OAuth-protected APIs from .NET applications using Azure managed identity. This post shows how to implement secure API calls from Azure Functions without managing secrets, using the Azure Identity library and custom HTTP message handlers."
 ---
@@ -58,7 +58,7 @@ I've created an Azure Developer CLI (`azd`) template called [Call API Management
 
 To authenticate with managed identity from .NET, the easiest way is to use the [DefaultAzureCredential](https://learn.microsoft.com/en-us/dotnet/api/azure.identity.defaultazurecredential?view=azure-dotnet) class. This class automatically detects the available authentication method and uses the appropriate credential type, including managed identity when running in Azure. 
 
-> In production, it's better to use something else. See [Usage guidance for DefaultAzureCredential](https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication/credential-chains?tabs=dac#usage-guidance-for-defaultazurecredential).
+> In production, it's better to use something else. See [Authentication best practices with the Azure Identity library for .NET](https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication/best-practices?tabs=aspdotnet).
 >
 > If you want to execute the function locally, have a look at [Securing API to API calls in Azure with Entra and API Management](https://rios.engineer/securing-api-to-api-calls-in-azure-with-entra-and-api-management/) from Dan Rios. He explains what to configure in order to use the local users' Azure CLI credentials.
 
@@ -155,16 +155,19 @@ Next, create a `DelegatingHandler` that manages OAuth token retrieval:
 
 ```csharp
 using Azure.Core;
-using Azure.Identity;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
 
 internal class AzureCredentialsAuthorizationHandler : DelegatingHandler
 {
+    private readonly TokenCredential _tokenCredential;
     private readonly ApiManagementOptions _apimOptions;
 
-    public AzureCredentialsAuthorizationHandler(IOptions<ApiManagementOptions> apimOptions)
+    public AzureCredentialsAuthorizationHandler(
+        TokenCredential tokenCredential, 
+        IOptions<ApiManagementOptions> apimOptions)
     {
+        _tokenCredential = tokenCredential;
         _apimOptions = apimOptions.Value;
     }
 
@@ -172,8 +175,7 @@ internal class AzureCredentialsAuthorizationHandler : DelegatingHandler
         HttpRequestMessage request, 
         CancellationToken cancellationToken)
     {
-        var credentials = new DefaultAzureCredential();
-        var tokenResult = await credentials.GetTokenAsync(
+        var tokenResult = await _tokenCredential.GetTokenAsync(
             new TokenRequestContext([_apimOptions.OAuthTargetResource]), 
             cancellationToken);
 
@@ -185,9 +187,9 @@ internal class AzureCredentialsAuthorizationHandler : DelegatingHandler
 ```
 
 This handler automatically:
-- Retrieves access tokens using the managed identity
+- Uses the injected `TokenCredential` to retrieve access tokens
 - Adds the Bearer token to outgoing requests
-- Benefits from automatic token caching provided by `DefaultAzureCredential`
+- Benefits from automatic token caching provided by the credential implementation
 - Uses configuration instead of hardcoded values
 
 #### Azure Function Implementation
@@ -229,16 +231,16 @@ This simplified implementation shows how the authentication logic is completely 
 The dependency injection setup registers all required services:
 
 ```csharp
+using Azure.Core;
+using Azure.Identity;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 internal static class ServiceCollectionExtensions
 {
     public static IServiceCollection RegisterDependencies(
-        this IServiceCollection services, 
-        IConfigurationManager configuration)
+        this IServiceCollection services)
     {
         services.AddApplicationInsightsTelemetryWorkerService()
                 .ConfigureFunctionsApplicationInsights();
@@ -246,6 +248,11 @@ internal static class ServiceCollectionExtensions
         services.AddOptionsWithValidateOnStart<ApiManagementOptions>()
                 .BindConfiguration(ApiManagementOptions.SectionKey)
                 .ValidateDataAnnotations();
+
+        // We're using DefaultAzureCredential which supports multiple authentication methods and picks the best one for the environment.
+        // For production, prefer a specific TokenCredential implementation such as ManagedIdentityCredential for improved performance and predictability.
+        // More info: https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication/best-practices?tabs=aspdotnet
+        services.AddSingleton<TokenCredential, DefaultAzureCredential>();
 
         services.AddScoped<AzureCredentialsAuthorizationHandler>();
 
@@ -265,6 +272,7 @@ This extension method is called from the [Program.cs](https://github.com/ronaldb
 
 Key configuration points:
 - **Options validation**: Configuration is validated at startup using data annotations
+- **Token credential registration**: `DefaultAzureCredential` is registered as a singleton, enabling reuse across the application and better token caching
 - **Scoped handler**: The authorization handler is registered as scoped to align with HTTP client lifetime
 - **Named HTTP client**: The "apim" client is pre-configured with the base address
 - **Handler registration**: `AddHttpMessageHandler` adds the authorization handler to the HTTP client pipeline
@@ -316,9 +324,9 @@ Key takeaways from this implementation:
 - Use the Azure Identity library for managed identity authentication and automatic token caching
 - Implement custom `DelegatingHandler` classes to centralize OAuth token management
 - Leverage dependency injection and the options pattern for configuration management
+- Register `TokenCredential` as a singleton to improve performance and enable better token caching
 - Take advantage of HTTP client factory for proper connection management
 
 In the next posts in this series, we'll explore how to call OAuth-protected APIs from Logic Apps and from other API Management APIs using similar managed identity patterns.
 
 You can find the complete working example in my [call-apim-with-managed-identity](https://github.com/ronaldbosma/call-apim-with-managed-identity) repository, which includes detailed deployment instructions and testing examples for multiple scenarios.
-
