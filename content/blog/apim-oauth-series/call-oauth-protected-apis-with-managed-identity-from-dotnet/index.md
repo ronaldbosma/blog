@@ -15,7 +15,7 @@ This post is part of a series about OAuth and API Management:
 - Calling OAuth-Protected APIs with Managed Identity
   - **Part 1: In .NET (Azure Function) - _this post_**
   - [Part 2: In Logic Apps](/blog/2025/09/24/call-oauth-protected-apis-with-managed-identity-from-logic-apps/)
-  - Part 3: In API Management - *coming soon*
+  - [Part 3: In API Management](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/)
 - Calling OAuth-Protected Backends from API Management - *coming later*
   - Part 1: With Credential Manager
   - Part 2: With Client Secret  
