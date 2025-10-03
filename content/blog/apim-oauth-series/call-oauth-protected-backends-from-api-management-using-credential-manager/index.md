@@ -191,13 +191,13 @@ The solution that handles token retrieval and renewal does not run inside your A
 > **Q: Is this feature supported using API Management running inside a VNet?**  
 > **A:** Yes, as long as outbound connectivity on port 443 is enabled to the AzureConnectors service tag.
 
-The `AzureConnectors` service tag enables outbound calls to services like Azure Logic Apps and Power Platform. This indicates that the token management service for credential manager runs in the same infrastructure as these services.
+The AzureConnectors service tag enables outbound calls to services like Azure Logic Apps and Power Platform. This indicates that the token management service for credential manager runs in the same infrastructure as these services.
 
 #### IP Whitelisting Challenges
 
 This shared infrastructure dependency has important implications for IP whitelisting. When the Identity Provider you're retrieving the token from has implemented IP whitelisting, they either need to:
-- Whitelist the `AzureConnectors` service tag for inbound calls if they're on Azure
-- Whitelist [all IPs](https://www.azurespeed.com/Information/AzureIpRanges/AzureConnectors) that make up the `AzureConnectors` service tag
+- Whitelist the AzureConnectors service tag for inbound calls if they're on Azure
+- Whitelist [all IPs](https://www.azurespeed.com/Information/AzureIpRanges/AzureConnectors) that make up the AzureConnectors service tag
 
 I don't recommend whitelisting the (large number of) IPs that are part of the service tag because these can change over time. This means you'd need to update your IP whitelisting rules frequently, which can be difficult to maintain and may introduce security risks.
 
@@ -221,6 +221,9 @@ API Management's credential manager provides a managed solution for calling OAut
 - **Simple policy configuration**: Authentication is configured through a single policy element
 - **Bicep support**: The entire configuration can be deployed as infrastructure as code
 
-However, the solution has network architecture limitations that can make it unsuitable for environments with strict IP whitelisting requirements. The token management service runs outside your API Management instance and requires connectivity to the AzureConnectors service tag.
+However, the solution has several limitations that may make it unsuitable for certain environments:
 
-When the credential manager doesn't meet your requirements due to network constraints or availability limitations, you can implement OAuth token handling directly in your policies using the send-request approach, which I'll demonstrate in upcoming posts.
+- **Shared infrastructure dependencies**: The token management service runs outside your API Management instance and requires connectivity to the AzureConnectors service tag, which can create challenges for strict IP whitelisting requirements
+- **Authentication method restrictions**: Only client secret authentication is supported; certificate-based authentication with JWT assertions is not available
+
+When the credential manager doesn't meet your requirements due to these constraints or availability limitations, you can implement OAuth token handling directly in your policies using the send-request approach, which I'll demonstrate in upcoming posts.
