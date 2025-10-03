@@ -195,7 +195,7 @@ This network architecture has important implications for IP whitelisting. When t
 - Whitelist the `AzureConnectors` service tag for inbound calls if they're on Azure
 - Whitelist [all IPs](https://www.azurespeed.com/Information/AzureIpRanges/AzureConnectors) that make up the `AzureConnectors` service tag
 
-I don't recommend whitelisting individual IPs because these can change over time. This means you'd need to update your IP whitelisting rules frequently, which can be difficult to maintain and may introduce security risks.
+I don't recommend whitelisting the (large number of) IPs that are part of the service tag because these can change over time. This means you'd need to update your IP whitelisting rules frequently, which can be difficult to maintain and may introduce security risks.
 
 I've encountered this issue on several occasions and ultimately decided not to use the Credential Manager. Instead, I implemented custom logic within my API to retrieve tokens directly. I'll demonstrate this approach in the next blog post.
 
