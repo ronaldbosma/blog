@@ -4,7 +4,7 @@ date: 2025-10-03T11:00:00+02:00
 publishdate: 2025-10-03T11:00:00+02:00
 lastmod: 2025-10-03T11:00:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "OAuth" ]
-summary: "Azure API Management’s credential manager provides a simple, managed way to handle OAuth flows with automatic token acquisition and caching. In this post, I show how to configure it using Bicep and integrate it into your APIs, and I highlight key considerations to help you decide when credential manager is the right choice versus custom token handling."
+summary: "Azure API Management’s credential manager provides a simple, managed way to handle OAuth flows with automatic token acquisition and caching. In this post, I show how to configure it using Bicep and integrate it into your APIs. I also highlight key considerations to help you decide when credential manager is the right choice versus custom token handling."
 draft: true
 ---
 
