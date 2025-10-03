@@ -187,7 +187,7 @@ The solution that handles token retrieval and renewal does not run inside your A
 > "Is this feature supported using API Management running inside a VNet?  
 > Yes, as long as outbound connectivity on port 443 is enabled to the AzureConnectors service tag."
 
-The `AzureConnectors` service tag is used to make outbound calls to services like Azure Logic Apps and Power Platform possible, which suggests that the token management service for Credential Manager is running in the same infrastructure as Logic Apps or Power Platform.
+The `AzureConnectors` service tag is used to make outbound calls to services like Azure Logic Apps and Power Platform. This indicates that the token management service for Credential Manager runs in the same infrastructure as these services.
 
 **IP Whitelisting Challenges**
 
@@ -195,9 +195,9 @@ This network architecture has important implications for IP whitelisting. When t
 - Whitelist the `AzureConnectors` service tag for inbound calls if they're on Azure
 - Whitelist [all IPs](https://www.azurespeed.com/Information/AzureIpRanges/AzureConnectors) that make up the `AzureConnectors` service tag
 
-I don't recommend using the latter approach because the service tag list can change over time. This means you might need to update your IP whitelisting rules frequently, which can be difficult to maintain and may introduce security risks.
+I don't recommend whitelisting individual IPs because these can change over time. This means you'd need to update your IP whitelisting rules frequently, which can be difficult to maintain and may introduce security risks.
 
-I've encountered this issue on several occasions and ultimately decided not to use the Credential Manager. Instead, I implemented custom logic within my API to retrieve tokens directly. I'll share more about this approach in a future blog post.
+I've encountered this issue on several occasions and ultimately decided not to use the Credential Manager. Instead, I implemented custom logic within my API to retrieve tokens directly. I'll demonstrate this approach in the next blog post.
 
 **Availability Limitations**
 
