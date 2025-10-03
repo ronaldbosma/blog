@@ -2,7 +2,7 @@
 title: "Call OAuth-Protected APIs with Managed Identity from Logic Apps"
 date: 2025-09-24T17:00:00+02:00
 publishdate: 2025-09-24T17:00:00+02:00
-lastmod: 2025-09-24T17:00:00+02:00
+lastmod: 2025-10-03T09:30:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "Logic Apps", "Managed Identity", "OAuth" ]
 summary: "Azure Logic Apps Standard makes it easy to call OAuth-protected APIs using managed identity. This post demonstrates how to use the HTTP action’s built-in authentication and token caching for secure, reliable calls."
 ---
@@ -17,9 +17,9 @@ This post is part of a series about OAuth and API Management:
   - **Part 2: In Logic Apps (Standard) - _this post_**
   - [Part 3: In API Management](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/)
 - Calling OAuth-Protected Backends from API Management - *coming later*
-  - Part 1: With Credential Manager
-  - Part 2: With Client Secret
-  - Part 3: With Client Certificate
+  - Part 1: Using Credential Manager
+  - Part 2: Using Send-Request Policy with Client Secret
+  - Part 3: Using Send-Request Policy with Client Certificate
 
 When calling APIs that are protected with OAuth using Entra ID from Azure Logic Apps, using managed identities should always be your first choice when workflows run on Azure resources within the same Entra ID tenant. This eliminates secret management entirely and provides the highest security with the least operational overhead.
 

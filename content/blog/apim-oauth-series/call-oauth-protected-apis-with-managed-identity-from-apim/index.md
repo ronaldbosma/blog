@@ -2,7 +2,7 @@
 title: "Call OAuth-Protected APIs with Managed Identity from API Management"
 date: 2025-09-29T16:00:00+02:00
 publishdate: 2025-09-29T16:00:00+02:00
-lastmod: 2025-09-29T16:00:00+02:00
+lastmod: 2025-10-03T09:30:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "Managed Identity", "OAuth" ]
 summary: "Learn how to use API Management to call OAuth-protected APIs with managed identity. This enables secure API-to-API communication and privilege delegation patterns without managing secrets."
 ---
@@ -17,9 +17,9 @@ This post is part of a series about OAuth and API Management:
   - [Part 2: In Logic Apps (Standard)](/blog/2025/09/24/call-oauth-protected-apis-with-managed-identity-from-logic-apps/)
   - **Part 3: In API Management - _this post_**
 - Calling OAuth-Protected Backends from API Management - *coming later*
-  - Part 1: With Credential Manager
-  - Part 2: With Client Secret
-  - Part 3: With Client Certificate
+  - Part 1: Using Credential Manager
+  - Part 2: Using Send-Request Policy with Client Secret
+  - Part 3: Using Send-Request Policy with Client Certificate
 
 API Management provides several use cases for calling OAuth-protected APIs with managed identity. For example:
 

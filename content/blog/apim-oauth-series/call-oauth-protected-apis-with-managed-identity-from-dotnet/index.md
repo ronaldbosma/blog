@@ -2,7 +2,7 @@
 title: "Call OAuth-Protected APIs with Managed Identity from .NET"
 date: 2025-09-20T14:30:00+02:00
 publishdate: 2025-09-20T14:30:00+02:00
-lastmod: 2025-09-27T10:30:00+02:00
+lastmod: 2025-10-03T09:30:00+02:00
 tags: [ ".NET", "Azure", "API Management", "Azure Functions", "Azure Integration Services", "Entra ID", "Managed Identity", "OAuth" ]
 summary: "Learn how to call OAuth-protected APIs from .NET applications using Azure managed identity. This post shows how to implement secure API calls from Azure Functions without managing secrets, using the Azure Identity library and custom HTTP message handlers."
 ---
@@ -17,9 +17,9 @@ This post is part of a series about OAuth and API Management:
   - [Part 2: In Logic Apps](/blog/2025/09/24/call-oauth-protected-apis-with-managed-identity-from-logic-apps/)
   - [Part 3: In API Management](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/)
 - Calling OAuth-Protected Backends from API Management - *coming later*
-  - Part 1: With Credential Manager
-  - Part 2: With Client Secret  
-  - Part 3: With Client Certificate
+  - Part 1: Using Credential Manager
+  - Part 2: Using Send-Request Policy with Client Secret
+  - Part 3: Using Send-Request Policy with Client Certificate
 
 When calling APIs that are protected with OAuth using Entra ID, using managed identities should always be your first choice when clients run on Azure resources within the same Entra ID tenant. This eliminates secret management entirely and provides the highest security with the least operational overhead.
 
