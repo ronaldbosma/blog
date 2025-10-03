@@ -14,6 +14,18 @@ In this post, I'll show you how to use API Management's credential manager to ca
 
 The official documentation [About API credentials and credential manager](https://learn.microsoft.com/en-us/azure/api-management/credentials-overview) focuses on how to configure the credential manager from the Azure Portal. In this post I demonstrate how to configure this using Bicep. I'm using Entra ID with the client credentials grant flow in my example, but other Identity Providers and flows are supported.
 
+This post is part of a series about OAuth and API Management:
+
+- [Protect APIs in Azure API Management with OAuth](/blog/2025/09/16/protect-apis-in-azure-api-management-with-oauth/)
+- Calling OAuth-Protected APIs with Managed Identity
+  - [Part 1: In .NET (Azure Function)](/blog/2025/09/20/call-oauth-protected-apis-with-managed-identity-from-.net/)
+  - [Part 2: In Logic Apps](/blog/2025/09/24/call-oauth-protected-apis-with-managed-identity-from-logic-apps/)
+  - [Part 3: In API Management](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/)
+- Calling OAuth-Protected Backends from API Management
+  - **Part 1: Using Credential Manager - _this post_**
+  - Part 2: Using Send-Request Policy with Client Secret - *coming soon*
+  - Part 3: Using Send-Request Policy with Client Certificate - *coming soon*
+
 ### Table of Contents
 
 - [Solution Overview](#solution-overview)
