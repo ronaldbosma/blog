@@ -114,9 +114,13 @@ The configuration creates three components:
 
 The template automatically generates a client secret for the client's app registration and stores it in Key Vault. However, we can't reference a Key Vault secret directly in the Credential Manager configuration. Instead, the client secret is passed directly to the Bicep configuration and then securely managed by Azure according to the [security considerations](https://learn.microsoft.com/en-us/azure/api-management/credentials-overview#security-considerations): _"The access token and other secrets (for example, client secrets) are encrypted with an envelope encryption and stored in an internal, multitenant storage."_.
 
-After deployment, you can find the status of the connection by navigating to API Management in the Azure Portal, choosing Credential manager, opening the credential provider and then choosing connections:
+After deployment, you can review the connection status by navigating to API Management in the Azure Portal, choosing Credential Manager, opening the credential provider and then choosing Connections. When everything is configured correctly, you'll see a connected status:
 
-![Client Connection Status](../../../../../images/apim-oauth-series/call-oauth-protected-backends-from-api-management-using-credential-manager/client-connection-status.png)
+![Client Connection Status - Connected](../../../../../images/apim-oauth-series/call-oauth-protected-backends-from-api-management-using-credential-manager/client-connection-status-connected.png)
+
+If there are configuration issues, like an invalid or expired secret, the connection will show an error status:
+
+![Client Connection Status - Error](../../../../../images/apim-oauth-series/call-oauth-protected-backends-from-api-management-using-credential-manager/client-connection-status-error.png)
 
 #### Policy Implementation
 
@@ -180,26 +184,32 @@ If you execute the request multiple times, you'll notice that the `IssuedAt` val
 
 While the Credential Manager provides a convenient managed solution, there are several important considerations to keep in mind:
 
-**Network Architecture Limitations**
+#### Shared Infrastructure Dependencies
 
 The solution that handles token retrieval and renewal does not run inside your Azure API Management instance. According to the [FAQ](https://learn.microsoft.com/en-us/azure/api-management/credentials-overview#frequently-asked-questions-faq):
 
-> "Is this feature supported using API Management running inside a VNet?  
-> Yes, as long as outbound connectivity on port 443 is enabled to the AzureConnectors service tag."
+> **Q: Is this feature supported using API Management running inside a VNet?**  
+> **A:** Yes, as long as outbound connectivity on port 443 is enabled to the AzureConnectors service tag.
 
-The `AzureConnectors` service tag is used to make outbound calls to services like Azure Logic Apps and Power Platform. This indicates that the token management service for Credential Manager runs in the same infrastructure as these services.
+The `AzureConnectors` service tag enables outbound calls to services like Azure Logic Apps and Power Platform. This indicates that the token management service for Credential Manager runs in the same infrastructure as these services.
 
-**IP Whitelisting Challenges**
+#### IP Whitelisting Challenges
 
-This network architecture has important implications for IP whitelisting. When the Identity Provider you're retrieving the token from has implemented IP whitelisting, they either need to:
+This shared infrastructure dependency has important implications for IP whitelisting. When the Identity Provider you're retrieving the token from has implemented IP whitelisting, they either need to:
 - Whitelist the `AzureConnectors` service tag for inbound calls if they're on Azure
 - Whitelist [all IPs](https://www.azurespeed.com/Information/AzureIpRanges/AzureConnectors) that make up the `AzureConnectors` service tag
 
 I don't recommend whitelisting the (large number of) IPs that are part of the service tag because these can change over time. This means you'd need to update your IP whitelisting rules frequently, which can be difficult to maintain and may introduce security risks.
 
-I've encountered this issue on several occasions and ultimately decided not to use the Credential Manager. Instead, I implemented custom logic within my API to retrieve tokens directly. I'll demonstrate this approach in the next blog post.
+I've encountered this issue myself several times and decided not to use the Credential Manager in those scenarios. Instead, I implemented custom logic within my API to retrieve tokens directly. I'll demonstrate this approach in the next blog post.
 
-**Availability Limitations**
+#### Authentication Method Limitations
+
+While this post demonstrates using client secrets with the Credential Manager, Microsoft recommends using certificates as a more secure authentication method. Certificate-based authentication works with JSON Web Token (JWT) assertions signed with a certificate, providing better security since the private key never leaves the client.
+
+However, the Credential Manager doesn't support certificate-based authentication. If you need to use certificates for OAuth authentication, you'll need to implement token retrieval using policies within API Management. I'll demonstrate this approach using the send-request policy in one of the next posts in this series.
+
+#### Availability Limitations
 
 At the time of writing this post, the Credential Manager is not available in the self-hosted gateway and several regions. See [Availability](https://learn.microsoft.com/en-us/azure/api-management/credentials-overview#availability) for the current status.
 
