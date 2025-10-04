@@ -4,11 +4,11 @@ date: 2025-10-04T10:00:00+02:00
 publishdate: 2025-10-04T10:00:00+02:00
 lastmod: 2025-10-04T10:00:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "OAuth", "Key Vault" ]
-summary: "When API Management's credential manager isn't suitable for your OAuth scenarios, you can implement token handling directly using policies. In this post, I show how to call OAuth-protected backends using the send-request policy with client credentials flow and a client secret stored in Key Vault."
+summary: "When API Management's credential manager isn't suitable for your OAuth scenarios, you can implement token handling directly using policies. In this post, I show how to call OAuth-protected backends using the send-request policy with Client Credentials Flow and a client secret stored in Key Vault."
 draft: true
 ---
 
-In my [previous post](/blog/apim-oauth-series/call-oauth-protected-backends-from-api-management-using-credential-manager/) I showed how to use API Management's credential manager to call OAuth-protected backends. While credential manager provides a managed solution with automatic token handling, it has limitations that can make it unsuitable for certain environments, like when the Identity Provider has IP whitelisting or when its not available in your region.
+In my [previous post](/blog/apim-oauth-series/call-oauth-protected-backends-from-api-management-using-credential-manager/) I showed how to use API Management's credential manager to call OAuth-protected backends. While the credential manager offers managed token handling, it’s not always suitable. For example, when your Identity Provider enforces IP whitelisting or isn't available in your region.
 
 In this post, I'll show you how to implement OAuth token handling directly using API Management policies with the [send-request](https://learn.microsoft.com/en-us/azure/api-management/send-request-policy) policy. This approach gives you complete control over the token acquisition process while storing sensitive credentials securely in Azure Key Vault.
 
@@ -50,6 +50,8 @@ While this example uses an API on API Management as the protected backend, you c
 I've created an Azure Developer CLI (`azd`) template called [Call API Management backend with OAuth](https://github.com/ronaldbosma/call-apim-backend-with-oauth) that demonstrates three scenarios: using the credential manager, a send-request policy with client secret and a send-request policy with client certificate. If you want to deploy and try the solution, check out the [getting started section](https://github.com/ronaldbosma/call-apim-backend-with-oauth#getting-started) for the prerequisites and deployment instructions. This post focuses on calling OAuth-protected backends using the send-request policy with client secret.
 
 We're using the BasicV2 tier because the Consumption tier doesn't support caching, which is important for token management.
+
+Now that we've covered the architecture and supporting components, let's walk through how to implement the send-request policy step by step.
 
 ### Implementation
 
@@ -159,7 +161,7 @@ This step helps improve performance by avoiding unnecessary token requests to En
 
 #### Step 2: Token Acquisition
 
-If no cached token exists, the policy uses send-request to call the Entra ID token endpoint with the client credentials flow:
+If no cached token exists, the policy uses send-request to call the Entra ID token endpoint with the Client Credentials Flow:
 
 ```xml
 <send-request mode="new" timeout="20" response-variable-name="get-access-token-response" ignore-error="false">
@@ -287,4 +289,4 @@ The send-request policy approach provides a flexible alternative to API Manageme
 
 While this approach requires more implementation effort compared to credential manager, it provides the flexibility needed when credential manager's limitations make it unsuitable for your environment.
 
-The solution demonstrates secure credential storage using Key Vault integration, comprehensive caching for performance and detailed error handling for troubleshooting. In the next post, I'll show how to enhance security further by using certificate-based authentication instead of client secrets.
+The solution demonstrates secure credential storage using Key Vault integration, comprehensive caching for performance and detailed error handling for troubleshooting. In the next post, we'll take this approach a step further by replacing the client secret with a client certificate for even stronger security.
