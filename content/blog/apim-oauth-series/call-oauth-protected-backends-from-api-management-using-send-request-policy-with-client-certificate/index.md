@@ -10,7 +10,7 @@ draft: true
 
 In my [previous post](/blog/apim-oauth-series/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-secret/) I showed how to call OAuth-protected backends using the [send-request](https://learn.microsoft.com/en-us/azure/api-management/send-request-policy) policy with client secrets. While client secrets work well, certificates provide stronger security by proving possession of a private key without ever transmitting it.
 
-In this post, I'll show you how to implement certificate-based OAuth authentication using JWT assertions and API Management policies. This approach follows the OAuth 2.0 Client Credentials Flow with certificate credentials as defined in the [Microsoft identity platform application authentication certificate credentials](https://learn.microsoft.com/en-us/entra/identity-platform/certificate-credentials) documentation.
+In this post, I'll show you how to implement certificate-based OAuth authentication using JWT assertions and API Management policies. This approach uses the OAuth 2.0 Client Credentials Flow with JWT assertions.
 
 This post is part of a series about OAuth and API Management:
 
@@ -52,7 +52,7 @@ I've created an Azure Developer CLI (`azd`) template called [Call API Management
 
 ### Understanding Certificate-Based Authentication
 
-Before diving into the implementation, it's important to understand how certificate-based authentication works with Entra ID. The process involves creating a JWT assertion that proves possession of the certificate's private key without transmitting it.
+Before diving into the implementation, it's important to understand how certificate-based authentication works with Entra ID. The process involves creating a JWT assertion that proves possession of the certificate's private key without transmitting it. The [Microsoft identity platform application authentication certificate credentials](https://learn.microsoft.com/en-us/entra/identity-platform/certificate-credentials) documentation provides detailed guidance on creating these JWT assertions, which I'll explain briefly here.
 
 Here's what a decoded JWT assertion looks like:
 
@@ -92,13 +92,15 @@ Where:
 
 Entra ID will validate the assertion using the public key from the certificate and return an access token if the assertion is valid.
 
+Note that this post focuses on Entra ID and other Identity Providers may require different JWT header and claims structures. Always consult the specific Identity Provider's documentation for their JWT assertion requirements.
+
 ### Implementation
 
 The certificate-based policy implementation builds on the same foundation as the client secret approach but adds JWT assertion creation and certificate signing. You can find the complete policy in [send-request-with-certificate.xml](https://github.com/ronaldbosma/call-apim-backend-with-oauth/blob/main/src/apis/unprotected-api/send-request-with-certificate.xml).
 
 The implementation is inspired by the [Get OAuth2 access token from AAD using client id and certificate using key vault manage identity.xml](https://github.com/Azure/api-management-policy-snippets/blob/master/examples/Get%20OAuth2%20access%20token%20from%20AAD%20using%20client%20id%20and%20certificate%20using%20key%20vault%20manage%20identity.xml) example, but with a different approach to certificate retrieval and other improvements.
 
-Here's the complete policy implementation:
+The policy uses a similar structure as the client secret approach. Here's the complete policy implementation:
 
 ```xml
 <policies>
@@ -264,19 +266,35 @@ Here's the complete policy implementation:
 </policies>
 ```
 
+**A tip for improving maintainability:** I usually put the logic to retrieve an access token in a [policy fragment](https://learn.microsoft.com/en-us/azure/api-management/policy-fragments). This makes the API or operation policy much easier to read and allows you to reuse the token retrieval logic across multiple APIs or operations.
+
 Let me break down the key components of this implementation:
 
-#### Step 1: Certificate Retrieval
+#### Step 1: Cache Lookup
+
+The policy starts by checking if an access token already exists in the cache using [cache-lookup-value](https://learn.microsoft.com/en-us/azure/api-management/cache-lookup-value-policy):
+
+```xml
+<cache-lookup-value key="access-token-from-certificate" variable-name="access-token" caching-type="internal" />
+```
+
+This step helps improve performance by avoiding unnecessary token requests to Entra ID when a valid token is already available.
+
+#### Step 2: JWT Assertion Creation
+
+If no cached token exists, the policy creates a JWT assertion signed with the client certificate. This involves several sub-steps:
+
+##### Certificate Retrieval
 
 The policy retrieves the certificate from API Management's certificate store using the thumbprint:
 
-```xml
+```csharp
 var certificate = context.Deployment.Certificates["{{client-certificate-thumbprint}}"];
 ```
 
 The certificate is automatically generated in Key Vault and uploaded to the app registration using [this script](https://github.com/ronaldbosma/call-apim-backend-with-oauth/blob/main/hooks/postprovision-create-and-store-client-certificate.ps1). We use the `Microsoft.ApiManagement/service/certificates` resource in [unprotected-api.bicep](https://github.com/ronaldbosma/call-apim-backend-with-oauth/blob/main/src/apis/unprotected-api/unprotected-api.bicep) with a reference to the certificate in Key Vault. You can find the certificate reference under the Certificates section of your API Management service.
 
-#### Step 2: JWT Header Creation
+##### JWT Header Creation
 
 The policy creates a JWT header with the certificate's SHA256 thumbprint:
 
@@ -294,7 +312,7 @@ var header = new JObject
 
 The `x5t#S256` claim contains the SHA256 thumbprint of the certificate, which Entra ID uses to validate the JWT signature.
 
-#### Step 3: JWT Claims Creation
+##### JWT Claims Creation
 
 The policy creates the JWT claims (payload) with the required fields for Entra ID:
 
@@ -317,25 +335,18 @@ var claims = new JObject
 
 These claims are required by Entra ID for certificate-based authentication and include the token's audience, expiration time, issuer and unique identifier.
 
-#### Step 4: Base64Url Encoding
+##### Base64Url Encoding
 
-The JWT specification requires Base64Url encoding, which differs from standard Base64 encoding:
+Both the header and claims objects need to be Base64Url encoded:
 
 ```csharp
-string ConvertBytesToBase64Url(byte[] bytes)
-{
-    // The JWT spec requires Base64Url encoding, which is similar to Base64 
-    // but uses '-' and '_' instead of '+' and '/' and omits padding characters ('=').
-    return Convert.ToBase64String(bytes)
-        .Replace("+", "-")
-        .Replace("/", "_")
-        .TrimEnd('=');
-}
+var headerBase64UrlEncoded = ConvertJObjectToBase64Url(header);
+var claimsBase64UrlEncoded = ConvertJObjectToBase64Url(claims);
 ```
 
-Base64Url encoding uses '-' and '_' instead of '+' and '/' and omits padding characters ('=') to make the encoded string URL-safe.
+The JWT specification requires Base64Url encoding, which differs from standard Base64 encoding.
 
-#### Step 5: JWT Signing
+##### JWT Signing
 
 The policy signs the JWT using the certificate's private key:
 
@@ -355,23 +366,123 @@ return string.Concat(stringToSign, ".", signatureBase64UrlEncoded);
 
 The signing process uses RSA with PSS padding and SHA256 hashing, which matches the "PS256" algorithm specified in the JWT header.
 
-#### Step 6: Token Request
+##### Helper Methods
 
-The signed JWT assertion is sent to Entra ID using the Client Credentials Flow:
+The policy includes helper methods to handle the required Base64Url encoding:
 
-```xml
-<set-body>@{
-    var scope = "{{oauth-scope}}";
-    var clientId = "{{client-id}}";
-    var clientAssertion = (string)context.Variables["signed-client-assertion"];
-
-    return $"scope={scope}&client_id={clientId}&client_assertion={clientAssertion}&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer&grant_type=client_credentials";
-}</set-body>
+```csharp
+string ConvertJObjectToBase64Url(JObject input)
+{
+    var jsonString = input.ToString(Newtonsoft.Json.Formatting.None);
+    var bytes = System.Text.Encoding.UTF8.GetBytes(jsonString);
+    return ConvertBytesToBase64Url(bytes);
+}
+        
+string ConvertBytesToBase64Url(byte[] bytes)
+{
+    // The JWT spec requires Base64Url encoding, which is similar to Base64 
+    // but uses '-' and '_' instead of '+' and '/' and omits padding characters ('=').
+    return Convert.ToBase64String(bytes)
+        .Replace("+", "-")
+        .Replace("/", "_")
+        .TrimEnd('=');
+}
 ```
 
-The `client_assertion_type` parameter tells Entra ID that we're using a JWT bearer assertion for authentication.
+Base64Url encoding uses '-' and '_' instead of '+' and '/' and omits padding characters ('=') to make the encoded string URL-safe.
 
-The rest of the policy follows the same pattern as the client secret implementation: caching successful tokens, handling errors with detailed tracing and invalidating the cache when authentication fails.
+#### Step 3: Token Acquisition
+
+The signed JWT assertion is sent to Entra ID using the [send-request](https://learn.microsoft.com/en-us/azure/api-management/send-request-policy) policy with the Client Credentials Flow:
+
+```xml
+<send-request mode="new" timeout="20" response-variable-name="get-access-token-response" ignore-error="false">
+    <set-url>{{oauth-token-url}}</set-url>
+    <set-method>POST</set-method>
+    <set-header name="Content-Type" exists-action="override">
+        <value>application/x-www-form-urlencoded</value>
+    </set-header>
+    <set-body>@{
+        var scope = "{{oauth-scope}}";
+        var clientId = "{{client-id}}";
+        var clientAssertion = (string)context.Variables["signed-client-assertion"];
+
+        return $"scope={scope}&client_id={clientId}&client_assertion={clientAssertion}&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer&grant_type=client_credentials";
+    }</set-body>
+</send-request>
+```
+
+The `client_assertion_type` parameter tells Entra ID that we're using a JWT bearer assertion for authentication. The policy uses several named values that are configured in API Management:
+
+- `oauth-token-url`: The OAuth 2.0 token endpoint URL
+- `client-id`: The "Application (client) ID" of the client app registration
+- `oauth-scope`: The Application ID URI of the backend's app registration
+
+The `ignore-error` attribute is set to false so we can perform detailed error handling and tracing.
+
+#### Step 4: Token Caching
+
+When token retrieval succeeds, the policy extracts the access token and caches it using [cache-store-value](https://learn.microsoft.com/en-us/azure/api-management/cache-store-value-policy):
+
+```xml
+<set-variable name="access-token" value="@(((JObject)context.Variables["get-access-token-response-body"]).Value<string>("access_token"))" />
+<set-variable name="access-token-expires-in" value="@(((JObject)context.Variables["get-access-token-response-body"]).Value<int>("expires_in"))" />
+
+<!-- Cache the access token for 95% of its lifetime to prevent expiration issues -->
+<cache-store-value key="access-token-from-certificate" value="@((string)context.Variables["access-token"])" 
+                   duration="@((int)(0.95 * (int)context.Variables["access-token-expires-in"]))" 
+                   caching-type="internal" />
+```
+
+The policy caches the token for 95% of its lifetime to prevent expiration issues during processing.
+
+#### Step 5: Error Handling and Tracing
+
+Requests made by the send-request policy are not automatically logged in Application Insights. When something goes wrong, we need to log this explicitly using the [trace](https://learn.microsoft.com/en-us/azure/api-management/trace-policy) policy:
+
+```xml
+<trace source="getAccessTokenUsingCertificate" severity="error">
+    <message>Retrieval of access token failed</message>
+    <metadata name="ResponseBody" value="@{
+        // To prevent exceptions, ensure the message is never null or empty by always providing a value.
+        var body = ((JObject)context.Variables["get-access-token-response-body"])?.ToString();
+        return !string.IsNullOrWhiteSpace(body) ? body : "<empty>";
+    }" />
+    <metadata name="ResponseStatusCode" value="@{
+        // To prevent exceptions, ensure the status code is never null or empty by always providing a value.
+        var statusCode = ((IResponse)context.Variables["get-access-token-response"])?.StatusCode.ToString();
+        return !string.IsNullOrWhiteSpace(statusCode) ? statusCode : "<empty>";
+    }" />
+</trace>
+```
+
+The code includes null checks for both the response body and status code because the trace policy's metadata values must always have a value.
+
+#### Step 6: Authorization Header
+
+Once the token is available (either from cache or newly acquired), the policy adds it to the Authorization header:
+
+```xml
+<set-header name="Authorization" exists-action="override">
+    <value>@("Bearer " + (string)context.Variables["access-token"])</value>
+</set-header>
+```
+
+#### Step 7: Cache Invalidation
+
+In the outbound section, the policy handles cache invalidation when the backend returns authentication errors using [cache-remove-value](https://learn.microsoft.com/en-us/azure/api-management/cache-remove-value-policy):
+
+```xml
+<choose>
+    <when condition="@(context.Response.StatusCode == 401 || context.Response.StatusCode == 403)">
+        <cache-remove-value key="access-token-from-certificate" caching-type="internal" />
+    </when>
+</choose>
+```
+
+This ensures that expired or invalid tokens are removed from the cache, forcing a fresh token acquisition on the next request.
+
+
 
 ### Testing the Implementation
 
@@ -396,7 +507,9 @@ GET https://<your-api-management-service-name>.azure-api.net/unprotected/send-re
 
 The request should succeed with a 200 OK response, showing that the policy successfully created a JWT assertion, obtained an access token and called the protected backend.
 
-For demonstration purposes, the response includes the JWT token with an important security indicator: the `azpacr` claim is set to `2`, indicating that certificate authentication was used. This differs from client secret authentication, which sets `azpacr` to `1`.
+For demonstration purposes, the response includes the JWT token. You shouldn't return tokens in production environments, as this can expose sensitive information.
+
+An important security indicator in the token is the `azpacr` claim, which is set to `2`, indicating that certificate authentication was used. This differs from client secret authentication, which sets `azpacr` to `1`.
 
 If you execute the request multiple times, you'll notice that the `IssuedAt` value doesn't change initially, showing that the policy caches tokens for improved performance.
 
@@ -404,17 +517,14 @@ If you execute the request multiple times, you'll notice that the `IssuedAt` val
 
 The same caching considerations from the previous post apply here. The policy implementation explicitly uses `caching-type="internal"` to ensure tokens are stored in API Management's built-in cache rather than an external cache where they might be accessible to unauthorized users.
 
-Certificate management adds complexity compared to client secrets. You need to handle certificate lifecycle management, including renewal before expiration. However, this complexity is offset by the significantly stronger security that certificates provide.
+Both certificates and client secrets require lifecycle management, including renewal before expiration. While certificates add complexity in terms of key management and JWT assertion creation, they provide significantly stronger security through public key cryptography.
 
 ### Conclusion
 
-Certificate-based authentication with JWT assertions provides the strongest security option for calling OAuth-protected backends from API Management. The key benefits include:
+Certificate-based authentication with JWT assertions provides the most secure option for calling OAuth-protected backends from API Management when you can't use managed identity. The key benefits include:
 
 - **Enhanced security**: Certificates provide stronger authentication than shared secrets through public key cryptography
 - **Private key protection**: The JWT assertion proves possession of the private key without transmitting it
 - **Complete control**: Full customization of token acquisition, JWT creation and error handling
-- **IP whitelisting compatibility**: OAuth calls originate from your API Management service, making IP restrictions easier to manage
 
-While this approach requires more implementation effort and certificate lifecycle management compared to client secrets or the credential manager, it provides the highest level of security for OAuth authentication scenarios.
-
-The solution demonstrates secure certificate storage using Key Vault integration, proper JWT assertion creation with Base64Url encoding, comprehensive caching for performance and detailed error handling for troubleshooting. This approach is ideal when security requirements demand certificate-based authentication or when you need complete control over the OAuth token acquisition process.
+While this approach requires more implementation effort compared to client secrets or the credential manager, it provides better security for OAuth authentication scenarios. This approach is ideal when security requirements demand certificate-based authentication or when you need complete control over the OAuth token acquisition process.
