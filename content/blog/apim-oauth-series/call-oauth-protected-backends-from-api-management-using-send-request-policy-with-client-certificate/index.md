@@ -8,7 +8,7 @@ summary: "Learn how to implement certificate-based OAuth authentication in API M
 draft: true
 ---
 
-In my [previous post](/blog/apim-oauth-series/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-secret/) I showed how to call OAuth-protected backends using the send-request policy with client secrets. While client secrets work well, certificates provide stronger security by proving possession of a private key without ever transmitting it.
+In my [previous post](/blog/apim-oauth-series/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-secret/) I showed how to call OAuth-protected backends using the [send-request](https://learn.microsoft.com/en-us/azure/api-management/send-request-policy) policy with client secrets. While client secrets work well, certificates provide stronger security by proving possession of a private key without ever transmitting it.
 
 In this post, I'll show you how to implement certificate-based OAuth authentication using JWT assertions and API Management policies. This approach follows the OAuth 2.0 Client Credentials Flow with certificate credentials as defined in the [Microsoft identity platform application authentication certificate credentials](https://learn.microsoft.com/en-us/entra/identity-platform/certificate-credentials) documentation.
 
@@ -48,11 +48,11 @@ The solution demonstrates API Management calling OAuth-protected backend APIs us
 
 The key difference from the client secret approach is that the certificate provides stronger security through public key cryptography instead of shared secrets.
 
-I've created an Azure Developer CLI (`azd`) template called [Call API Management backend with OAuth](https://github.com/ronaldbosma/call-apim-backend-with-oauth) that demonstrates all three OAuth scenarios. If you want to deploy and try the solution, check out the [getting started section](https://github.com/ronaldbosma/call-apim-backend-with-oauth#getting-started) for the prerequisites and deployment instructions. This post focuses on the certificate-based implementation.
+I've created an Azure Developer CLI (`azd`) template called [Call API Management backend with OAuth](https://github.com/ronaldbosma/call-apim-backend-with-oauth) that demonstrates three scenarios: using the credential manager, a send-request policy with client secret and a send-request policy with client certificate. If you want to deploy and try the solution, check out the [getting started section](https://github.com/ronaldbosma/call-apim-backend-with-oauth#getting-started) for the prerequisites and deployment instructions. This post focuses on calling OAuth-protected backends using the send-request policy with client certificate.
 
 ### Understanding Certificate-Based Authentication
 
-Before diving into the implementation, it's important to understand how certificate-based authentication works with Entra ID. The process involves creating a JWT assertion that proves possession of the private key without transmitting it.
+Before diving into the implementation, it's important to understand how certificate-based authentication works with Entra ID. The process involves creating a JWT assertion that proves possession of the certificate's private key without transmitting it.
 
 Here's what a decoded JWT assertion looks like:
 
@@ -78,7 +78,11 @@ Here's what a decoded JWT assertion looks like:
 The JWT assertion is then used in a form-encoded request to Entra ID:
 
 ```
-scope={scope}&client_id={clientId}&client_assertion={clientAssertion}&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer&grant_type=client_credentials
+scope={scope}
+&client_id={clientId}
+&client_assertion={clientAssertion}
+&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+&grant_type=client_credentials
 ```
 
 Where:
@@ -86,10 +90,7 @@ Where:
 - `clientId`: The "Application (client) ID" of the client app registration  
 - `clientAssertion`: The encoded JWT assertion signed with the certificate's private key
 
-Key points about certificate authentication:
-- **Stronger security**: Certificates provide better security than shared secrets
-- **Private key proof**: The JWT assertion proves possession of the private key without transmitting it
-- **Public key validation**: Entra ID validates the assertion using the public key from the certificate
+Entra ID will validate the assertion using the public key from the certificate and return an access token if the assertion is valid.
 
 ### Implementation
 
@@ -404,8 +405,6 @@ If you execute the request multiple times, you'll notice that the `IssuedAt` val
 The same caching considerations from the previous post apply here. The policy implementation explicitly uses `caching-type="internal"` to ensure tokens are stored in API Management's built-in cache rather than an external cache where they might be accessible to unauthorized users.
 
 Certificate management adds complexity compared to client secrets. You need to handle certificate lifecycle management, including renewal before expiration. However, this complexity is offset by the significantly stronger security that certificates provide.
-
-The JWT assertion approach requires careful implementation of the signing process and Base64Url encoding. The policy includes helper methods to handle these requirements correctly, but you should thoroughly test the implementation to ensure proper JWT creation.
 
 ### Conclusion
 
