@@ -19,7 +19,7 @@ This is the first post in a series about OAuth and API Management where we'll ex
   - [Part 2: In Logic Apps](/blog/2025/09/24/call-oauth-protected-apis-with-managed-identity-from-logic-apps/)
   - [Part 3: In API Management](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/)
 - Calling OAuth-Protected Backends from API Management - *coming later*
-  - Part 1: Using Credential Manager
+  - [Part 1: Using Credential Manager](/blog/2025/10/06/call-oauth-protected-backends-from-api-management-using-credential-manager/)
   - Part 2: Using Send-Request Policy with Client Secret
   - Part 3: Using Send-Request Policy with Client Certificate
 
