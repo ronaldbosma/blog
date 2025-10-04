@@ -75,7 +75,15 @@ Here's what a decoded JWT assertion looks like:
 "A1bC2dE3fH4iJ5kL6mN7oP8qR9sT0u..."
 ```
 
-The JWT assertion is then sent in a form-encoded request to Entra ID:
+The JWT assertion consists of three parts separated by dots (`.`):
+
+The **header** specifies the signing algorithm and certificate information. It uses PS256 for the algorithm (`alg`), JWT for the token type (`typ`), and includes the Base64Url-encoded SHA-256 thumbprint of the certificate in the `x5t#S256` field, which Entra ID uses to validate the signature.
+
+The **claims section** contains the authentication information required by Entra ID. The audience (`aud`) points to Entra ID's token endpoint, while the issuer (`iss`) and subject (`sub`) both contain your client application's ID. The token includes timing claims like expiration time (`exp`) and not before time (`nbf`), with a unique identifier (`jti`) to prevent replay attacks.
+
+The **signature** is computed by signing the Base64Url-encoded header and claims (`header.claims`) with the certificate's private key using PS256 (RSA with PSS padding and SHA-256). This signature proves possession of the private key without transmitting it, providing the cryptographic security that makes certificate-based authentication stronger than shared secrets.
+
+The JWT assertion can be sent to Entra ID in a form-encoded request like this:
 
 ```
 scope={scope}
