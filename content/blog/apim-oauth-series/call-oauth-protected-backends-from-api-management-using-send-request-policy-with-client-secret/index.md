@@ -275,6 +275,8 @@ If you execute the request multiple times, you'll notice that the `IssuedAt` val
 
 While this approach uses client secrets stored securely in Key Vault, certificates are recommended over client secrets for stronger security. The next post in this series will demonstrate how to use certificate-based authentication with JWT assertions, which provides better security since the private key never leaves the client.
 
+The policy implementation explicitly uses `caching-type="internal"` to ensure tokens are stored in API Management's built-in cache. According to the Microsoft [Caching overview](https://learn.microsoft.com/en-us/azure/api-management/caching-overview) documentation: _"By default in caching policies, API Management uses an external cache if configured and falls back to the built-in cache otherwise."_ If you add an external cache like Azure Cache for Redis later, access tokens could potentially be stored there, where users with sufficient permissions might view them. Caching access tokens in an external cache should be a deliberate decision with the security implications carefully considered.
+
 ### Conclusion
 
 The send-request policy approach provides a flexible alternative to API Management's credential manager for calling OAuth-protected backend APIs. The key benefits include:
