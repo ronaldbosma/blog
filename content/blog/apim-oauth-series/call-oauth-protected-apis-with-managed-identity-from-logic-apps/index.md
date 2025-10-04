@@ -16,10 +16,10 @@ This post is part of a series about OAuth and API Management:
   - [Part 1: In .NET (Azure Function)](/blog/2025/09/20/call-oauth-protected-apis-with-managed-identity-from-.net/)
   - **Part 2: In Logic Apps (Standard) - _this post_**
   - [Part 3: In API Management](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/)
-- Calling OAuth-Protected Backends from API Management - *coming later*
-  - Part 1: Using Credential Manager
-  - Part 2: Using Send-Request Policy with Client Secret
-  - Part 3: Using Send-Request Policy with Client Certificate
+- Calling OAuth-Protected Backends from API Management
+  - [Part 1: Using Credential Manager](/blog/2025/10/06/call-oauth-protected-backends-from-api-management-using-credential-manager/)
+  - Part 2: Using Send-Request Policy with Client Secret - *coming soon*
+  - Part 3: Using Send-Request Policy with Client Certificate - *coming soon*
 
 When calling APIs that are protected with OAuth using Entra ID from Azure Logic Apps, using managed identities should always be your first choice when workflows run on Azure resources within the same Entra ID tenant. This eliminates secret management entirely and provides the highest security with the least operational overhead.
 
@@ -161,7 +161,7 @@ Azure Logic Apps Standard provides a clean and straightforward way to call OAuth
 
 This approach works with any OAuth-protected API that supports Entra ID authentication, not just API Management. Whether you're calling Microsoft Graph, custom APIs or third-party services that integrate with Entra ID, the same pattern applies.
 
-The next post in this series will cover how to call OAuth-protected APIs from within API Management policies, completing the three main scenarios for Azure Integration Services.
+The next post in this series will cover how to [call OAuth-protected APIs from within API Management](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/) policies, completing the three main scenarios for Azure Integration Services.
 
 
 
