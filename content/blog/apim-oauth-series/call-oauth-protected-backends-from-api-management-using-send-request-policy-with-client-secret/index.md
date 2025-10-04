@@ -147,6 +147,8 @@ Here's the complete policy implementation from [send-request-with-secret.xml](ht
 </policies>
 ```
 
+**A tip for improving maintainability:** I usually put the logic to retrieve an access token in a [policy fragment](https://learn.microsoft.com/en-us/azure/api-management/policy-fragments). This makes the API or operation policy much easier to read and allows you to reuse the token retrieval logic across multiple APIs or operations.
+
 Let me break down the key steps that the policy executes:
 
 #### Step 1: Cache Lookup
@@ -262,7 +264,7 @@ The flow demonstrates how:
 
 You can test the implementation using the following request. Replace `<your-api-management-service-name>` with the actual name of your API Management service:
 
-```http
+```
 # Operation that will call the protected backend using the send-request policy with a secret
 GET https://<your-api-management-service-name>.azure-api.net/unprotected/send-request-with-secret HTTP/1.1
 ```
