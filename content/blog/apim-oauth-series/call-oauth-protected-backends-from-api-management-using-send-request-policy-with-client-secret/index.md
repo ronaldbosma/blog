@@ -71,7 +71,7 @@ Here's the complete policy implementation from [send-request-with-secret.xml](ht
             <!-- Retrieve new access token from Entra ID if it was not found in the cache. -->
             <when condition="@(!context.Variables.ContainsKey("access-token"))">
                 <send-request mode="new" timeout="20" response-variable-name="get-access-token-response" ignore-error="false">
-                    <set-url>https://login.microsoftonline.com/{{tenant-id}}/oauth2/v2.0/token</set-url>
+                    <set-url>{{oauth-token-url}}</set-url>
                     <set-method>POST</set-method>
                     <set-header name="Content-Type" exists-action="override">
                         <value>application/x-www-form-urlencoded</value>
@@ -165,7 +165,7 @@ If no cached token exists, the policy uses send-request to call the Entra ID tok
 
 ```xml
 <send-request mode="new" timeout="20" response-variable-name="get-access-token-response" ignore-error="false">
-    <set-url>https://login.microsoftonline.com/{{tenant-id}}/oauth2/v2.0/token</set-url>
+    <set-url>{{oauth-token-url}}</set-url>
     <set-method>POST</set-method>
     <set-header name="Content-Type" exists-action="override">
         <value>application/x-www-form-urlencoded</value>
@@ -176,10 +176,10 @@ If no cached token exists, the policy uses send-request to call the Entra ID tok
 
 The policy uses several named values that are configured in API Management:
 
+- `oauth-token-url`: The OAuth 2.0 token endpoint URL (for example, `https://login.microsoftonline.com/{tenant-id}/oauth2/v2.0/token`)
 - `client-id`: The "Application (client) ID" of the client app registration
 - `client-secret`: A reference to a secret in Key Vault that contains the client secret
 - `oauth-scope`: The Application ID URI of the backend's app registration (for example, `api://appreg-oauthbackend-sdc-backend-luolm`)
-- `tenant-id`: The Entra ID tenant identifier
 
 The `ignore-error` attribute is set to false so we can perform detailed error handling and tracing.
 
