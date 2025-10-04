@@ -264,7 +264,7 @@ The flow demonstrates how:
 
 You can test the implementation using the following request. Replace `<your-api-management-service-name>` with the actual name of your API Management service:
 
-```http
+```
 # Operation that will call the protected backend using the send-request policy with a secret
 GET https://<your-api-management-service-name>.azure-api.net/unprotected/send-request-with-secret HTTP/1.1
 ```
