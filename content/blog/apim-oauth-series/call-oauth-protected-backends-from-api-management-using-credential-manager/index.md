@@ -115,7 +115,7 @@ The configuration creates three components:
 1. **Credential Provider**: The main component that defines how to connect to the OAuth provider
    - Uses `identityProvider: 'aad'` which matches 'Azure Active Directory v1' in the portal
    - Configures the client credentials grant flow
-   - Sets the `resourceUri` to the Application ID URI of the backend's app registration
+   - Sets the `resourceUri` to the Application ID URI of the backend's app registration (for example, `api://appreg-oauthbackend-sdc-backend-luolm`)
 
 2. **Client Connection**: Links the provider to specific credentials
    - Contains the client ID and client secret for authentication
