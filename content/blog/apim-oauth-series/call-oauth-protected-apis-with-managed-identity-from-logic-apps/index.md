@@ -16,10 +16,10 @@ This post is part of a series about OAuth and API Management:
   - [Part 1: In .NET (Azure Function)](/blog/2025/09/20/call-oauth-protected-apis-with-managed-identity-from-.net/)
   - **Part 2: In Logic Apps (Standard) - _this post_**
   - [Part 3: In API Management](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/)
-- Calling OAuth-Protected Backends from API Management - *coming later*
+- Calling OAuth-Protected Backends from API Management
   - [Part 1: Using Credential Manager](/blog/2025/10/06/call-oauth-protected-backends-from-api-management-using-credential-manager/)
-  - Part 2: Using Send-Request Policy with Client Secret
-  - Part 3: Using Send-Request Policy with Client Certificate
+  - Part 2: Using Send-Request Policy with Client Secret - *coming soon*
+  - Part 3: Using Send-Request Policy with Client Certificate - *coming soon*
 
 When calling APIs that are protected with OAuth using Entra ID from Azure Logic Apps, using managed identities should always be your first choice when workflows run on Azure resources within the same Entra ID tenant. This eliminates secret management entirely and provides the highest security with the least operational overhead.
 
