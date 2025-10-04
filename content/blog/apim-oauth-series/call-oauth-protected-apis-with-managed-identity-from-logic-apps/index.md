@@ -161,7 +161,7 @@ Azure Logic Apps Standard provides a clean and straightforward way to call OAuth
 
 This approach works with any OAuth-protected API that supports Entra ID authentication, not just API Management. Whether you're calling Microsoft Graph, custom APIs or third-party services that integrate with Entra ID, the same pattern applies.
 
-The next post in this series will cover how to call OAuth-protected APIs from within API Management policies, completing the three main scenarios for Azure Integration Services.
+The next post in this series will cover how to [call OAuth-protected APIs from within API Management](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/) policies, completing the three main scenarios for Azure Integration Services.
 
 
 

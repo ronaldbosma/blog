@@ -327,6 +327,6 @@ Key takeaways from this implementation:
 - Register `TokenCredential` as a singleton to improve performance and enable better token caching
 - Take advantage of HTTP client factory for proper connection management
 
-In the next posts in this series, we'll explore how to call OAuth-protected APIs from Logic Apps and from other API Management APIs using similar managed identity patterns.
+In the next posts in this series, we'll explore how to [call OAuth-protected APIs from Logic Apps](/blog/2025/09/24/call-oauth-protected-apis-with-managed-identity-from-logic-apps/) and [from other API Management APIs](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/) using similar managed identity patterns.
 
 You can find the complete working example in my [call-apim-with-managed-identity](https://github.com/ronaldbosma/call-apim-with-managed-identity) repository, which includes detailed deployment instructions and testing examples for multiple scenarios.
