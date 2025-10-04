@@ -56,6 +56,8 @@ I've created an Azure Developer CLI (`azd`) template called [Call API Management
 
 We're using the BasicV2 tier because the Consumption tier doesn't support caching, which is important for token management.
 
+Now that we've covered the architecture and supporting components, let's walk through how to configure the credential manager and apply it in your API Management policies step by step.
+
 ### Implementation
 
 The credential manager provides a managed solution for handling OAuth authentication in API Management. It consists of three major components: the credential provider, client connections and access policies. Let's look at how to configure each using Bicep.
@@ -115,7 +117,7 @@ The configuration creates three components:
 1. **Credential Provider**: The main component that defines how to connect to the OAuth provider
    - Uses `identityProvider: 'aad'` which matches 'Azure Active Directory v1' in the portal
    - Configures the client credentials grant flow
-   - Sets the `resourceUri` to the Application ID URI of the backend's app registration
+   - Sets the `resourceUri` to the Application ID URI of the backend's app registration (for example, `api://appreg-oauthbackend-sdc-backend-luolm`)
 
 2. **Client Connection**: Links the provider to specific credentials
    - Contains the client ID and client secret for authentication
