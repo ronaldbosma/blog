@@ -8,7 +8,7 @@ summary: "When API Management's credential manager isn't suitable for your OAuth
 draft: true
 ---
 
-In my [previous post](/blog/apim-oauth-series/call-oauth-protected-backends-from-api-management-using-credential-manager/) I showed how to use API Management's credential manager to call OAuth-protected backends. While credential manager provides a managed solution with automatic token handling, it has limitations that can make it unsuitable for certain environments, particularly around IP whitelisting and shared infrastructure dependencies.
+In my [previous post](/blog/apim-oauth-series/call-oauth-protected-backends-from-api-management-using-credential-manager/) I showed how to use API Management's credential manager to call OAuth-protected backends. While credential manager provides a managed solution with automatic token handling, it has limitations that can make it unsuitable for certain environments, like when the Identity Provider has IP whitelisting or when its not available in your region.
 
 In this post, I'll show you how to implement OAuth token handling directly using API Management policies with the [send-request](https://learn.microsoft.com/en-us/azure/api-management/send-request-policy) policy. This approach gives you complete control over the token acquisition process while storing sensitive credentials securely in Azure Key Vault.
 
@@ -34,14 +34,14 @@ This post is part of a series about OAuth and API Management:
 
 ### Solution Overview
 
-The solution demonstrates API Management calling OAuth-protected backend APIs using custom policy implementation with client secret authentication:
+The solution demonstrates API Management calling OAuth-protected backend APIs using a custom policy implementation with client credential flow and client secret authentication:
 
 ![Overview](../../../../../images/apim-oauth-series/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-secret/diagrams-overview-send-request-with-secret.png)
 
 - **Azure API Management** service with two APIs:
   - **Protected Backend API**: A backend API that's protected with OAuth using Entra ID
   - **Unprotected API**: A public API that calls the protected backend using custom token handling
-- **Azure Key Vault**: Stores the client secret securely and provides it to API Management through named values
+- **Azure Key Vault**: Stores the client secret securely and provides it to API Management through a named value
 - **Entra ID App Registrations**: Separate app registrations for the backend API and the client, with proper role assignments
 - **Supporting Resources**: Application Insights and Log Analytics workspace for monitoring
 
@@ -179,7 +179,7 @@ The policy uses several named values that are configured in API Management:
 - `oauth-scope`: The Application ID URI of the backend's app registration (for example, `api://appreg-oauthbackend-sdc-backend-luolm`)
 - `tenant-id`: The Entra ID tenant identifier
 
-Since we need to handle caching ourselves with this approach, the policy includes comprehensive error handling and tracing.
+The `ignore-error` attribute is set to false so we can perform detailed error handling and tracing.
 
 #### Step 3: Token Caching
 
@@ -199,7 +199,7 @@ The policy caches the token for 95% of its lifetime to prevent expiration issues
 
 #### Step 4: Error Handling and Tracing
 
-Unlike credential manager, send-request calls and failures are not automatically logged in Application Insights. The policy includes explicit error tracing:
+Requests made by the send-request policy are not automatically logged in Application Insights. So, when something goes wrong, we need to log this explicitly using the trace policy:
 
 ```xml
 <trace source="getAccessTokenUsingSecret" severity="error">
@@ -216,6 +216,8 @@ Unlike credential manager, send-request calls and failures are not automatically
     }" />
 </trace>
 ```
+
+The code includes null checks for both the response body and status code because the trace policy's metadata values must always have a value. If either is null or an empty string, an exception will be thrown.
 
 When retrieval of the token fails, we return the detailed error response for demo and troubleshooting purposes, which you shouldn't do in real world scenarios.
 
@@ -265,44 +267,22 @@ GET https://<your-api-management-service-name>.azure-api.net/unprotected/send-re
 
 The request should succeed with a 200 OK response, showing that the policy successfully obtained an access token and called the protected backend.
 
-As in the previous blog post, we're returning the used JWT token for demo purposes, which you shouldn't do in real world scenarios.
+For demonstration purposes, the response includes the JWT token. You shouldn't return tokens in production environments, as this can expose sensitive information.
 
 If you execute the request multiple times, you'll notice that the `IssuedAt` value in the response doesn't change initially, showing that the policy caches tokens for improved performance.
 
 ### Considerations
 
-The send-request policy approach provides more control and flexibility compared to credential manager, but it also requires more implementation and maintenance:
-
-#### Benefits
-
-- **No shared infrastructure dependencies**: Token acquisition runs within your API Management instance, avoiding external dependencies on the AzureConnectors service tag
-- **IP whitelisting compatibility**: Since all OAuth calls originate from your API Management service, IP whitelisting requirements are easier to manage
-- **Complete control**: You can customize error handling, caching behavior and logging according to your needs
-- **Debugging capabilities**: Full visibility into token acquisition failures and response details
-
-#### Security Considerations
-
 While this approach uses client secrets stored securely in Key Vault, certificates are recommended over client secrets for stronger security. The next post in this series will demonstrate how to use certificate-based authentication with JWT assertions, which provides better security since the private key never leaves the client.
-
-#### Implementation Complexity
-
-Compared to credential manager, this approach requires you to:
-- Handle token caching manually using API Management's cache policies  
-- Implement comprehensive error handling and tracing
-- Manage token expiration and refresh logic
-- Configure Key Vault integration for secure credential storage
-
-However, this complexity provides the flexibility to handle scenarios where credential manager's limitations make it unsuitable.
 
 ### Conclusion
 
 The send-request policy approach provides a flexible alternative to API Management's credential manager for calling OAuth-protected backend APIs. The key benefits include:
 
 - **Complete control**: Full customization of token acquisition, caching and error handling
-- **No shared infrastructure dependencies**: All processing happens within your API Management instance
+- **No shared infrastructure dependencies**: All processing happens within your API Management instance, and when deployed in a VNET, you don't need to whitelist the AzureConnectors service tag
 - **IP whitelisting compatibility**: OAuth calls originate from your API Management service, making IP restrictions easier to manage
-- **Enhanced debugging**: Full visibility into token acquisition processes and failures
 
-While this approach requires more implementation effort compared to credential manager, it provides the flexibility needed when credential manager's limitations around shared infrastructure or IP whitelisting make it unsuitable for your environment.
+While this approach requires more implementation effort compared to credential manager, it provides the flexibility needed when credential manager's limitations make it unsuitable for your environment.
 
 The solution demonstrates secure credential storage using Key Vault integration, comprehensive caching for performance and detailed error handling for troubleshooting. In the next post, I'll show how to enhance security further by using certificate-based authentication instead of client secrets.
