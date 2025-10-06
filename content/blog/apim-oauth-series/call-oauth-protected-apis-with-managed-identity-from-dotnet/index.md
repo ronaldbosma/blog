@@ -16,10 +16,10 @@ This post is part of a series about OAuth and API Management:
   - **Part 1: In .NET (Azure Function) - _this post_**
   - [Part 2: In Logic Apps](/blog/2025/09/24/call-oauth-protected-apis-with-managed-identity-from-logic-apps/)
   - [Part 3: In API Management](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/)
-- Calling OAuth-Protected Backends from API Management - *coming later*
-  - Part 1: Using Credential Manager
-  - Part 2: Using Send-Request Policy with Client Secret
-  - Part 3: Using Send-Request Policy with Client Certificate
+- Calling OAuth-Protected Backends from API Management
+  - [Part 1: Using Credential Manager](/blog/2025/10/06/call-oauth-protected-backends-from-api-management-using-credential-manager/)
+  - Part 2: Using Send-Request Policy with Client Secret - *coming soon*
+  - Part 3: Using Send-Request Policy with Client Certificate - *coming soon*
 
 When calling APIs that are protected with OAuth using Entra ID, using managed identities should always be your first choice when clients run on Azure resources within the same Entra ID tenant. This eliminates secret management entirely and provides the highest security with the least operational overhead.
 
@@ -327,6 +327,6 @@ Key takeaways from this implementation:
 - Register `TokenCredential` as a singleton to improve performance and enable better token caching
 - Take advantage of HTTP client factory for proper connection management
 
-In the next posts in this series, we'll explore how to call OAuth-protected APIs from Logic Apps and from other API Management APIs using similar managed identity patterns.
+In the next posts in this series, we'll explore how to [call OAuth-protected APIs from Logic Apps](/blog/2025/09/24/call-oauth-protected-apis-with-managed-identity-from-logic-apps/) and [from other API Management APIs](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/) using similar managed identity patterns.
 
 You can find the complete working example in my [call-apim-with-managed-identity](https://github.com/ronaldbosma/call-apim-with-managed-identity) repository, which includes detailed deployment instructions and testing examples for multiple scenarios.

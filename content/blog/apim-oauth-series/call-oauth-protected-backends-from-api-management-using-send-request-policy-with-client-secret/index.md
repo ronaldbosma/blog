@@ -8,7 +8,7 @@ summary: "When API Management's credential manager isn't suitable for your OAuth
 draft: true
 ---
 
-In my [previous post](/blog/apim-oauth-series/call-oauth-protected-backends-from-api-management-using-credential-manager/) I showed how to use API Management's credential manager to call OAuth-protected backends. While the credential manager offers managed token handling, it’s not always suitable. For example, when your Identity Provider enforces IP whitelisting or isn't available in your region.
+In my [previous post](/blog/2025/10/06/call-oauth-protected-backends-from-api-management-using-credential-manager/) I showed how to use API Management's credential manager to call OAuth-protected backends. While the credential manager offers managed token handling, it’s not always suitable. For example, when your Identity Provider enforces IP whitelisting or isn't available in your region.
 
 In this post, I'll show you how to implement OAuth token handling directly using API Management policies with the [send-request](https://learn.microsoft.com/en-us/azure/api-management/send-request-policy) policy. This approach gives you complete control over the token acquisition process while storing sensitive credentials securely in Azure Key Vault.
 
@@ -20,7 +20,7 @@ This post is part of a series about OAuth and API Management:
   - [Part 2: In Logic Apps](/blog/2025/09/24/call-oauth-protected-apis-with-managed-identity-from-logic-apps/)
   - [Part 3: In API Management](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/)
 - Calling OAuth-Protected Backends from API Management
-  - [Part 1: Using Credential Manager](/blog/apim-oauth-series/call-oauth-protected-backends-from-api-management-using-credential-manager/)
+  - [Part 1: Using Credential Manager](/blog/2025/10/06/call-oauth-protected-backends-from-api-management-using-credential-manager/)
   - **Part 2: Using Send-Request Policy with Client Secret - _this post_**
   - Part 3: Using Send-Request Policy with Client Certificate - *coming soon*
 

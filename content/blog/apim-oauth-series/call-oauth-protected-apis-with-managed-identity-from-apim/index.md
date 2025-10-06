@@ -16,10 +16,10 @@ This post is part of a series about OAuth and API Management:
   - [Part 1: In .NET (Azure Function)](/blog/2025/09/20/call-oauth-protected-apis-with-managed-identity-from-.net/)
   - [Part 2: In Logic Apps (Standard)](/blog/2025/09/24/call-oauth-protected-apis-with-managed-identity-from-logic-apps/)
   - **Part 3: In API Management - _this post_**
-- Calling OAuth-Protected Backends from API Management - *coming later*
-  - Part 1: Using Credential Manager
-  - Part 2: Using Send-Request Policy with Client Secret
-  - Part 3: Using Send-Request Policy with Client Certificate
+- Calling OAuth-Protected Backends from API Management
+  - [Part 1: Using Credential Manager](/blog/2025/10/06/call-oauth-protected-backends-from-api-management-using-credential-manager/)
+  - Part 2: Using Send-Request Policy with Client Secret - *coming soon*
+  - Part 3: Using Send-Request Policy with Client Certificate - *coming soon*
 
 API Management provides several use cases for calling OAuth-protected APIs with managed identity. For example:
 
