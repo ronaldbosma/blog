@@ -257,4 +257,4 @@ Deploying an Azure Workbook is fairly straightforward. Placing the workbook JSON
 
 Deploying a shared function in Application Insights is poorly supported, however. Using Bicep seems to be a no go at the moment. An alternative is to use the REST API. Hopefully the support will improve in the future.
 
-_If you know a better or more elegant way to deploy a shared function. Hit me up on [Twitter](https://twitter.com/ronaldbosma1) or [LinkedIn](https://linkedin.com/in/ronald-bosma-1346a64)._
+_If you know a better or more elegant way to deploy a shared function. Hit me up on [LinkedIn](https://linkedin.com/in/ronald-bosma)._
