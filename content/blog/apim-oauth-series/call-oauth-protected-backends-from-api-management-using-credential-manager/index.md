@@ -22,7 +22,7 @@ This post is part of a series about OAuth and API Management:
   - [Part 3: In API Management](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/)
 - Calling OAuth-Protected Backends from API Management
   - **Part 1: Using Credential Manager - _this post_**
-  - Part 2: Using Send-Request Policy with Client Secret - *coming soon*
+  - [Part 2: Using Send-Request Policy with Client Secret](/blog/2025/10/13/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-secret/)
   - Part 3: Using Send-Request Policy with Client Certificate - *coming soon*
 
 ### Table of Contents

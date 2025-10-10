@@ -8,7 +8,7 @@ summary: "Learn how to implement certificate-based OAuth authentication in API M
 draft: true
 ---
 
-In my [previous post](/blog/apim-oauth-series/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-secret/) I showed how to call OAuth-protected backends using the [send-request](https://learn.microsoft.com/en-us/azure/api-management/send-request-policy) policy with client secrets. While client secrets work well, certificates provide stronger security by proving possession of a private key without ever transmitting it.
+In my [previous post](/blog/2025/10/13/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-secret/) I showed how to call OAuth-protected backends using the [send-request](https://learn.microsoft.com/en-us/azure/api-management/send-request-policy) policy with client secrets. While client secrets work well, certificates provide stronger security by proving possession of a private key without ever transmitting it.
 
 In this post, I'll show you how to implement certificate-based OAuth authentication in API Management using the OAuth 2.0 Client Credentials Flow. We'll use a client certificate to create a JWT assertion, which proves possession of the private key and enables secure access to protected backends.
 
@@ -21,7 +21,7 @@ This post is part of a series about OAuth and API Management:
   - [Part 3: In API Management](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/)
 - Calling OAuth-Protected Backends from API Management
   - [Part 1: Using Credential Manager](/blog/2025/10/06/call-oauth-protected-backends-from-api-management-using-credential-manager/)
-  - [Part 2: Using Send-Request Policy with Client Secret](/blog/apim-oauth-series/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-secret/)
+  - [Part 2: Using Send-Request Policy with Client Secret](/blog/2025/10/13/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-secret/)
   - **Part 3: Using Send-Request Policy with Client Certificate - _this post_**
 
 ### Table of Contents
