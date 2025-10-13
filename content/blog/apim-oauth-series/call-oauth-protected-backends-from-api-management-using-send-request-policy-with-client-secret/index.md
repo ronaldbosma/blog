@@ -11,6 +11,8 @@ In my [previous post](/blog/2025/10/06/call-oauth-protected-backends-from-api-ma
 
 In this post, I'll show you how to implement OAuth token handling directly using API Management policies with the [send-request](https://learn.microsoft.com/en-us/azure/api-management/send-request-policy) policy. This approach gives you complete control over the token acquisition process while storing sensitive credentials securely in Azure Key Vault.
 
+> If you can, use a managed identity to call OAuth-protected APIs from API Management. Have a look at [this post](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/) for more information.
+
 This post is part of a series about OAuth and API Management:
 
 - [Protect APIs in Azure API Management with OAuth](/blog/2025/09/16/protect-apis-in-azure-api-management-with-oauth/)

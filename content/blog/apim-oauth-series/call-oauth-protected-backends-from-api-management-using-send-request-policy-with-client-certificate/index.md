@@ -12,6 +12,8 @@ In my [previous post](/blog/2025/10/13/call-oauth-protected-backends-from-api-ma
 
 In this post, I'll show you how to implement certificate-based OAuth authentication in API Management using the OAuth 2.0 Client Credentials Flow. We'll use a client certificate to create a JWT assertion, which proves possession of the private key and enables secure access to protected backends.
 
+> If you can, use a managed identity to call OAuth-protected APIs from API Management. Have a look at [this post](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/) for more information.
+
 This post is part of a series about OAuth and API Management:
 
 - [Protect APIs in Azure API Management with OAuth](/blog/2025/09/16/protect-apis-in-azure-api-management-with-oauth/)
