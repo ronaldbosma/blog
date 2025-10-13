@@ -1,11 +1,10 @@
 ---
 title: "Call OAuth-Protected Backends from API Management using Send-Request Policy with Client Secret"
-date: 2025-10-04T10:00:00+02:00
-publishdate: 2025-10-04T10:00:00+02:00
-lastmod: 2025-10-04T10:00:00+02:00
+date: 2025-10-13T16:00:00+02:00
+publishdate: 2025-10-13T16:00:00+02:00
+lastmod: 2025-10-13T16:00:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "OAuth" ]
 summary: "When API Management's credential manager isn't suitable for your OAuth scenarios, you can implement token handling directly using policies. In this post, I show how to call OAuth-protected backends using the send-request policy with Client Credentials Flow and a client secret stored in Key Vault."
-draft: true
 ---
 
 In my [previous post](/blog/2025/10/06/call-oauth-protected-backends-from-api-management-using-credential-manager/) I showed how to use API Management's credential manager to call OAuth-protected backends. While the credential manager offers managed token handling, it’s not always suitable. For example, when your Identity Provider enforces IP whitelisting or isn't available in your region.
@@ -289,6 +288,4 @@ The send-request policy approach provides a flexible alternative to API Manageme
 - **No shared infrastructure dependencies**: All processing happens within your API Management instance, and when deployed in a VNET, you don't need to whitelist the AzureConnectors service tag
 - **IP whitelisting compatibility**: OAuth calls originate from your API Management service, making IP restrictions easier to manage
 
-While this approach requires more implementation effort compared to credential manager, it provides the flexibility needed when credential manager's limitations make it unsuitable for your environment.
-
-The solution demonstrates secure credential storage using Key Vault integration, comprehensive caching for performance and detailed error handling for troubleshooting. In the next post, we'll take this approach a step further by replacing the client secret with a client certificate for even stronger security.
+Although this approach involves more implementation effort than using the credential manager, it gives you the flexibility needed when the credential manager's limitations don't fit your requirements. In the next post, I'll take this a step further by replacing the client secret with a client certificate for even stronger security.

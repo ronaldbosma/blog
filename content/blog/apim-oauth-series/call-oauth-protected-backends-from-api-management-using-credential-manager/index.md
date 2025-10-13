@@ -22,7 +22,7 @@ This post is part of a series about OAuth and API Management:
   - [Part 3: In API Management](/blog/2025/09/29/call-oauth-protected-apis-with-managed-identity-from-api-management/)
 - Calling OAuth-Protected Backends from API Management
   - **Part 1: Using Credential Manager - _this post_**
-  - Part 2: Using Send-Request Policy with Client Secret - *coming soon*
+  - [Part 2: Using Send-Request Policy with Client Secret](/blog/2025/10/13/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-secret/)
   - Part 3: Using Send-Request Policy with Client Certificate - *coming soon*
 
 ### Table of Contents
@@ -239,4 +239,4 @@ However, the solution has several limitations that may make it unsuitable for ce
 - **Shared infrastructure dependencies**: The token management service runs outside your API Management instance and requires connectivity to the AzureConnectors service tag, which can create challenges for strict IP whitelisting requirements
 - **Authentication method restrictions**: Only client secret authentication is supported; certificate-based authentication with JWT assertions is not available
 
-When the credential manager doesn't meet your requirements due to these constraints or availability limitations, you can implement OAuth token handling directly in your policies using the send-request approach, which I'll demonstrate in upcoming posts.
+When the credential manager doesn't meet your requirements due to these constraints or availability limitations, you can implement OAuth token handling directly in your policies using the send-request policy, which I'll demonstrate in upcoming posts.
