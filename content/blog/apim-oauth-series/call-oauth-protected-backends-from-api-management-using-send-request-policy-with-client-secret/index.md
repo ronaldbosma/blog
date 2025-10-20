@@ -23,7 +23,8 @@ This post is part of a series about OAuth and API Management:
 - Calling OAuth-Protected Backends from API Management
   - [Part 1: Using Credential Manager](/blog/2025/10/06/call-oauth-protected-backends-from-api-management-using-credential-manager/)
   - **Part 2: Using Send-Request Policy with Client Secret - _this post_**
-  - Part 3: Using Send-Request Policy with Client Certificate - *coming soon*
+  - [Part 3: Using Send-Request Policy with Client Certificate](/blog/2025/10/20/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-certificate/)
+- Calling OAuth-Protected APIs from CI/CD Pipelines using Federated Credentials - *coming soon*
 
 ### Table of Contents
 
@@ -290,4 +291,4 @@ The send-request policy approach provides a flexible alternative to API Manageme
 - **No shared infrastructure dependencies**: All processing happens within your API Management instance, and when deployed in a VNET, you don't need to whitelist the AzureConnectors service tag
 - **IP whitelisting compatibility**: OAuth calls originate from your API Management service, making IP restrictions easier to manage
 
-Although this approach involves more implementation effort than using the credential manager, it gives you the flexibility needed when the credential manager's limitations don't fit your requirements. In the next post, I'll take this a step further by replacing the client secret with a client certificate for even stronger security.
+Although this approach involves more implementation effort than using the credential manager, it gives you the flexibility needed when the credential manager's limitations don't fit your requirements. In the [next post](/blog/2025/10/20/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-certificate/), I'll take this a step further by replacing the client secret with a client certificate for even stronger security.

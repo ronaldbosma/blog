@@ -1,11 +1,10 @@
 ---
 title: "Call OAuth-Protected Backends from API Management using Send-Request Policy with Client Certificate"
-date: 2025-10-04T15:30:00+02:00
-publishdate: 2025-10-04T15:30:00+02:00
-lastmod: 2025-10-04T15:30:00+02:00
+date: 2025-10-20T16:00:00+02:00
+publishdate: 2025-10-20T16:00:00+02:00
+lastmod: 2025-10-20T16:00:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "OAuth" ]
 summary: "Learn how to implement certificate-based OAuth authentication in API Management using JWT assertions and the send-request policy. This approach provides stronger security than client secrets by proving possession of a private key without transmitting it."
-draft: true
 ---
 
 In my [previous post](/blog/2025/10/13/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-secret/) I showed how to call OAuth-protected backends using the [send-request](https://learn.microsoft.com/en-us/azure/api-management/send-request-policy) policy with client secrets. While client secrets work well, certificates provide stronger security by proving possession of a private key without ever transmitting it.
@@ -25,6 +24,7 @@ This post is part of a series about OAuth and API Management:
   - [Part 1: Using Credential Manager](/blog/2025/10/06/call-oauth-protected-backends-from-api-management-using-credential-manager/)
   - [Part 2: Using Send-Request Policy with Client Secret](/blog/2025/10/13/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-secret/)
   - **Part 3: Using Send-Request Policy with Client Certificate - _this post_**
+- Calling OAuth-Protected APIs from CI/CD Pipelines using Federated Credentials - *coming soon*
 
 ### Table of Contents
 
