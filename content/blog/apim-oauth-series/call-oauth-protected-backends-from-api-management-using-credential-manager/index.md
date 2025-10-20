@@ -24,6 +24,7 @@ This post is part of a series about OAuth and API Management:
   - **Part 1: Using Credential Manager - _this post_**
   - [Part 2: Using Send-Request Policy with Client Secret](/blog/2025/10/13/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-secret/)
   - [Part 3: Using Send-Request Policy with Client Certificate](/blog/2025/10/20/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-certificate/)
+- Calling OAuth-Protected APIs from CI/CD Pipelines using Federated Credentials - *coming soon*
 
 ### Table of Contents
 
