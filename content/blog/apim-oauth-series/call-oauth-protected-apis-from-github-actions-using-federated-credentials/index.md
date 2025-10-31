@@ -30,7 +30,6 @@ This post is part of a series about OAuth and API Management:
 ### Table of Contents
 
 - [Solution Overview](#solution-overview)
-- [Prerequisites](#prerequisites)
 - [Setting Up Federated Credentials](#setting-up-federated-credentials)
 - [Granting API Access to the Principal](#granting-api-access-to-the-principal)
 - [Creating Integration Tests](#creating-integration-tests)
@@ -61,15 +60,6 @@ The implementation is fairly straightforward with four main steps:
 4. In the workflow: Log into Azure with Azure CLI using the federated credentials and execute tests
 
 I've created an Azure Developer CLI (`azd`) template called [Call API Management with Managed Identity](https://github.com/ronaldbosma/call-apim-with-managed-identity) that demonstrates several scenarios related to managed identities and OAuth. If you want to deploy and try the solution, check out the [getting started section](https://github.com/ronaldbosma/call-apim-with-managed-identity#getting-started) for the prerequisites and deployment instructions. This post focuses on calling OAuth-protected APIs from GitHub Actions using federated credentials.
-
-### Prerequisites
-
-Before implementing this solution, you'll need:
-
-- An Azure subscription with appropriate permissions to create resources
-- A GitHub repository with Actions enabled
-- Basic familiarity with OAuth, Entra ID app registrations and GitHub Actions workflows
-- .NET SDK for creating integration tests
 
 ### Setting Up Federated Credentials
 
