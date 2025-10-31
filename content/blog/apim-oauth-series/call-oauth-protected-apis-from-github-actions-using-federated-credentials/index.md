@@ -3,7 +3,7 @@ title: "Call OAuth-Protected APIs from GitHub Actions Using Federated Credential
 date: 2025-10-31T12:00:00+01:00
 publishdate: 2025-10-31T12:00:00+01:00
 lastmod: 2025-10-31T12:00:00+01:00
-tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "GitHub Actions", "OAuth", "CI/CD", "Integration Testing" ]
+tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "GitHub Actions", "OAuth" ]
 summary: "Learn how to execute automated integration tests against OAuth-protected APIs from GitHub Actions workflows using federated credentials. This enables secure API testing without managing secrets in your CI/CD pipeline."
 draft: true
 ---
