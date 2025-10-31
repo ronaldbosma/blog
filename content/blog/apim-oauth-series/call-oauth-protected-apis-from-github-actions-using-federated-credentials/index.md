@@ -10,7 +10,7 @@ draft: true
 
 When I build APIs, I like to execute automated integration tests from my pipeline after deployment. When the APIs are protected with OAuth, we need a way to retrieve a valid JWT token when calling them from a test. In this post, I'll show how to do this from a GitHub Actions workflow using federated credentials.
 
-This approach works for any OAuth-protected API with Entra ID, whether it's deployed in API Management or elsewhere. The tests are written in .NET and use the Azure Identity library for authentication.
+This approach works for any OAuth-protected API with Entra ID, whether deployed in API Management or elsewhere. The tests are written in .NET and use the Azure Identity library for authentication.
 
 This post is part of a series about OAuth and API Management:
 
@@ -53,7 +53,7 @@ The Entra ID configuration follows the same pattern described in [Protect APIs i
 
 ![Integration Test Flow](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-github-actions-using-federated-credentials/diagrams-integration-tests-to-apim.png)
 
-The implementation is fairly straightforward with four main steps:
+The implementation is straightforward with four main steps:
 1. Setup OIDC with federated credentials for GitHub actions (managed identity or app registration)
 2. Grant the principal app roles on the API
 3. Create integration tests using Azure Identity library to authenticate with Azure CLI credentials
@@ -131,7 +131,7 @@ The code uses a `ChainedTokenCredential` that tries both Azure CLI and Azure Dev
 
 The `TokenRequestContext` specifies the scope for the token request. This should be the 'Application ID URI' of the app registration representing the protected API. Make sure to include the `/.default` suffix. Without it, retrieving a token with `AzureDeveloperCliCredential` will fail.
 
-The retrieved token is then used in the `Authorization` header of the HTTP request to call the protected API.
+The retrieved token is used in the `Authorization` header of the HTTP request to call the protected API.
 
 ### Executing Tests in GitHub Actions
 
@@ -190,7 +190,7 @@ After the Azure CLI login step, the integration tests can use the `AzureCliCrede
 
 ### Supporting Local Development
 
-You don't only want to execute these integration tests from a pipeline but also locally when you're writing them. When running tests locally, the Azure CLI or Azure Developer CLI will use your user credentials. However, with the setup we've used so far, retrieving a token will fail because it only works for service principals using the client credential flow.
+You don't just want to run these integration tests from a pipeline, but also locally while developing them. When running tests locally, the Azure CLI or Azure Developer CLI will use your user credentials. However, with the setup we've used so far, retrieving a token will fail because it only works for service principals using the client credential flow.
 
 To support local development, we need to add a scope to the app registration that represents the API. In Bicep, we can use the `oauth2PermissionScopes` property of the [Microsoft.Graph/application](https://learn.microsoft.com/en-us/graph/templates/bicep/reference/applications?view=graph-bicep-1.0) resource:
 
@@ -224,11 +224,11 @@ Once deployed, you can see the new scope in the 'Expose an API' screen of the ap
 
 ![API Registration Scopes](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-github-actions-using-federated-credentials/app-registration-scopes.png)
 
-We also need to ensure that the Azure CLI is granted permission to retrieve tokens on behalf of the user. You can add the Azure CLI to the 'Authorized client applications' of the app registration in the 'Expose an API' screen. Authorizing a client application indicates that this API trusts the application and users should not be asked to consent when the client calls this API.
+We also need to ensure that the Azure CLI is granted permission to retrieve tokens on behalf of the user. You can add the Azure CLI to the 'Authorized client applications' section of the app registration in the 'Expose an API' screen. Authorizing a client application indicates that this API trusts the application and users should not be asked to consent when the client calls this API.
 
 ![Authorized Client Applications](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-github-actions-using-federated-credentials/app-registration-authorized-client-applications.png)
 
-I attempted to configure this through Bicep by setting the `preAuthorizedApplications` property on the `Microsoft.Graph/applications` resource shown earlier. However, this failed because the delegated permission couldn't be found since the `oauth2PermissionScopes` is created at the same time.
+I tried to configure this through Bicep by setting the `preAuthorizedApplications` property on the `Microsoft.Graph/applications` resource. However, this failed because the delegated permission couldn't be found, since the `oauth2PermissionScopes` is created at the same time.
 
 Instead, I'm using the [Microsoft.Graph/oauth2PermissionGrants](https://learn.microsoft.com/en-us/graph/templates/bicep/reference/oauth2permissiongrants?view=graph-bicep-1.0) resource:
 
@@ -264,11 +264,11 @@ After the service principal is created for the Azure CLI, it can be found under 
 
 ### Considerations
 
-There are several important considerations when implementing this approach:
+There are several considerations when implementing this approach:
 
 **User API Access**: You might not want to allow users to call your APIs if this isn't necessary for your application. Consider making it optional and only allowing it in development environments so developers can create and test their integration tests from their local machines. Don't allow it in other environments unless required. The azd template used in this blog post has a parameter called `allowApiAccessForUsers` that is used to conditionally deploy the resources required to allow users access to the API.
 
-**Credential Separation**: In my azd template, I'm using the same service principal to deploy the resources to Azure and to execute the integration tests for convenience. In a real-world scenario, you might want to separate these into different credentials to follow the principle of least privilege: one for deploying resources and one used in integration tests.
+**Credential Separation**: In my azd template, I'm using the same service principal to deploy the resources to Azure and to execute the integration tests for convenience. In a real-world scenario, you might want to separate these into different credentials to follow the principle of least privilege. Use one for deploying resources and another for integration tests.
 
 ### Conclusion
 
