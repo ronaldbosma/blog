@@ -59,32 +59,32 @@ The implementation is fairly straightforward with four main steps:
 3. Create integration tests using Azure Identity library to authenticate with Azure CLI credentials
 4. In the workflow: Log into Azure with Azure CLI using the federated credentials and execute tests
 
-I've created an Azure Developer CLI (`azd`) template called [Call API Management with Managed Identity](https://github.com/ronaldbosma/call-apim-with-managed-identity) that demonstrates several scenarios related to managed identities and OAuth. If you want to deploy and try the solution, check out the [getting started section](https://github.com/ronaldbosma/call-apim-with-managed-identity#getting-started) for the prerequisites and deployment instructions. This post focuses on calling OAuth-protected APIs from GitHub Actions using federated credentials.
+I've created an Azure Developer CLI (`azd`) template called [Call API Management with Managed Identity](https://github.com/ronaldbosma/call-apim-with-managed-identity) that demonstrates several scenarios related to calling OAuth-Protected APIs with managed identities. If you want to deploy and try the solution, check out the [getting started section](https://github.com/ronaldbosma/call-apim-with-managed-identity#getting-started) for the prerequisites and deployment instructions. This post focuses on calling OAuth-protected APIs from GitHub Actions using federated credentials.
 
 ### Setting Up Federated Credentials
 
-In order to connect to Azure using OpenID Connect (OIDC), a Microsoft Entra application or managed identity with federated identity credentials needs to be set up.
+In order to connect from GitHub Actions to Azure using OpenID Connect (OIDC), a Microsoft Entra application or managed identity with federated identity credentials needs to be set up.
 
-You can configure this manually by following [Use the Azure Login action with OpenID Connect](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect). However, if you're using the Azure Developer CLI template, you can follow the instructions in [Setting Up the Pipeline](https://github.com/ronaldbosma/call-apim-with-managed-identity?tab=readme-ov-file#setting-up-the-pipeline) which automates this process.
+You can configure this manually by following [Use the Azure Login action with OpenID Connect](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect). However, if you're using the Azure Developer CLI, you can follow the instructions in [Setting Up the Pipeline](https://github.com/ronaldbosma/call-apim-with-managed-identity?tab=readme-ov-file#setting-up-the-pipeline) which simplifies this process.
 
 The sample template deploys resources in Entra ID. When using the same principal for deployment and integration tests, make sure to follow the instructions on [Setting Up the Pipeline](https://github.com/ronaldbosma/call-apim-with-managed-identity?tab=readme-ov-file#setting-up-the-pipeline) to select the right type of principal and configure the necessary permissions.
 
 ### Granting API Access to the Principal
 
-Once you have the federated credentials configured, you need to grant the principal app roles on the app registration that represents your protected API. This is exactly the same process as when assigning roles to a client app registration or managed identity.
+Once you have the federated credentials configured, the principal needs to be assigned app roles from the app registration that represents your protected API. This is exactly the same process as we've used in previous posts of this series when assigning roles to a client app registration or managed identity.
 
 Here's how to do this with Bicep:
 
 ```bicep
 resource assignSampleReadToValidClient 'Microsoft.Graph/appRoleAssignedTo@v1.0' = {
-  resourceId: apiServicePrincipal.id
+  resourceId: apimServicePrincipal.id
   appRoleId: appRoleId
   principalId: pipelineServicePrincipal.id
 }
 ```
 
 Properties explained:
-- `resourceId`: The ID of the service principal that represents the API (the resource being accessed)
+- `resourceId`: The ID of the service principal that represents the protected API (the resource being accessed)
 - `appRoleId`: The ID of the specific app role being granted (e.g. Sample.Read or Sample.Write)
 - `principalId`: The ID of the service principal that's being granted the role (the GitHub Actions principal)
 
@@ -107,11 +107,15 @@ public async Task GetAsync_PipelineHasSufficientPermissionsToCallProtected_200Ok
     };
 
     // Create token credential that uses either the Azure CLI or Azure Developer CLI credentials
-    var tokenCredential = new ChainedTokenCredential(new AzureCliCredential(), new AzureDeveloperCliCredential());
+    var tokenCredential = new ChainedTokenCredential(
+        new AzureCliCredential(), 
+        new AzureDeveloperCliCredential());
     
     // Retrieve JWT access token and use it in the Authorization header
-    var tokenResult = await tokenCredential.GetTokenAsync(new TokenRequestContext(["<application-id-uri>/.default"]));
-    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenResult.Token);
+    var tokenResult = await tokenCredential.GetTokenAsync(
+        new TokenRequestContext(["<application-id-uri>/.default"]));
+    httpClient.DefaultRequestHeaders.Authorization = 
+        new AuthenticationHeaderValue("Bearer", tokenResult.Token);
     
     // Act
     var response = await httpClient.GetAsync("protected");
@@ -224,7 +228,7 @@ We also need to ensure that the Azure CLI is granted permission to retrieve toke
 
 ![Authorized Client Applications](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-github-actions-using-federated-credentials/app-registration-authorized-client-applications.png)
 
-I attempted to configure this by setting the `preAuthorizedApplications` property on the `Microsoft.Graph/applications` resource. However, this failed because the delegated permission couldn't be found since the `oauth2PermissionScopes` is created at the same time because their on the same resource.
+I attempted to configure this through Bicep by setting the `preAuthorizedApplications` property on the `Microsoft.Graph/applications` resource shown earlier. However, this failed because the delegated permission couldn't be found since the `oauth2PermissionScopes` is created at the same time.
 
 Instead, I'm using the [Microsoft.Graph/oauth2PermissionGrants](https://learn.microsoft.com/en-us/graph/templates/bicep/reference/oauth2permissiongrants?view=graph-bicep-1.0) resource:
 
@@ -262,7 +266,7 @@ After the service principal is created for the Azure CLI, it can be found under 
 
 There are several important considerations when implementing this approach:
 
-**User API Access**: You might not want to allow users to call your APIs if this isn't necessary for your application. Consider making it optional and only allowing it in development environments so developers can create and test their integration tests from their local machines. Don't allow it in other environments unless required. The azd template used in this blog post has a parameter called `allowApiAccessForUsers` that implements this approach.
+**User API Access**: You might not want to allow users to call your APIs if this isn't necessary for your application. Consider making it optional and only allowing it in development environments so developers can create and test their integration tests from their local machines. Don't allow it in other environments unless required. The azd template used in this blog post has a parameter called `allowApiAccessForUsers` that is used to conditionally deploy the resources required to allow users access to the API.
 
 **Credential Separation**: In my azd template, I'm using the same service principal to deploy the resources to Azure and to execute the integration tests for convenience. In a real-world scenario, you might want to separate these into different credentials to follow the principle of least privilege: one for deploying resources and one used in integration tests.
 
@@ -276,4 +280,4 @@ The key benefits of this approach include:
 - **Secure authentication**: OIDC provides a secure, industry-standard way to authenticate with Azure
 - **Local development support**: With proper configuration, developers can run the same tests locally using their user credentials
 
-For teams building APIs with OAuth protection, this pattern provides a robust foundation for automated testing that scales from development to production environments.
+For teams building APIs with OAuth protection, this pattern provides a robust foundation for automated testing.
