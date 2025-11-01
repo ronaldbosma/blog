@@ -46,6 +46,8 @@ The solution demonstrates how to execute integration tests against OAuth-protect
 - **Integration Tests**: .NET tests that authenticate using Azure CLI credentials and call the protected API
 - **Entra ID App Registration**: Represents the protected APIs and defines available app roles
 
+While this example uses an API on API Management, the same approach applies when calling any other API protected with OAuth using Entra ID.
+
 The Entra ID configuration follows the same pattern described in [Protect APIs in Azure API Management with OAuth](/blog/2025/09/16/protect-apis-in-azure-api-management-with-oauth/). The key difference is that we assign the `Sample.Read` and `Sample.Write` app roles to the GitHub Actions principal in Azure instead of client app registrations. 
 
 The tests are written in .NET and use the Azure Identity library for authentication. They can use the pipeline principal to obtain a valid JWT token for API calls:
