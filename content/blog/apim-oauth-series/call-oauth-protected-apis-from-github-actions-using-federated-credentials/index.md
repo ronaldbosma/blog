@@ -9,8 +9,6 @@ summary: "Learn how to execute automated integration tests against OAuth-protect
 
 When I build APIs, I like to execute automated integration tests from my pipeline after deployment. When the APIs are protected with OAuth, we need a way to retrieve a valid JWT token when calling them from a test. In this post, I'll show how to do this from a GitHub Actions workflow using federated credentials.
 
-This approach works for any OAuth-protected API with Entra ID, whether deployed in API Management or elsewhere. The tests are written in .NET and use the Azure Identity library for authentication.
-
 This post is part of a series about OAuth and API Management:
 
 - [Protect APIs in Azure API Management with OAuth](/blog/2025/09/16/protect-apis-in-azure-api-management-with-oauth/)
@@ -48,7 +46,9 @@ The solution demonstrates how to execute integration tests against OAuth-protect
 - **Integration Tests**: .NET tests that authenticate using Azure CLI credentials and call the protected API
 - **Entra ID App Registration**: Represents the protected APIs and defines available app roles
 
-The Entra ID configuration follows the same pattern described in [Protect APIs in Azure API Management with OAuth](/blog/2025/09/16/protect-apis-in-azure-api-management-with-oauth/). The key difference is that we assign the `Sample.Read` and `Sample.Write` app roles to the GitHub Actions principal in Azure instead of client app registrations. The integration tests can then use the principal to obtain a valid JWT token for API calls:
+The Entra ID configuration follows the same pattern described in [Protect APIs in Azure API Management with OAuth](/blog/2025/09/16/protect-apis-in-azure-api-management-with-oauth/). The key difference is that we assign the `Sample.Read` and `Sample.Write` app roles to the GitHub Actions principal in Azure instead of client app registrations. 
+
+The tests are written in .NET and use the Azure Identity library for authentication. They can use the pipeline principal to obtain a valid JWT token for API calls:
 
 ![Integration Test Flow](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-github-actions-using-federated-credentials/diagrams-integration-tests-to-apim.png)
 
