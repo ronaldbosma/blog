@@ -187,6 +187,8 @@ The critical components are:
 
 After the Azure CLI login step, the integration tests can use the `AzureCliCredential` to obtain tokens for calling protected APIs.
 
+> [Microsoft.Testing.Platform](https://learn.microsoft.com/en-us/dotnet/core/testing/microsoft-testing-platform-intro?tabs=dotnetcli) is used to execute the tests, so we don't need to use `dotnet test`.
+
 ### Supporting Local Development
 
 You don't just want to run these integration tests from a pipeline, but also locally while developing them. When running tests locally, the Azure CLI or Azure Developer CLI will use your user credentials. However, with the setup we've used so far, retrieving a token will fail because it only works for service principals using the client credential flow.
