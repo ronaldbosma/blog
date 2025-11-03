@@ -2,7 +2,7 @@
 title: "Call OAuth-Protected APIs from GitHub Actions Using Federated Credentials"
 date: 2025-11-03T16:00:00+01:00
 publishdate: 2025-11-03T16:00:00+01:00
-lastmod: 2025-11-03T19:30:00+01:00
+lastmod: 2025-11-03T20:00:00+01:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "GitHub Actions", "OAuth" ]
 summary: "Learn how to execute automated integration tests against OAuth-protected APIs from GitHub Actions workflows using federated credentials. This enables secure API testing without managing secrets in your CI/CD pipeline."
 ---
@@ -255,7 +255,7 @@ resource oauth2PermissionGrantForAzureCli 'Microsoft.Graph/oauth2PermissionGrant
 This configuration does the following:
 
 - Creates a service principal for the Azure CLI if it doesn't exist.  
-  The service principal is required to grant permissions to, and it didn't exist in my tenant initially. Note that `04b07795-8ddb-461a-bbee-02f9e1bf7b46` is a well-known ID for the Azure CLI.
+  The service principal is required to grant permissions to, and it didn't exist in my tenant initially. Note that `04b07795-8ddb-461a-bbee-02f9e1bf7b46` is a well-known ID for the Azure CLI. You can find an extensive list of Microsoft first-party services and their IDs [here](https://learn.microsoft.com/en-us/power-platform/admin/apps-to-allow).
 - Adds an OAuth2 permission grant that allows the Azure CLI service principal to access our API registration on behalf of users
 - Uses `consentType: 'AllPrincipals'` to grant this permission for all users in the tenant
 
