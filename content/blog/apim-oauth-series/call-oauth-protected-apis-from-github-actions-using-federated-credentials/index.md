@@ -2,7 +2,7 @@
 title: "Call OAuth-Protected APIs from GitHub Actions Using Federated Credentials"
 date: 2025-11-03T16:00:00+01:00
 publishdate: 2025-11-03T16:00:00+01:00
-lastmod: 2025-11-03T16:00:00+01:00
+lastmod: 2025-11-03T19:30:00+01:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "GitHub Actions", "OAuth" ]
 summary: "Learn how to execute automated integration tests against OAuth-protected APIs from GitHub Actions workflows using federated credentials. This enables secure API testing without managing secrets in your CI/CD pipeline."
 ---
@@ -264,6 +264,8 @@ This configuration does the following:
 After the service principal is created for the Azure CLI, it can be found under Enterprise Applications. The Azure Developer CLI currently uses the same client ID as the Azure CLI.
 
 ![Enterprise Application - Azure CLI](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-github-actions-using-federated-credentials/enterprise-applications-azure-cli.png)
+
+> Shout-out to Dan Rios for the idea to set it up this way, inspired by his blog post [Securing API to API calls in Azure with Entra and API Management](https://rios.engineer/securing-api-to-api-calls-in-azure-with-entra-and-api-management).
 
 ### Considerations
 
