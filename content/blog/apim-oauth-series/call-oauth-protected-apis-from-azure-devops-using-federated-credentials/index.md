@@ -248,7 +248,7 @@ resource oauth2PermissionGrantForAzureCli 'Microsoft.Graph/oauth2PermissionGrant
 This configuration does the following:
 
 - Creates a service principal for the Azure CLI if it doesn't exist.  
-  The service principal is required to grant permissions to, and it didn't exist in my tenant initially. Note that `04b07795-8ddb-461a-bbee-02f9e1bf7b46` is a well-known ID for the Azure CLI.
+  The service principal is required to grant permissions to, and it didn't exist in my tenant initially. Note that `04b07795-8ddb-461a-bbee-02f9e1bf7b46` is a well-known ID for the Azure CLI, and it's also used by the Azure Developer CLI. You can find an extensive list of Microsoft first-party services and their IDs [here](https://learn.microsoft.com/en-us/power-platform/admin/apps-to-allow).
 - Adds an OAuth2 permission grant that allows the Azure CLI service principal to access our API registration on behalf of users
 - Uses `consentType: 'AllPrincipals'` to grant this permission for all users in the tenant
 
@@ -257,6 +257,8 @@ This configuration does the following:
 After the service principal is created for the Azure CLI, it can be found under Enterprise Applications. The Azure Developer CLI currently uses the same client ID as the Azure CLI.
 
 ![Enterprise Application - Azure CLI](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-azure-devops-using-federated-credentials/enterprise-applications-azure-cli.png)
+
+> Shout-out to Dan Rios for the idea to set it up this way, inspired by his blog post [Securing API to API calls in Azure with Entra and API Management](https://rios.engineer/securing-api-to-api-calls-in-azure-with-entra-and-api-management).
 
 ### Considerations
 
