@@ -33,14 +33,14 @@ This post is part of a series about OAuth and API Management:
 - [Setting Up Federated Credentials](#setting-up-federated-credentials)
 - [Granting API Access to the Principal](#granting-api-access-to-the-principal)
 - [Creating Integration Tests](#creating-integration-tests)
-- [Executing Tests in Azure DevOps](#executing-tests-in-azure-devops)
+- [Executing Tests in Azure DevOps pipeline](#executing-tests-in-azure-devops-pipeline)
 - [Supporting Local Development](#supporting-local-development)
 - [Considerations](#considerations)
 - [Conclusion](#conclusion)
 
 ### Solution Overview
 
-The solution demonstrates how to execute integration tests against OAuth-protected APIs from Azure DevOps using OpenID Connect (OIDC) with federated credentials:
+The solution demonstrates how to execute integration tests against OAuth-protected APIs from an Azure DevOps pipeline using OpenID Connect (OIDC) with federated credentials:
 
 ![Overview](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-azure-devops-using-federated-credentials/diagrams-overview-azure-devops.png)
 
@@ -58,12 +58,12 @@ The tests are written in .NET and use the Azure Identity library for authenticat
 ![Integration Test Flow](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-azure-devops-using-federated-credentials/diagrams-integration-tests-to-apim.png)
 
 The implementation is straightforward with four main steps:
-1. Setup OIDC with federated credentials for Azure DevOps (managed identity or app registration)
+1. Setup OIDC with federated credentials for Azure DevOps service connection (managed identity or app registration)
 2. Grant the principal app roles on the API
 3. Create integration tests using Azure Identity library to authenticate with Azure CLI credentials
 4. In the pipeline, use the `AzureCLI` task to execute tests in the context of the service connection
 
-I've created an Azure Developer CLI (`azd`) template called [Call API Management with Managed Identity](https://github.com/ronaldbosma/call-apim-with-managed-identity) that demonstrates several scenarios related to calling OAuth-Protected APIs with managed identities. If you want to deploy and try the solution, check out the [getting started section](https://github.com/ronaldbosma/call-apim-with-managed-identity#getting-started) for the prerequisites and deployment instructions. This post focuses on calling OAuth-protected APIs from Azure DevOps using federated credentials.
+I've created an Azure Developer CLI (`azd`) template called [Call API Management with Managed Identity](https://github.com/ronaldbosma/call-apim-with-managed-identity) that demonstrates several scenarios related to calling OAuth-Protected APIs with managed identities. If you want to deploy and try the solution, check out the [getting started section](https://github.com/ronaldbosma/call-apim-with-managed-identity#getting-started) for the prerequisites and deployment instructions. This post focuses on calling OAuth-protected APIs from Azure DevOps pipelines using federated credentials.
 
 ### Setting Up Federated Credentials
 
@@ -137,7 +137,7 @@ The `TokenRequestContext` specifies the scope for the token request. This should
 
 The retrieved token is used in the `Authorization` header of the HTTP request to call the protected API.
 
-### Executing Tests in Azure DevOps
+### Executing Tests in Azure DevOps pipeline
 
 Here's a snippet from the integration test job in the [azure-dev.yml](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/.azdo/pipelines/azure-dev.yml) pipeline of the template:
 
@@ -268,7 +268,7 @@ There are several considerations when implementing this approach:
 
 ### Conclusion
 
-Using federated credentials with Azure DevOps provides a secure and maintainable way to execute integration tests against OAuth-protected APIs. The approach eliminates the need to manage secrets in your CI/CD pipeline while providing the flexibility to run tests both in the pipeline and during local development.
+Using federated credentials with Azure DevOps pipelines provides a secure and maintainable way to execute integration tests against OAuth-protected APIs. The approach eliminates the need to manage secrets in your CI/CD pipeline while providing the flexibility to run tests both in the pipeline and during local development.
 
 The key benefits of this approach include:
 
