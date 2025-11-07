@@ -255,7 +255,7 @@ resource oauth2PermissionGrantForAzureCli 'Microsoft.Graph/oauth2PermissionGrant
 This configuration does the following:
 
 - Creates a service principal for the Azure CLI if it doesn't exist.  
-  The service principal is required to grant permissions to, and it didn't exist in my tenant initially. Note that `04b07795-8ddb-461a-bbee-02f9e1bf7b46` is a well-known ID for the Azure CLI. You can find an extensive list of Microsoft first-party services and their IDs [here](https://learn.microsoft.com/en-us/power-platform/admin/apps-to-allow).
+  The service principal is required to grant permissions to, and it didn't exist in my tenant initially. Note that `04b07795-8ddb-461a-bbee-02f9e1bf7b46` is a well-known ID for the Azure CLI, and it's also used by the Azure Developer CLI. You can find an extensive list of Microsoft first-party services and their IDs [here](https://learn.microsoft.com/en-us/power-platform/admin/apps-to-allow).
 - Adds an OAuth2 permission grant that allows the Azure CLI service principal to access our API registration on behalf of users
 - Uses `consentType: 'AllPrincipals'` to grant this permission for all users in the tenant
 
