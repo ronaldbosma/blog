@@ -42,7 +42,7 @@ This post is part of a series about OAuth and API Management:
 
 The solution demonstrates how to execute integration tests against OAuth-protected APIs from GitHub Actions using OpenID Connect (OIDC) with federated credentials:
 
-![Overview](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-github-actions-using-federated-credentials/diagrams-overview-github-actions.png)
+![Overview](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-azure-devops-using-federated-credentials/diagrams-overview-azure-devops.png)
 
 - **Azure DevOps pipeline**: Uses OIDC to authenticate with Azure using federated credentials
 - **Azure API Management**: Hosts the OAuth-protected API that we want to test
@@ -55,7 +55,7 @@ The Entra ID configuration follows the same pattern described in [Protect APIs i
 
 The tests are written in .NET and use the Azure Identity library for authentication. They can use the pipeline principal to obtain a valid JWT token for API calls:
 
-![Integration Test Flow](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-github-actions-using-federated-credentials/diagrams-integration-tests-to-apim.png)
+![Integration Test Flow](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-azure-devops-using-federated-credentials/diagrams-integration-tests-to-apim.png)
 
 The implementation is straightforward with four main steps:
 1. Setup OIDC with federated credentials for GitHub actions (managed identity or app registration)
@@ -228,11 +228,11 @@ This creates a delegated permission scope that allows users (not just service pr
 
 Once deployed, you can see the new scope in the 'Expose an API' screen of the app registration:
 
-![API Registration Scopes](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-github-actions-using-federated-credentials/app-registration-scopes.png)
+![API Registration Scopes](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-azure-devops-using-federated-credentials/app-registration-scopes.png)
 
 We also need to ensure that the Azure CLI is granted permission to retrieve tokens on behalf of the user. You can add the Azure CLI to the 'Authorized client applications' section of the app registration in the 'Expose an API' screen. Authorizing a client application indicates that this API trusts the application and users should not be asked to consent when the client calls this API.
 
-![Authorized Client Applications](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-github-actions-using-federated-credentials/app-registration-authorized-client-applications.png)
+![Authorized Client Applications](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-azure-devops-using-federated-credentials/app-registration-authorized-client-applications.png)
 
 I tried to configure this through Bicep by setting the `preAuthorizedApplications` property on the `Microsoft.Graph/applications` resource. However, this failed because the delegated permission couldn't be found, since the `oauth2PermissionScopes` is created at the same time.
 
@@ -266,7 +266,7 @@ This configuration does the following:
 
 After the service principal is created for the Azure CLI, it can be found under Enterprise Applications. The Azure Developer CLI currently uses the same client ID as the Azure CLI.
 
-![Enterprise Application - Azure CLI](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-github-actions-using-federated-credentials/enterprise-applications-azure-cli.png)
+![Enterprise Application - Azure CLI](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-azure-devops-using-federated-credentials/enterprise-applications-azure-cli.png)
 
 ### Considerations
 
