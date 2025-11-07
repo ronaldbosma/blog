@@ -136,7 +136,7 @@ The retrieved token is used in the `Authorization` header of the HTTP request to
 
 ### Executing Tests in GitHub Actions
 
-Here's a snippet from the integration test job in the [azure-dev.yml](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/.github/workflows/azure-dev.yml) workflow of the template:
+Here's a simplified snippet from the integration test job in the [azure-dev.yml](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/.github/workflows/azure-dev.yml) workflow of the template:
 
 ```yaml
 integration-tests:
