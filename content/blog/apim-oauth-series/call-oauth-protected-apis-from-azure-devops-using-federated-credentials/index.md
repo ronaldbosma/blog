@@ -3,7 +3,7 @@ title: "Call OAuth-Protected APIs from Azure DevOps Using Federated Credentials"
 date: 2025-11-10T16:00:00+01:00
 publishdate: 2025-11-07T09:00:00+01:00
 lastmod: 2025-11-07T09:00:00+01:00
-tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "Azure DevOps", "OAuth" ]
+tags: [ "Azure", "Azure DevOps", "API Management", "Azure Integration Services", "Azure Pipelines", "Entra ID", "OAuth" ]
 summary: "Learn how to execute automated integration tests against OAuth-protected APIs from Azure DevOps pipelines using federated credentials. This enables secure API testing without managing secrets in your CI/CD pipeline."
 ---
 
@@ -33,14 +33,14 @@ This post is part of a series about OAuth and API Management:
 - [Setting Up Federated Credentials](#setting-up-federated-credentials)
 - [Granting API Access to the Principal](#granting-api-access-to-the-principal)
 - [Creating Integration Tests](#creating-integration-tests)
-- [Executing Tests in GitHub Actions](#executing-tests-in-github-actions)
+- [Executing Tests in Azure DevOps](#executing-tests-in-azure-devops)
 - [Supporting Local Development](#supporting-local-development)
 - [Considerations](#considerations)
 - [Conclusion](#conclusion)
 
 ### Solution Overview
 
-The solution demonstrates how to execute integration tests against OAuth-protected APIs from GitHub Actions using OpenID Connect (OIDC) with federated credentials:
+The solution demonstrates how to execute integration tests against OAuth-protected APIs from Azure DevOps using OpenID Connect (OIDC) with federated credentials:
 
 ![Overview](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-azure-devops-using-federated-credentials/diagrams-overview-azure-devops.png)
 
@@ -51,25 +51,25 @@ The solution demonstrates how to execute integration tests against OAuth-protect
 
 While this example uses an API on API Management, the same approach applies when calling any other API protected with OAuth using Entra ID.
 
-The Entra ID configuration follows the same pattern described in [Protect APIs in Azure API Management with OAuth](/blog/2025/09/16/protect-apis-in-azure-api-management-with-oauth/). The key difference is that we assign the `Sample.Read` and `Sample.Write` app roles to the GitHub Actions principal in Azure instead of client app registrations. 
+The Entra ID configuration follows the same pattern described in [Protect APIs in Azure API Management with OAuth](/blog/2025/09/16/protect-apis-in-azure-api-management-with-oauth/). The key difference is that we assign the `Sample.Read` and `Sample.Write` app roles to the Azure DevOps service connection principal in Azure instead of client app registrations. 
 
-The tests are written in .NET and use the Azure Identity library for authentication. They can use the pipeline principal to obtain a valid JWT token for API calls:
+The tests are written in .NET and use the Azure Identity library for authentication. They can use the service connection principal to obtain a valid JWT token for API calls:
 
 ![Integration Test Flow](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-azure-devops-using-federated-credentials/diagrams-integration-tests-to-apim.png)
 
 The implementation is straightforward with four main steps:
-1. Setup OIDC with federated credentials for GitHub actions (managed identity or app registration)
+1. Setup OIDC with federated credentials for Azure DevOps (managed identity or app registration)
 2. Grant the principal app roles on the API
 3. Create integration tests using Azure Identity library to authenticate with Azure CLI credentials
-4. In the workflow: Log into Azure with Azure CLI using the federated credentials and execute tests
+4. In the pipeline, use the `AzureCLI` task to execute tests in the context of the service connection
 
-I've created an Azure Developer CLI (`azd`) template called [Call API Management with Managed Identity](https://github.com/ronaldbosma/call-apim-with-managed-identity) that demonstrates several scenarios related to calling OAuth-Protected APIs with managed identities. If you want to deploy and try the solution, check out the [getting started section](https://github.com/ronaldbosma/call-apim-with-managed-identity#getting-started) for the prerequisites and deployment instructions. This post focuses on calling OAuth-protected APIs from GitHub Actions using federated credentials.
+I've created an Azure Developer CLI (`azd`) template called [Call API Management with Managed Identity](https://github.com/ronaldbosma/call-apim-with-managed-identity) that demonstrates several scenarios related to calling OAuth-Protected APIs with managed identities. If you want to deploy and try the solution, check out the [getting started section](https://github.com/ronaldbosma/call-apim-with-managed-identity#getting-started) for the prerequisites and deployment instructions. This post focuses on calling OAuth-protected APIs from Azure DevOps using federated credentials.
 
 ### Setting Up Federated Credentials
 
-In order to connect from GitHub Actions to Azure using OpenID Connect (OIDC), a Microsoft Entra application or managed identity with federated identity credentials needs to be set up.
+In order to connect from Azure DevOps to Azure using OpenID Connect (OIDC), a Microsoft Entra application or managed identity with federated identity credentials needs to be set up.
 
-You can configure this manually by following [Use the Azure Login action with OpenID Connect](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect). However, if you're using the Azure Developer CLI, you can follow the instructions in [Setting Up the Pipeline](https://github.com/ronaldbosma/call-apim-with-managed-identity?tab=readme-ov-file#setting-up-the-pipeline) which simplifies this process.
+You can configure this manually by following the Microsoft documentation [Connect to Azure with an Azure Resource Manager service connection](https://learn.microsoft.com/en-us/azure/devops/pipelines/library/connect-to-azure?view=azure-devops) which can be used to setup a service connection with federated credentials in Azure DevOps. However, if you're using the Azure Developer CLI, you can follow the instructions in [Setting Up the Pipeline](https://github.com/ronaldbosma/call-apim-with-managed-identity?tab=readme-ov-file#setting-up-the-pipeline) which simplifies this process.
 
 The sample template deploys resources in Entra ID. When using the same principal for deployment and integration tests, make sure to follow the instructions on [Setting Up the Pipeline](https://github.com/ronaldbosma/call-apim-with-managed-identity?tab=readme-ov-file#setting-up-the-pipeline) to select the right type of principal and configure the necessary permissions.
 
@@ -90,7 +90,7 @@ resource assignSampleReadToValidClient 'Microsoft.Graph/appRoleAssignedTo@v1.0' 
 Properties explained:
 - `resourceId`: The ID of the service principal that represents the protected API (the resource being accessed)
 - `appRoleId`: The ID of the specific app role being granted (e.g. Sample.Read or Sample.Write)
-- `principalId`: The ID of the service principal that's being granted the role (the GitHub Actions principal)
+- `principalId`: The ID of the service principal that's being granted the role (the Azure DevOps service connection principal)
 
 In my sample template, I'm using `deployer().objectId` for the `principalId` so I can use the same principal for deployment and to execute the tests. This ensures that the pipeline has the necessary permissions when the template is deployed from the pipeline.
 
@@ -137,60 +137,50 @@ The `TokenRequestContext` specifies the scope for the token request. This should
 
 The retrieved token is used in the `Authorization` header of the HTTP request to call the protected API.
 
-### Executing Tests in GitHub Actions
+### Executing Tests in Azure DevOps
 
-Here's a snippet from the integration test job in the [azure-dev.yml](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/.github/workflows/azure-dev.yml) workflow of the template:
+Here's a snippet from the integration test job in the [azure-dev.yml](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/.azdo/pipelines/azure-dev.yml) pipeline of the template:
 
 ```yaml
-integration-tests:
-  name: Execute Integration Tests
-  needs: deploy
-  runs-on: ubuntu-latest
-  permissions:
-    id-token: write # Required to fetch an OIDC token for Azure authentication
-  
+- job: integration_tests
+  displayName: 'Execute Integration Tests'
+  dependsOn: deploy
+  condition: succeeded()
   steps:
-  - name: Setup .NET 9
-    uses: actions/setup-dotnet@v4
-    with:
-      dotnet-version: '9.0.x'
+  - task: UseDotNet@2
+    displayName: 'Setup .NET 9'
+    inputs:
+      packageType: 'sdk'
+      version: '9.0.x'
 
-  - name: Download Integration Tests Package
-    uses: actions/download-artifact@v4
-    with:
-      name: integration-tests-package
-      path: ./artifacts/integration-tests
+  - task: DownloadPipelineArtifact@2
+    displayName: 'Download Integration Tests Package'
+    inputs:
+      buildType: 'current'
+      artifactName: 'integration-tests-package'
+      targetPath: './artifacts/integration-tests'
 
-  # Login to the Azure CLI with OpenID Connect (OIDC) using federated identity credentials.
+  # Use AzureCLI task to authenticate via service connection with federated credentials.
   # This is necessary for the integration test to access Azure resources if needed.
-  - name: Azure CLI Login
-    uses: azure/login@v2
-    with:
-      client-id: ${{ secrets.AZURE_CLIENT_ID }}
-      tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  - task: AzureCLI@2
+    displayName: 'Run Integration Tests'
+    inputs:
+      azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
+      scriptType: 'pscore'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        dotnet ./artifacts/integration-tests/IntegrationTests.dll --report-trx --results-directory ./artifacts/integration-tests/TestResults
 
-  - name: Run Integration Tests
-    run: |
-      dotnet ./artifacts/integration-tests/IntegrationTests.dll --report-trx --results-directory ./artifacts/integration-tests/TestResults
-    working-directory: ./
-
-  - name: Upload Test Results
-    if: always()
-    uses: actions/upload-artifact@v4
-    with:
-      name: integration-test-results
-      path: ./artifacts/integration-tests/TestResults/
-      retention-days: 1
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results'
+    condition: always()
+    inputs:
+      testResultsFormat: 'VSTest'
+      testResultsFiles: '**/*.trx'
+      searchFolder: '$(System.DefaultWorkingDirectory)/artifacts/integration-tests/TestResults' 
+      failTaskOnFailedTests: true
 ```
-
-The critical components are:
-
-- **Permissions**: The `id-token: write` permission is required to fetch an OIDC token for Azure authentication
-- **Azure CLI Login**: This step uses the `azure/login@v2` action to authenticate with Azure using OIDC and the federated credentials
-- **Environment**: Once logged in, the Azure CLI credentials are available to the integration tests
-
-After the Azure CLI login step, the integration tests can use the `AzureCliCredential` to obtain tokens for calling protected APIs.
+The `AzureCLI` task is the important part. In GitHub Actions, this is split into separate 'Azure CLI Login' and 'Run Integration Tests' steps. With Azure DevOps, we run the integration tests in the context of the Azure CLI by using the `AzureCLI` task and the service connection takes care of logging into Azure. By doing so, the integration tests can use the `AzureCliCredential` to obtain tokens for calling protected APIs.
 
 > [Microsoft.Testing.Platform](https://learn.microsoft.com/en-us/dotnet/core/testing/microsoft-testing-platform-intro?tabs=dotnetcli) is used to execute the tests, so we don't need to use `dotnet test`.
 
@@ -278,7 +268,7 @@ There are several considerations when implementing this approach:
 
 ### Conclusion
 
-Using federated credentials with GitHub Actions provides a secure and maintainable way to execute integration tests against OAuth-protected APIs. The approach eliminates the need to manage secrets in your CI/CD pipeline while providing the flexibility to run tests both in the pipeline and during local development.
+Using federated credentials with Azure DevOps provides a secure and maintainable way to execute integration tests against OAuth-protected APIs. The approach eliminates the need to manage secrets in your CI/CD pipeline while providing the flexibility to run tests both in the pipeline and during local development.
 
 The key benefits of this approach include:
 
