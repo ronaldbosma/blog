@@ -258,7 +258,7 @@ After the service principal is created for the Azure CLI, it can be found under 
 
 ![Enterprise Application - Azure CLI](../../../../../images/apim-oauth-series/call-oauth-protected-apis-from-azure-devops-using-federated-credentials/enterprise-applications-azure-cli.png)
 
-> Shout-out to Dan Rios for the idea to set it up this way, inspired by his blog post [Securing API to API calls in Azure with Entra and API Management](https://rios.engineer/securing-api-to-api-calls-in-azure-with-entra-and-api-management).
+> Shout-out to Dan Rios for this approach, which I learned from his blog post [Securing API to API calls in Azure with Entra and API Management](https://rios.engineer/securing-api-to-api-calls-in-azure-with-entra-and-api-management).
 
 ### Considerations
 
