@@ -1,13 +1,16 @@
 ---
 title: "Call OAuth-Protected APIs from Azure DevOps Using Federated Credentials"
-date: 2025-11-07T09:00:00+01:00
+date: 2025-11-10T16:00:00+01:00
 publishdate: 2025-11-07T09:00:00+01:00
 lastmod: 2025-11-07T09:00:00+01:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "Azure DevOps", "OAuth" ]
 summary: "Learn how to execute automated integration tests against OAuth-protected APIs from Azure DevOps pipelines using federated credentials. This enables secure API testing without managing secrets in your CI/CD pipeline."
 ---
 
-When I build APIs, I like to execute automated integration tests from my pipeline after deployment. When the APIs are protected with OAuth, we need a way to retrieve a valid JWT token when calling them from a test. In this post, I'll show how to do this from a Azure DevOps pipeline using federated credentials.
+When I build APIs, I like to execute automated integration tests from my pipeline after deployment. When the APIs are protected with OAuth, we need a way to retrieve a valid JWT token when calling them from a test. 
+
+In my [previous post](/blog/2025/11/03/call-oauth-protected-apis-from-github-actions-using-federated-credentials/), I showed how to do this from a GitHub Actions workflow. 
+In this post, I'll show how to do this from a Azure DevOps pipeline using federated credentials.
 
 This post is part of a series about OAuth and API Management:
 
