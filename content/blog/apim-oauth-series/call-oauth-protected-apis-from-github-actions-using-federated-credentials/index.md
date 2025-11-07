@@ -22,7 +22,7 @@ This post is part of a series about OAuth and API Management:
   - [Part 3: Using Send-Request Policy with Client Certificate](/blog/2025/10/20/call-oauth-protected-backends-from-api-management-using-send-request-policy-with-client-certificate/)
 - Calling OAuth-Protected APIs from CI/CD Pipelines using Federated Credentials
   - **Part 1: GitHub Actions - _this post_**
-  - Part 2: Azure DevOps - _coming soon_
+  - [Part 2: Azure DevOps](/blog/2025/11/10/call-oauth-protected-apis-from-azure-devops-using-federated-credentials/)
 
 ### Table of Contents
 
@@ -284,3 +284,5 @@ The key benefits of this approach include:
 - **Local development support**: With proper configuration, developers can run the same tests locally using their user credentials
 
 For teams building APIs with OAuth protection, this pattern provides a robust foundation for automated testing.
+
+In my [next post](/blog/2025/11/10/call-oauth-protected-apis-from-azure-devops-using-federated-credentials/), I'll demonstrate how to implement the same approach using Azure DevOps pipelines.
