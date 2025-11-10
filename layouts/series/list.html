@@ -31,7 +31,7 @@
                 {{ if eq .Kind "taxonomy" }}
                     {{/* Main series listing page - show series from newest to oldest */}}
                     {{ range .Pages }}
-                        {{- partial "list-partials/postbox.html" . -}}
+                        {{- partial "series-partials/series-postbox.html" . -}}
                     {{end}}
                 {{ else }}
                     {{/* Individual series page - show posts from oldest to newest */}}
