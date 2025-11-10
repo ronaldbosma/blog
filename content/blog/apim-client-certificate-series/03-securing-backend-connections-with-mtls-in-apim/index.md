@@ -4,7 +4,7 @@ date: 2024-05-24T10:15:00+02:00
 publishdate: 2024-05-24T10:15:00+02:00
 lastmod: 2024-11-08T11:30:00+01:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Bicep", "Client Certificates", "Infra as Code", "mTLS", "Security" ]
-series: [ "using-mtls-with-api-management" ]
+series: [ "client-certificates-and-mtls-in-api-management" ]
 summary: "In this third post on working with client certificates in Azure API Management, we'll focus on securing backend connections with mTLS. We'll deploy two API Management instances. The first will serve as the backend and require a client certificate for authentication. The second will act as the client. We will call the client using TLS, and it will, in turn, connect to the backend using mTLS."
 ---
 
