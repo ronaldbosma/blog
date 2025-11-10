@@ -6,6 +6,11 @@ summaryLength = 25
 copyright = "Ronald Bosma - All rights reserved"
 pygmentsCodeFences = true
 
+[taxonomies]
+  tag = "tags"
+  category = "categories"
+  series = "series"
+
 [permalinks]
   blog = "/blog/:year/:month/:day/:slug"
 
@@ -38,6 +43,11 @@ So true: _&#34;The bitterness of poor quality remains long after the sweet taste
     weight = 100
     identifier = "blog"
     url = "/blog"
+[[menu.main]]
+    name = "Series"
+    weight = 150
+    identifier = "series"
+    url = "/series"
 [[menu.main]]
     name = "About Me"
     identifier = "about"

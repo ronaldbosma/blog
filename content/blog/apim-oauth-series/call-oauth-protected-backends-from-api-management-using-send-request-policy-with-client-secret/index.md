@@ -4,6 +4,7 @@ date: 2025-10-13T16:00:00+02:00
 publishdate: 2025-10-13T16:00:00+02:00
 lastmod: 2025-10-13T16:00:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "OAuth" ]
+series: [ "oauth-and-api-management" ]
 summary: "When API Management's credential manager isn't suitable for your OAuth scenarios, you can implement token handling directly using policies. In this post, I show how to call OAuth-protected backends using the send-request policy with Client Credentials Flow and a client secret stored in Key Vault."
 ---
 

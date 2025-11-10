@@ -4,6 +4,7 @@ date: 2025-09-20T14:30:00+02:00
 publishdate: 2025-09-20T14:30:00+02:00
 lastmod: 2025-10-03T09:30:00+02:00
 tags: [ ".NET", "Azure", "API Management", "Azure Functions", "Azure Integration Services", "Entra ID", "Managed Identity", "OAuth" ]
+series: [ "oauth-and-api-management" ]
 summary: "Learn how to call OAuth-protected APIs from .NET applications using Azure managed identity. This post shows how to implement secure API calls from Azure Functions without managing secrets, using the Azure Identity library and custom HTTP message handlers."
 ---
 
