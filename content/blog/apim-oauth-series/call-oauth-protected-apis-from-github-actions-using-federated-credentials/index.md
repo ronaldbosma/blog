@@ -4,6 +4,7 @@ date: 2025-11-03T16:00:00+01:00
 publishdate: 2025-11-03T16:00:00+01:00
 lastmod: 2025-11-03T20:00:00+01:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "GitHub Actions", "OAuth" ]
+series: [ "using-oauth-with-api-management" ]
 summary: "Learn how to execute automated integration tests against OAuth-protected APIs from GitHub Actions workflows using federated credentials. This enables secure API testing without managing secrets in your CI/CD pipeline."
 ---
 

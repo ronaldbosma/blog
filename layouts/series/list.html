@@ -1,0 +1,39 @@
+{{ define "header"}}
+    {{- partial "_shared/navbar.html" . -}}
+{{ end }}
+
+{{ define "main" }}
+    {{- partial "_shared/title.html" . -}}
+    <div class="main-content">
+        <!-- Series Posts
+        ================================================== -->
+        <section class="recent-posts">            
+            <div class="section-title">                
+                <h2><span>{{ .Title }} Series</span></h2>                
+            </div>
+            {{ if .Content }}
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            {{ .Content }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br>
+            {{ end }}
+            <div class="row listrecent">
+                {{ range .Pages.Reverse }}
+                    {{- partial "list-partials/postbox.html" . -}}
+                {{end}}
+            </div>
+        </section>
+    </div>
+    {{- partial "_shared/alertbar.html" . -}}
+{{ end }}
+
+{{ define "footer"}}
+    {{- partial "_shared/jumbotron.html" . -}}
+    {{- partial "_shared/footer.html" . -}}
+{{ end }}

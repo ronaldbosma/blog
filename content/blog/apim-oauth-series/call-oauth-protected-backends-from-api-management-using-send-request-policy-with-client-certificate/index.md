@@ -4,6 +4,7 @@ date: 2025-10-20T16:00:00+02:00
 publishdate: 2025-10-20T16:00:00+02:00
 lastmod: 2025-10-20T16:00:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "OAuth" ]
+series: [ "using-oauth-with-api-management" ]
 summary: "Learn how to implement certificate-based OAuth authentication in API Management using JWT assertions and the send-request policy. This approach provides stronger security than client secrets by proving possession of a private key without transmitting it."
 ---
 

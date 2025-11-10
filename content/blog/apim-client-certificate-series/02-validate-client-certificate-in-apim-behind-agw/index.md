@@ -4,6 +4,7 @@ date: 2024-02-19T19:00:00+01:00
 publishdate: 2024-02-19T19:00:00+01:00
 lastmod: 2024-11-13T17:45:00+01:00
 tags: [ "Azure", "API Management", "APIM mTLS", "Application Gateway", "Azure Integration Services", "Bicep", "Client Certificates", "Infra as Code", "mTLS", "Security" ]
+series: [ "using-mtls-with-api-management" ]
 summary: "In this second post, we expand on the solution from the previous post. We'll deploy API Management inside a virtual network, positioning it behind an application gateway. We'll configure the application gateway with an mTLS listener to validate client certificates and forward them to API Management for further processing. This approach can also be used with other types of backends, such as an ASP.NET Web API."
 ---
 
