@@ -4,7 +4,7 @@ date: 2025-11-10T16:00:00+01:00
 publishdate: 2025-11-10T16:00:00+01:00
 lastmod: 2025-11-10T16:00:00+01:00
 tags: [ "Azure", "Azure DevOps", "API Management", "Azure Integration Services", "Azure Pipelines", "Entra ID", "OAuth" ]
-series: [ "using-oauth-with-api-management" ]
+series: [ "oauth-and-api-management" ]
 summary: "Learn how to execute automated integration tests against OAuth-protected APIs from Azure DevOps pipelines using federated credentials. This enables secure API testing without managing secrets in your CI/CD pipeline."
 ---
 

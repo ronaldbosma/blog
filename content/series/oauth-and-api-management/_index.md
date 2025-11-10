@@ -1,5 +1,5 @@
 ---
-title: "Using OAuth with API Management"
+title: "OAuth and Azure API Management"
 ---
 
 This series explores different scenarios for implementing OAuth with Azure API Management. We cover both protecting APIs with OAuth and calling OAuth-protected resources from various Azure services and CI/CD pipelines. 
