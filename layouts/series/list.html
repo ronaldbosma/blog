@@ -24,9 +24,17 @@
             <br>
             {{ end }}
             <div class="row listrecent">
-                {{ range .Pages.Reverse }}
-                    {{- partial "list-partials/postbox.html" . -}}
-                {{end}}
+                {{ if eq .Kind "taxonomy" }}
+                    {{/* Main series listing page - show series from newest to oldest */}}
+                    {{ range .Pages }}
+                        {{- partial "list-partials/postbox.html" . -}}
+                    {{end}}
+                {{ else }}
+                    {{/* Individual series page - show posts from oldest to newest */}}
+                    {{ range .Pages.Reverse }}
+                        {{- partial "list-partials/postbox.html" . -}}
+                    {{end}}
+                {{ end }}
             </div>
         </section>
     </div>
