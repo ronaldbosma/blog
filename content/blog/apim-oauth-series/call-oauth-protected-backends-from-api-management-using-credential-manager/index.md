@@ -2,7 +2,7 @@
 title: "Call OAuth-Protected Backends from API Management using Credential Manager"
 date: 2025-10-06T16:00:00+02:00
 publishdate: 2025-10-06T16:00:00+02:00
-lastmod: 2025-10-06T16:00:00+02:00
+lastmod: 2025-11-21T12:15:00+01:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "OAuth" ]
 series: [ "oauth-and-api-management" ]
 summary: "Azure API Management's credential manager provides a simple, managed way to handle OAuth flows with automatic token acquisition and caching. In this post, I show how to configure it using Bicep and integrate it into your APIs. I also highlight key considerations to help you decide when credential manager is the right choice versus custom token handling."
@@ -48,7 +48,7 @@ The solution demonstrates API Management calling OAuth-protected backend APIs us
 - **Azure API Management** service with two APIs:
   - **Protected Backend API**: A backend API that's protected with OAuth using Entra ID
   - **Unprotected API**: A public API that calls the protected backend using the credential manager
-- **Entra ID App Registrations**: Separate app registrations for the backend API and the client, with proper role assignments
+- **Entra ID App Registrations**: Separate app registrations for the backend API and two clients (one using a client secret and one using a client certificate), with proper role assignments
 - **Supporting Resources**: Application Insights and Log Analytics workspace for monitoring
 
 While this example uses an API on API Management as the protected backend, you can use the same approach to call any API protected with OAuth via Entra ID. The credential manager also supports other identity providers, so you can adapt this solution for APIs secured by other providers.

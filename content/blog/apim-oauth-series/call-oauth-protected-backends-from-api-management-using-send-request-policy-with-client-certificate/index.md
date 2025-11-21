@@ -2,7 +2,7 @@
 title: "Call OAuth-Protected Backends from API Management using Send-Request Policy with Client Certificate"
 date: 2025-10-20T16:00:00+02:00
 publishdate: 2025-10-20T16:00:00+02:00
-lastmod: 2025-10-20T16:00:00+02:00
+lastmod: 2025-11-21T12:15:00+01:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "OAuth" ]
 series: [ "oauth-and-api-management" ]
 summary: "Learn how to implement certificate-based OAuth authentication in API Management using JWT assertions and the send-request policy. This approach provides stronger security than client secrets by proving possession of a private key without transmitting it."
@@ -55,7 +55,7 @@ The solution demonstrates API Management calling OAuth-protected backend APIs us
   - **Protected Backend API**: A backend API that's protected with OAuth using Entra ID
   - **Unprotected API**: A public API that calls the protected backend using certificate-based token handling
 - **Azure Key Vault**: Stores the client certificate securely and makes it available to API Management
-- **Entra ID App Registrations**: Separate app registrations for the backend API and the client, with proper role assignments and certificate configuration
+- **Entra ID App Registrations**: Separate app registrations for the backend API and two clients (one using a client secret and one using a client certificate), with proper role assignments
 - **Supporting Resources**: Application Insights and Log Analytics workspace for monitoring
 
 The key difference from the client secret approach is that the certificate provides stronger security through public key cryptography instead of shared secrets.
