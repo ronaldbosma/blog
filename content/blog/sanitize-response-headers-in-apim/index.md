@@ -1,11 +1,10 @@
 ---
 title: "Sanitizing Response Headers in API Management"
-date: 2025-11-22T10:30:00+01:00
-publishdate: 2025-11-22T10:30:00+01:00
-lastmod: 2025-11-22T10:30:00+01:00
+date: 2025-11-24T16:00:00+01:00
+publishdate: 2025-11-24T16:00:00+01:00
+lastmod: 2025-11-24T16:00:00+01:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Security" ]
 summary: "By default, Azure API Management returns all headers from the backend to the client, which may include sensitive information. This post demonstrates three approaches to sanitizing response headers: explicit removal, allowlist-based filtering and blocklist-based filtering."
-draft: true
 ---
 
 What happens when your backend services return headers with sensitive information? By default, API Management forwards all headers from the backend to the client, which can inadvertently leak information about your infrastructure.
