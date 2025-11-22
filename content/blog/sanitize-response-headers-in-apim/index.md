@@ -10,38 +10,44 @@ draft: true
 
 I've been working with Azure API Management where the backend services return headers with sensitive information that shouldn't be exposed to clients. By default, API Management forwards all headers from the backend to the client, which can inadvertently leak information about your infrastructure.
 
-The [HTTP Security Response Headers Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html) from OWASP provides excellent guidance on which headers to remove or set to non-informative values. Common examples include `Server`, `X-Powered-By`, `X-AspNet-Version` and `X-AspNetMvc-Version`.
-
-In this post, I'll demonstrate three approaches to sanitizing response headers in API Management: explicit removal, allowlist-based filtering and blocklist-based filtering. I've created a sample implementation that you can find in the [azure-apim-samples/sanitize-response-headers](https://github.com/ronaldbosma/azure-apim-samples/tree/main/sanitize-response-headers) repository.
+In this post, I'll demonstrate three approaches to sanitizing response headers in API Management: explicit removal, allowlist-based filtering and blocklist-based filtering.
 
 ### Table of Contents
 
 - [Prerequisites](#prerequisites)
-- [Solution 1: Explicitly Remove Headers](#solution-1-explicitly-remove-headers)
-- [Solution 2: Sanitize Headers Based on Allowlist](#solution-2-sanitize-headers-based-on-allowlist)
-- [Solution 3: Sanitize Headers Based on Blocklist](#solution-3-sanitize-headers-based-on-blocklist)
+- [Solutions](#solutions)
+  - [Solution 1: Explicitly Remove Headers](#solution-1-explicitly-remove-headers)
+  - [Solution 2: Sanitize Headers Based on Allowlist](#solution-2-sanitize-headers-based-on-allowlist)
+  - [Solution 3: Sanitize Headers Based on Blocklist](#solution-3-sanitize-headers-based-on-blocklist)
 - [Testing the Solutions](#testing-the-solutions)
-- [Comparison and Considerations](#comparison-and-considerations)
+- [Comparison](#comparison)
+- [Considerations](#considerations)
 - [Conclusion](#conclusion)
 
 ### Prerequisites
 
 To follow along with this post, you'll need an Azure API Management service instance. If you don't have one yet, you can use my [Azure Integration Services Quickstart](https://github.com/ronaldbosma/azure-integration-services-quickstart) template to deploy one quickly.
 
-The sample implementation includes two components:
+I've created a [sample implementation](https://github.com/ronaldbosma/azure-apim-samples/tree/main/sanitize-response-headers) that includes two components:
 
-- **Backend API** - A simple API that simulates a backend service returning headers. It accepts two query parameters (`numberOfSafeHeadersToReturn` and `numberOfUnsafeHeadersToReturn`) to control how many safe and unsafe headers are returned.
+- **Backend API** - A simple API that simulates a backend service returning headers. It accepts two query parameters (`numberOfSafeHeadersToReturn` and `numberOfUnsafeHeadersToReturn`) to control how many 'safe' and 'unsafe' headers are returned.
 - **Sanitizing API** - An API that applies different sanitization policies to demonstrate the three approaches.
 
 For demonstration purposes, the sample applies the sanitization policies at the operation scope. However, in a real-world scenario, I'd recommend applying these policies at the global scope so they protect all APIs in your API Management instance.
 
 You can test the implementations using the requests in [tests.http](https://github.com/ronaldbosma/azure-apim-samples/blob/main/sanitize-response-headers/tests.http).
 
-### Solution 1: Explicitly Remove Headers
+### Solutions
+
+The [HTTP Security Response Headers Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html) from OWASP provides guidance on which headers to remove or set to non-informative values. Common examples include `Server`, `X-Powered-By`, `X-AspNet-Version` and `X-AspNetMvc-Version`.
+
+Let's explore three different approaches to removing these headers from your API responses.
+
+#### Solution 1: Explicitly Remove Headers
 
 The most straightforward approach is to explicitly remove specific headers using the `set-header` policy with `exists-action="delete"`:
 
-```xml
+```
 <set-header name="Server" exists-action="delete" />
 <set-header name="X-Powered-By" exists-action="delete" />
 <set-header name="X-AspNet-Version" exists-action="delete" />
@@ -52,8 +58,6 @@ The most straightforward approach is to explicitly remove specific headers using
 ```
 
 This approach is clear and easy to understand. Each header you want to remove is explicitly listed.
-
-However, it has some significant drawbacks. Every header must be manually configured, which means high maintenance overhead. You might miss headers in your analysis, and if your backend starts returning new sensitive headers, they'll slip through until you update the policy. Additionally, you can't use wildcards to remove headers matching a pattern. For example, if a system returns multiple headers starting with `X-AspNet-`, you'd need to list each one individually.
 
 Here's what the response looks like before sanitization:
 
@@ -88,67 +92,78 @@ Request-Context: appId=cid-v1:34bdc010-6c3a-4508-9b73-672241fea0b2
 
 As you can see, the three unsafe headers have been removed.
 
-### Solution 2: Sanitize Headers Based on Allowlist
+
+This approach has some drawbacks though. Every header must be manually configured, which means high maintenance overhead. You might miss headers in your analysis and if your backend starts returning new sensitive headers, they'll slip through until you update the policy. 
+
+Additionally, you can't use wildcards to remove headers matching a pattern. For example, if a system returns multiple headers starting with `Unsafe-`, you'd need to list each one individually.
+
+#### Solution 2: Sanitize Headers Based on Allowlist
 
 An allowlist approach defines which headers are safe to return and removes everything else. This ensures you have complete control over what the client receives.
 
 The complete implementation can be found in [sanitize-with-allowlist.xml](https://github.com/ronaldbosma/azure-apim-samples/blob/main/sanitize-response-headers/sanitizing-api/sanitize-with-allowlist.xml). Here's how it works:
 
-First, we define the allowlist of safe headers. We can't use arrays or sets as variable types in API Management policies, so we use a comma-separated string:
+First, we define the allowlist of safe headers and identify which response headers need to be removed in a single policy expression:
 
-```xml
-<set-variable name="allowedHeaders" value="@{
-    var headers = new[] { 
-        "cache-control", "connection", "content-disposition", "content-encoding", 
-        "content-length", "content-type", "date", "etag", "expires", 
-        "last-modified", "request-context", "vary"
-    };
-    return string.Join(",", headers);
-}" />
 ```
-
-**Warning**: Be careful not to remove the `Content-Length` header from the allowlist. Attempting to delete this header will result in the exception: "Expression value is invalid. Header name is invalid or restricted from modification."
-
-Next, we identify which headers need to be removed by comparing the response headers against our allowlist:
-
-```xml
-<set-variable name="headersToRemove" value="@{
-    var allowedHeaders = ((string)context.Variables["allowedHeaders"])
-        .Split(',')
-        .Select(h => h.Trim().ToLower())
-        .ToHashSet();
+<set-variable name="responseHeadersToRemove" value="@{
+    HashSet<string> allowlist = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) {
+        "Cache-Control", "Connection", "Content-disposition", "Content-encoding",
+        "Content-length", "Content-security-policy", "Content-type", "Date",
+        "ETag", "Expires", "Last-Modified", "Link", "Memento-Datetime",
+        "Ocp-Apim-Trace-Location", "P3P", "Pragma", "Referrer-Policy",
+        "Request-Context", "Retry-After", "Set-Cookie", "Strict-Transport-Security",
+        "Transfer-Encoding", "Vary", "WWW-Authenticate", "X-Content-Type-Options",
+        "x-ms-request-id"
+    };
     
-    var headersToRemove = context.Response.Headers
-        .Where(h => !allowedHeaders.Contains(h.Key.ToLower()) && 
-                    !h.Key.StartsWith("Safe-", StringComparison.OrdinalIgnoreCase))
-        .Select(h => h.Key);
-    
+    // Headers that are not in the allowlist and do not start with 'Safe-' should be removed
+    var headersToRemove = context.Response.Headers.Keys.Where(key => {
+        return !allowlist.Contains(key) && 
+               !key.StartsWith("Safe-", StringComparison.InvariantCultureIgnoreCase);
+    });
+
     return string.Join(",", headersToRemove);
 }" />
 ```
 
-This logic also allows headers starting with `Safe-` for demonstration purposes.
+The allowlist includes common safe headers like `cache-control`, `content-type`, `content-length` and others. Headers starting with `safe-` are also allowed for demonstration purposes. All other headers will be marked for removal.
 
-Now comes the interesting part. We can't manipulate the `context.Response.Headers` collection directly because it's read-only. We need to use the `set-header` policy to remove each header. To iterate through the headers, we use a `retry` policy as a workaround for looping:
+Note that we're using `string.Join` to store the headers as a comma-separated string. This isn't ideal, but we can't store a `string[]` in a variable. See the [set-variable policy documentation](https://learn.microsoft.com/en-us/azure/api-management/set-variable-policy#allowed-types) for the allowed types.
 
-```xml
-<set-variable name="headersToRemoveCount" value="@(((string)context.Variables["headersToRemove"]).Split(',', StringSplitOptions.RemoveEmptyEntries).Length)" />
-<retry condition="@(((int)context.Variables["headersToRemoveCount"]) > 0)" count="50" interval="0">
-    <set-variable name="headerToRemove" value="@(((string)context.Variables["headersToRemove"]).Split(',', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault())" />
-    <set-header name="@((string)context.Variables["headerToRemove"])" exists-action="delete" />
-    <set-variable name="headersToRemove" value="@{
-        var headers = ((string)context.Variables["headersToRemove"])
-            .Split(',', StringSplitOptions.RemoveEmptyEntries)
-            .Skip(1);
-        return string.Join(",", headers);
-    }" />
-    <set-variable name="headersToRemoveCount" value="@(((int)context.Variables["headersToRemoveCount"]) - 1)" />
+**Warning**: Be careful not to remove the `Content-Length` header from the allowlist. Attempting to delete this header in API Management will result in the exception: "Expression value is invalid. Header name is invalid or restricted from modification."
+
+Now comes the interesting part. We can't manipulate the `context.Response.Headers` collection directly because it's read-only. We need to use the `set-header` policy to remove each header.
+
+```
+<set-variable name="indexOfHeaderToRemove" value="@(0)" />
+<set-variable name="numberOfHeadersToRemove" value="@{
+    string responseHeadersToRemove = (string)context.Variables["responseHeadersToRemove"];
+    return responseHeadersToRemove.Split(',').Length;
+}" />
+
+<retry condition="@((int)context.Variables["indexOfHeaderToRemove"] < (int)context.Variables["numberOfHeadersToRemove"])" 
+        count="50" interval="0">
+    <set-header name="@{
+        string[] headersToRemoveArray = ((string)context.Variables["responseHeadersToRemove"]).Split(',');
+        int index = (int)context.Variables["indexOfHeaderToRemove"];
+        return headersToRemoveArray[index];
+    }" exists-action="delete" />
+
+    <set-variable name="indexOfHeaderToRemove" value="@((int)context.Variables["indexOfHeaderToRemove"] + 1)" />
 </retry>
 ```
 
-The `retry` policy executes at least once and has a maximum count of 50. This means we can remove up to 51 headers (the initial execution plus 50 retries) with this approach.
+Here's how this logic works:
+1. A counter is initialized starting at 0 to track which header we're removing.
+1. The number of headers to be removed is calculated by splitting the comma-separated list.
+1. The headers to remove are looped through using the `retry` policy:
+   - The header list is split, the header name at the current index is retrieved and removed.
+   - The counter is incremented for the next iteration.
 
-To demonstrate this limitation, if you configure the backend to return 52 unsafe headers, you'll see that one header remains:
+We're using the `retry` policy as a workaround for a while loop, which doesn't exist in API Management policies. The `count="50"` means it can retry up to 50 times (plus the initial execution = 51 total). 50 is the maximum value allowed for the count attribute, see the [retry policy documentation](https://learn.microsoft.com/en-us/azure/api-management/retry-policy). Using the `retry` policy this way is inspired by an answer on [this Microsoft Q&A thread](https://learn.microsoft.com/en-us/answers/questions/1334169/how-to-(dynamically)-remove-all-unwanted-backend-r).
+
+Because we only have 50 retries, this approach can only handle removing up to 51 headers (initial execution plus 50 retries). If there are more headers to remove, the remaining headers will not be deleted. To demonstrate this limitation, if you configure the backend to return 52 unsafe headers, you'll see that one unsafe header remains:
 
 ```http
 HTTP/1.1 200 OK
@@ -165,28 +180,30 @@ Request-Context: appId=cid-v1:34bdc010-6c3a-4508-9b73-672241fea0b2
 
 The `Unsafe-Header-52` remains because we've hit the retry limit.
 
-This solution is inspired by an answer on [this Microsoft Q&A thread](https://learn.microsoft.com/en-us/answers/questions/1334169/how-to-(dynamically)-remove-all-unwanted-backend-r).
+You can work around this limitation by using nested `retry` policies, but this adds complexity and can impact performance. For most scenarios, 51 headers should be sufficient.
 
 **Tip**: If you have critical headers that must always be removed (like `Server` or `X-Powered-By`), add explicit `set-header` policies before the dynamic removal logic. This ensures they're removed even if you hit the retry limit.
 
-One of the biggest challenges with the allowlist approach is determining which headers to include. I've included common safe headers in the sample, but there are many more used across the internet, and most could be considered safe. Removing headers that clients or intermediaries expect might impact functionality in unforeseen ways. For this reason, using a blocklist might be a better approach.
+One of the biggest challenges with the allowlist approach is determining which headers to include. I've included some common safe headers in the sample, but there are many more used across the internet, and most could be considered safe. Removing headers that clients or intermediaries expect might impact functionality in unforeseen ways. For this reason, using a blocklist might be a better approach.
 
-### Solution 3: Sanitize Headers Based on Blocklist
+#### Solution 3: Sanitize Headers Based on Blocklist
 
-The blocklist approach reverses the logic. Instead of defining what's allowed, we define what should be removed and let everything else through.
+With a blocklist, instead of defining what's allowed, we define what should be removed and let everything else through.
 
 The complete implementation can be found in [sanitize-with-blocklist.xml](https://github.com/ronaldbosma/azure-apim-samples/blob/main/sanitize-response-headers/sanitizing-api/sanitize-with-blocklist.xml). Here's the key part of the policy:
 
-```xml
-<set-variable name="headersToRemove" value="@{
-    var blockedHeaders = new[] { 
-        "Server", "X-Powered-By", "X-AspNet-Version", "X-AspNetMvc-Version" 
+```
+<set-variable name="responseHeadersToRemove" value="@{
+    HashSet<string> blocklist = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) {
+        "Server", "X-Powered-By",
+        "X-AspNet-Version", "X-AspNetMvc-Version"
     };
-    
-    var headersToRemove = context.Response.Headers
-        .Where(h => blockedHeaders.Contains(h.Key, StringComparer.OrdinalIgnoreCase) ||
-                    h.Key.StartsWith("Unsafe-", StringComparison.OrdinalIgnoreCase))
-        .Select(h => h.Key);
+
+    // Headers in the blocklist or that start with 'Unsafe-' should be removed
+    var headersToRemove = context.Response.Headers.Keys.Where(key => {
+        return blocklist.Contains(key) || 
+               key.StartsWith("Unsafe-", StringComparison.InvariantCultureIgnoreCase);
+    });
     
     return string.Join(",", headersToRemove);
 }" />
@@ -209,17 +226,19 @@ You can test all three solutions using the [tests.http](https://github.com/ronal
 
 The test file uses variables to configure the base URL and the number of safe and unsafe headers the backend should return, making it easy to experiment with different scenarios.
 
-### Comparison and Considerations
+### Comparison
 
 Each approach has its trade-offs:
 
-**Explicit Removal** is the clearest approach. You can see exactly which headers are being removed. However, it requires the highest maintenance effort. Every new header must be added manually, and you can't use wildcards or patterns.
+**Explicit Removal** is the clearest approach. You can see exactly which headers are being removed. However, it requires the highest maintenance effort. Every new header must be added manually and you can't use wildcards or patterns.
 
 **Allowlist** gives you guaranteed control over what headers are returned. You know exactly what the client receives. But this comes with the risk of removing headers that clients or intermediaries need, potentially breaking functionality in unexpected ways.
 
 **Blocklist** is the most flexible approach. You maintain a list of known problematic headers and let everything else through. The downside is that new sensitive headers might be exposed until you add them to the blocklist.
 
 What risk you're willing to accept depends on your security requirements and risk tolerance. For most scenarios, I'd recommend the blocklist approach combined with comprehensive testing to catch unexpected headers.
+
+### Considerations
 
 Remember that in production, you'd typically apply these policies at the global scope rather than the operation scope. This ensures consistent header sanitization across all APIs in your API Management instance without having to configure each operation individually.
 
@@ -231,6 +250,4 @@ Sanitizing response headers is an important security practice that prevents leak
 
 For most scenarios, I'd recommend the blocklist approach. It balances security and maintainability well, especially when combined with automated testing to catch any headers you might have missed. The allowlist approach provides stronger guarantees but requires more careful consideration of which headers to include.
 
-You can find the complete sample implementation with all three approaches in the [azure-apim-samples/sanitize-response-headers](https://github.com/ronaldbosma/azure-apim-samples/tree/main/sanitize-response-headers) repository. The sample includes a working backend API, the sanitization policies and test requests you can use to try it out yourself.
-
-Just remember the practical limitations: the retry-based approach can handle up to 51 headers, and be careful not to remove restricted headers like `Content-Length` to avoid runtime errors.
+You can find the complete sample implementation with all three approaches [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/sanitize-response-headers). The sample includes a working backend API, the sanitization policies and test requests you can use to try it out yourself.
