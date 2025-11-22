@@ -249,4 +249,6 @@ Sanitizing response headers is an important security practice that prevents leak
 
 For most scenarios, I'd recommend the blocklist approach. It balances security and maintainability well, especially when combined with automated testing to catch any headers you might have missed. The allowlist approach provides stronger guarantees but requires more careful consideration of which headers to include.
 
+As mentioned earlier, the sample applies policies at the operation scope to demonstrate the different approaches. In production I'd recommend applying your sanitization logic at the global (API-wide) outbound scope so every API and operation is covered automatically and you avoid gaps when new operations are added.
+
 You can find the complete sample implementation with all three approaches [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/sanitize-response-headers). The sample includes a working backend API, the sanitization policies and test requests you can use to try it out yourself.
