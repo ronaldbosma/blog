@@ -1,8 +1,8 @@
 ---
 title: "Sanitizing Response Headers in API Management"
-date: 2025-11-24T16:00:00+01:00
-publishdate: 2025-11-24T16:00:00+01:00
-lastmod: 2025-11-24T16:00:00+01:00
+date: 2025-11-24T09:30:00+01:00
+publishdate: 2025-11-24T09:30:00+01:00
+lastmod: 2025-11-24T09:30:00+01:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Security" ]
 summary: "By default, Azure API Management returns all headers from the backend to the client, which may include sensitive information. This post demonstrates three approaches to sanitizing response headers: explicit removal, allowlist-based filtering and blocklist-based filtering."
 ---
@@ -166,7 +166,7 @@ Here's how this logic works:
 
 We're using the `retry` policy as a workaround for a while loop, which doesn't exist in API Management policies. The `count="50"` means it can retry up to 50 times (plus the initial execution = 51 total). 50 is the maximum value allowed for the count attribute, see the [retry policy documentation](https://learn.microsoft.com/en-us/azure/api-management/retry-policy). Using the `retry` policy this way is inspired by an answer on [this Microsoft Q&A thread](https://learn.microsoft.com/en-us/answers/questions/1334169/how-to-(dynamically)-remove-all-unwanted-backend-r).
 
-Because we only have 50 retries, this approach can only handle removing up to 51 headers (initial execution plus 50 retries). If there are more headers to remove, the remaining headers will not be deleted. To demonstrate this limitation, if you configure the backend to return 52 unsafe headers, you'll see that one unsafe header remains:
+Because we only have 50 retries, this approach can only handle removing up to 51 headers (initial execution plus 50 retries). If there are more headers to remove, the remaining headers will not be deleted. To demonstrate this limitation, if you specify that the backend returns 52 unsafe headers, you'll see that one unsafe header remains:
 
 ```http
 HTTP/1.1 200 OK
@@ -183,7 +183,7 @@ Request-Context: appId=cid-v1:34bdc010-6c3a-4508-9b73-672241fea0b2
 
 The `Unsafe-Header-52` remains because we've hit the retry limit.
 
-You can work around this limitation by using nested `retry` policies, but this adds complexity and can impact performance. For most scenarios, 51 headers should probably be sufficient.
+You can work around this limitation by using nested `retry` policies, but this adds complexity and can possibly impact performance. For most scenarios, removing a maximum of 51 headers should probably be sufficient.
 
 **Tip**: If you have critical headers that must always be removed (like `Server` or `X-Powered-By`), add explicit `set-header` policies before the dynamic removal logic. This ensures they're removed even if you hit the retry limit.
 
