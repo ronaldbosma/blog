@@ -3,7 +3,7 @@ title: "Call OAuth-Protected Backends from API Management using Send-Request Pol
 date: 2025-10-20T16:00:00+02:00
 publishdate: 2025-10-20T16:00:00+02:00
 lastmod: 2025-11-21T12:15:00+01:00
-tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "OAuth" ]
+tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "OAuth", "Security" ]
 series: [ "oauth-and-api-management" ]
 summary: "Learn how to implement certificate-based OAuth authentication in API Management using JWT assertions and the send-request policy. This approach provides stronger security than client secrets by proving possession of a private key without transmitting it."
 ---

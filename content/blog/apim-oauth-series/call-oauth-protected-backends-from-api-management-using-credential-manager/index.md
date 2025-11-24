@@ -3,7 +3,7 @@ title: "Call OAuth-Protected Backends from API Management using Credential Manag
 date: 2025-10-06T16:00:00+02:00
 publishdate: 2025-10-06T16:00:00+02:00
 lastmod: 2025-11-21T12:15:00+01:00
-tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "OAuth" ]
+tags: [ "Azure", "API Management", "Azure Integration Services", "Entra ID", "OAuth", "Security" ]
 series: [ "oauth-and-api-management" ]
 summary: "Azure API Management's credential manager provides a simple, managed way to handle OAuth flows with automatic token acquisition and caching. In this post, I show how to configure it using Bicep and integrate it into your APIs. I also highlight key considerations to help you decide when credential manager is the right choice versus custom token handling."
 ---
