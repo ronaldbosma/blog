@@ -8,22 +8,17 @@ summary: "Learn how to implement centralized error handling in Azure API Managem
 draft: true
 ---
 
-I've been working with Azure API Management for a while now and I've seen solutions where every API, or worse, every operation, had its own error handling logic. Most of it was duplicated and I've also seen a lot of inconsistencies. Some APIs return an error code without a body, while others provide some sort of problem details or follow the default schema that API Management uses for errors. By implementing generic error handling, you can prevent duplicate logic while improving consistency.
-
-Note that this solution isn't useful when API Management is used as a pure proxy where all requests and responses are passthrough. But it's valuable in scenarios where you have custom logic in API Management. For example:
-
-- When clients connect to API Management via OAuth, but the backends API Management connects to have different auth implementations. Some might have basic authentication while others require an API Key or OAuth. When the backend returns a 401 Unauthorized or 403 Forbidden, it means the credentials that API Management is using to connect to the backend are invalid. In this case you don't want to return this status code to the client since their credentials are valid. A 500 Internal Server Error would be better.
-- If you're doing custom transformations and the backend returns a 400 Bad Request, it doesn't always make sense to return that to the client. It could also be a bug in your transformation code and a 500 Internal Server Error makes more sense.
+I've been working with Azure API Management for a while now and I've seen (and built) solutions where every API, or worse, every operation, had its own error handling logic. Those approaches often duplicate logic and lead to inconsistencies. Some APIs return only a status code, while others include problem details or use the default error schema that API Management provides. By implementing generic error handling, you can prevent duplicate logic while improving consistency. 
 
 In this post, I'll show you how to implement generic error handling at the global scope in API Management and how to customize its behavior when needed.
 
 ### Table of Contents
 
-- [Prerequisites](#prerequisites)
-- [Sample Implementation](#sample-implementation)
+- [Why Generic Error Handling?](#why-generic-error-handling)
 - [Understanding API Management Scopes](#understanding-api-management-scopes)
 - [Requirements](#requirements)
-- [Global Error Handling Policy](#global-error-handling-policy)
+- [Sample Implementation](#sample-implementation)
+- [Global Error Handling Implementation](#global-error-handling-implementation)
 - [Scenarios](#scenarios)
   - [Scenario 1: Default Behavior](#scenario-1-default-behavior)
   - [Scenario 2: Bypass Generic Error Handling](#scenario-2-bypass-generic-error-handling)
@@ -33,19 +28,12 @@ In this post, I'll show you how to implement generic error handling at the globa
 - [Considerations](#considerations)
 - [Conclusion](#conclusion)
 
-### Prerequisites
+### Why Generic Error Handling?
 
-To follow along with this post, you'll need an Azure API Management service instance. If you don't have one yet, you can use my [Azure Integration Services Quickstart](https://github.com/ronaldbosma/azure-integration-services-quickstart) template to deploy one quickly.
+Applying generic error handling in API Management isn't useful when API Management is a pure proxy where all requests and responses are passthrough. But it's valuable when you have custom logic in API Management. For example:
 
-### Sample Implementation
-
-I've created a [sample implementation](https://github.com/ronaldbosma/azure-apim-samples/tree/main/generic-error-handling) that includes:
-
-- A backend API that simulates a backend and returns any HTTP status code (100-599) based on a path parameter
-- An Error Handling API with four operations demonstrating different error handling scenarios
-- Global error handling policy that provides the core logic
-
-You can deploy this sample to your own API Management instance using Bicep and experiment with the different scenarios.
+- When clients connect to API Management via OAuth, but the backends that API Management connects to use different auth implementations. Some might use basic authentication while others require an API Key or OAuth. If the backend returns 401 Unauthorized or 403 Forbidden, it means the credentials API Management uses are invalid. You don't want to return this status code to the client since their credentials are valid. A 500 Internal Server Error makes more sense.
+- If you're doing custom transformations and the backend returns 400 Bad Request, it doesn't always make sense to return that to the client. It could be a bug in your transformation code and a 500 Internal Server Error makes more sense.
 
 ### Understanding API Management Scopes
 
@@ -75,7 +63,17 @@ The generic error handling solution follows these requirements:
 
 5. **Customizable passthrough codes** - APIs or operations can override which status codes should pass through by setting the `passthroughErrorStatusCodes` context variable to a comma-separated list of status codes.
 
-### Global Error Handling Policy
+### Sample Implementation
+
+I've created a [sample implementation](https://github.com/ronaldbosma/azure-apim-samples/tree/main/generic-error-handling) that includes:
+
+- A backend API that simulates a backend and returns any HTTP status code (100-599) based on a path parameter
+- An Error Handling API with four operations demonstrating different error handling scenarios
+- Global error handling policy that provides the core logic
+
+You can deploy this sample to your own API Management instance using Bicep and experiment with the different scenarios. If you don't have an API Management instance yet, you can use my [Azure Integration Services Quickstart](https://github.com/ronaldbosma/azure-integration-services-quickstart) template to deploy one quickly.
+
+### Global Error Handling Implementation
 
 Here's the core error handling logic that goes in the `<outbound>` section of the global policy:
 
