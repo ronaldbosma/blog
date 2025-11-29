@@ -8,7 +8,7 @@ summary: "Learn how to implement centralized error handling in Azure API Managem
 draft: true
 ---
 
-I've been working with Azure API Management for a while now and I've seen (and built) solutions where every API, or worse, every operation, had its own error handling logic. Those approaches often duplicate logic and lead to inconsistencies. Some APIs return only a status code, while others include problem details or use the default error schema that API Management provides. By implementing generic error handling, you can prevent duplicate logic while improving consistency. 
+I've been working with Azure API Management for a while now and I've seen (and built) solutions where every API, or worse, every operation, had its own error handling logic. Those approaches often duplicate logic and lead to inconsistencies. Some APIs return only a status code, while others include problem details or use the default error schema that API Management provides. By implementing generic error handling, you can prevent duplication while improving consistency. 
 
 In this post, I'll show you how to implement generic error handling at the global scope in API Management and how to customize its behavior when needed.
 
@@ -17,9 +17,8 @@ In this post, I'll show you how to implement generic error handling at the globa
 - [Why Generic Error Handling?](#why-generic-error-handling)
 - [Understanding API Management Scopes](#understanding-api-management-scopes)
 - [Requirements](#requirements)
-- [Sample Implementation](#sample-implementation)
-- [Global Error Handling Implementation](#global-error-handling-implementation)
-- [Scenarios](#scenarios)
+- [Implementation](#implementation)
+  - [Global Error Handling Implementation](#global-error-handling-implementation)
   - [Scenario 1: Default Behavior](#scenario-1-default-behavior)
   - [Scenario 2: Bypass Generic Error Handling](#scenario-2-bypass-generic-error-handling)
   - [Scenario 3: Custom Error Handling](#scenario-3-custom-error-handling)
@@ -30,10 +29,12 @@ In this post, I'll show you how to implement generic error handling at the globa
 
 ### Why Generic Error Handling?
 
-Applying generic error handling in API Management isn't useful when API Management is a pure proxy where all requests and responses are passthrough. But it's valuable when you have custom logic in API Management. For example:
+Applying generic error handling in API Management isn't useful when API Management is a pure proxy where all requests and responses are passthrough. But it'is valuable when you have custom logic in API Management. For example:
 
 - When clients connect to API Management via OAuth, but the backends that API Management connects to use different auth implementations. Some might use basic authentication while others require an API Key or OAuth. If the backend returns 401 Unauthorized or 403 Forbidden, it means the credentials API Management uses are invalid. You don't want to return this status code to the client since their credentials are valid. A 500 Internal Server Error makes more sense.
 - If you're doing custom transformations and the backend returns 400 Bad Request, it doesn't always make sense to return that to the client. It could be a bug in your transformation code and a 500 Internal Server Error makes more sense.
+
+As mentioned before, you can implement the error handling in each API or operation, but that leads to duplicated logic and inconsistencies. A better approach is to implement generic error handling at the global scope, which applies to all APIs by default. This way, you define the error handling logic once and ensure consistent behavior across all APIs. When specific APIs or operations need custom behavior, they can override or bypass the global logic as needed.
 
 ### Understanding API Management Scopes
 
@@ -47,11 +48,11 @@ Before we dive into the implementation, it's important to understand how [API Ma
 
 Policies at lower scopes can inherit policies from parent scopes using the `<base />` element. This allows you to define common logic once at a higher scope and selectively override or extend it at lower scopes.
 
-In this solution, we'll provide generic error handling at the global scope and use policies at the operation scope to influence its behavior if necessary.
+In this post, we'll provide generic error handling at the global scope and use policies at the operation scope to influence its behavior if necessary.
 
 ### Requirements
 
-The generic error handling solution follows these requirements:
+Let's start with the requirements for our generic error handling solution:
 
 1. **Default passthrough codes** - Status codes 404 (Not Found), 409 (Conflict), 413 (Payload Too Large) and 429 (Too Many Requests) are returned as-is, but with the response body cleared to prevent leaking backend error details.
 
@@ -59,21 +60,25 @@ The generic error handling solution follows these requirements:
 
 3. **Success codes unchanged** - Success status codes (2xx and 3xx) are passed through without modification.
 
-4. **Custom error handling** - APIs or operations can set the `errorHandled` context variable to `true` to indicate they've handled errors themselves, which skips the global error handling and returns responses as-is.
+4. **Custom error handling** - APIs or operations can set the `errorHandled` variable to `true` to indicate they've handled errors themselves, which skips the global error handling and returns responses as-is.
 
-5. **Customizable passthrough codes** - APIs or operations can override which status codes should pass through by setting the `passthroughErrorStatusCodes` context variable to a comma-separated list of status codes.
+5. **Customizable passthrough codes** - APIs or operations can override which status codes should pass through by setting the `passthroughErrorStatusCodes` variable to a comma-separated list of status codes.
 
-### Sample Implementation
+These are of course just example requirements. You can adjust them to fit your own needs.
 
-I've created a [sample implementation](https://github.com/ronaldbosma/azure-apim-samples/tree/main/generic-error-handling) that includes:
+### Implementation
 
-- A backend API that simulates a backend and returns any HTTP status code (100-599) based on a path parameter
-- An Error Handling API with four operations demonstrating different error handling scenarios
-- Global error handling policy that provides the core logic
+I've created a [sample implementation](https://github.com/ronaldbosma/azure-apim-samples/tree/main/generic-error-handling) on GitHub that you can use as a reference. It includes:
 
-You can deploy this sample to your own API Management instance using Bicep and experiment with the different scenarios. If you don't have an API Management instance yet, you can use my [Azure Integration Services Quickstart](https://github.com/ronaldbosma/azure-integration-services-quickstart) template to deploy one quickly.
+- The global error handling policy
+- An Error Handling API with four operations, each demonstrating a different scenario
+- A backend API that simulates different backend responses by returning any HTTP status code (100-599) based on a path parameter
 
-### Global Error Handling Implementation
+You can deploy this sample to your own API Management instance using Bicep and experiment with it. If you don't have an API Management instance yet, you can use my [Azure Integration Services Quickstart](https://github.com/ronaldbosma/azure-integration-services-quickstart) template to deploy one quickly.
+
+Let's start with the global error handling policy.
+
+#### Global Error Handling Implementation
 
 Here's the core error handling logic that goes in the `<outbound>` section of the global policy:
 
@@ -119,24 +124,24 @@ Here's how this logic works:
 
 2. **Set default passthrough codes** - If the `passthroughErrorStatusCodes` variable hasn't been set by a lower scope, it defaults to "404,409,413,429".
 
-3. **Check if status code should pass through** - The inner `<when>` condition splits the passthrough codes into an array and checks if the current status code is in the list.
+3. **Check if status code should pass through** - The inner `<when>` condition splits the passthrough codes into an array and checks if the current status code is in the list.  
+    > We split a comma-separated `string` into an array because API Management variables do not support `string[]`. Variables support types like `string`, `bool` and `int`. See the [set-variable policy documentation](https://learn.microsoft.com/en-us/azure/api-management/set-variable-policy#allowed-types) for the allowed types.
 
 4. **Clear body for passthrough codes** - If the status code is in the passthrough list, only the response body is cleared. The status code remains unchanged.
 
 5. **Convert to 500** - For all other error codes, the status is set to 500 Internal Server Error and the body is cleared.
 
-In this example, we're clearing the response body for all error responses but in a real implementation, you might want to return a structured error response.
-
-### Scenarios
+In this example, we're clearing the response body for all error responses, but in a real implementation you might first log the original error response and then return a structured error payload.
 
 Now let's look at different scenarios that demonstrate how to use the global error handling policy.
 
 #### Scenario 1: Default Behavior
 
-The simplest scenario is when an operation doesn't provide any custom error handling. It just inherits the global policy:
+The simplest scenario is when an operation or API doesn't provide any custom error handling. It just inherits the global policy:
 
 ```
 <outbound>
+    <!-- No error handling, which means the default behaviour applies -->
     <base />
 </outbound>
 ```
@@ -155,6 +160,10 @@ Sometimes you need complete control over error responses. You can bypass the glo
 
 ```
 <outbound>
+    <!-- 
+        All errors are marked as handled, which means 
+        the global error handling is skipped and they are returned as is 
+    -->
     <set-variable name="errorHandled" value="@(true)" />
     <base />
 </outbound>
@@ -162,7 +171,7 @@ Sometimes you need complete control over error responses. You can bypass the glo
 
 When `errorHandled` is `true`, all status codes (success and error) are returned exactly as the backend sent them. No body clearing, no status code transformation.
 
-This is useful when an API or operation doesn't require any error handling and you want to preserve the backend's responses exactly, or when custom error handling is necessary. Which is demonstrated in the next scenario.
+This is useful when an API or operation doesn't require any error handling and you want to preserve the backend's responses exactly, or when custom error handling is necessary.
 
 #### Scenario 3: Custom Error Handling
 
@@ -171,19 +180,29 @@ You can also implement custom error handling that works together with the global
 ```
 <outbound>
     <choose>
+        <!-- 
+            We turn a 201 into a 418. Because we don't set errorHandled to true, 
+            this should be turned into a 500 by the global error handling.
+        -->
         <when condition="@(context.Response.StatusCode == 201)">
             <set-status code="418" reason="I'm a teapot" />
         </when>
+
+        <!-- 
+            We turn a 204 into a 418. Because we set errorHandled to true, 
+            the global error handling is skipped and it is returned as is.
+        -->
         <when condition="@(context.Response.StatusCode == 204)">
             <set-status code="418" reason="I'm a teapot" />
             <set-variable name="errorHandled" value="@(true)" />
         </when>
     </choose>
+
     <base />
 </outbound>
 ```
 
-This demonstrates two different patterns:
+This example is a bit silly, returning 418 (I'm a teapot), but it clearly demonstrates two patterns:
 
 **Pattern 1: Transform then apply global logic**
 - When the backend returns 201, it's changed to 418 (I'm a teapot)
@@ -196,15 +215,19 @@ This demonstrates two different patterns:
 - `errorHandled` is set to `true`, so the global policy is bypassed
 - Result: Client receives 418 as-is
 
-This pattern is for example useful when the backend returns a success code (like 200 OK) but the response body indicates a failure. You can transform it to an error code and let the global policy handle it consistently.
+This pattern is useful when the backend returns a success code (like 200 OK) but the response body indicates a failure. You can transform it to an error code and let the global policy handle it consistently.
 
 #### Scenario 4: Override Passthrough Error Codes
 
-Sometimes you might want to change which error codes are passed through unchanged.
+Sometimes you might want to change which error codes are passed through.
 You can customize this by setting the `passthroughErrorStatusCodes` variable:
 
 ```
 <outbound>
+    <!-- 
+        Override which error status codes are passed through as is, 
+        and which should be turned into a 500 Internal Server Error 
+    -->
     <set-variable name="passthroughErrorStatusCodes" value="401,403,404,503" />
     <base />
 </outbound>
@@ -220,7 +243,7 @@ This is useful when you have specific error codes that have meaning to your clie
 
 ### Testing the Solution
 
-The sample implementation includes a .NET test solution that validates all scenarios. The tests call the Error Handling API with different status codes and verify the expected behavior. You can run these tests against your own API Management instance to verify the behavior. See the [test section](https://github.com/ronaldbosma/azure-apim-samples/blob/main/generic-error-handling/README.md) in the sample implementation for details.
+The sample includes a .NET test suite that validates all scenarios. Tests call the Error Handling API with specific status codes, the backend echoes them, and assertions verify the expected behavior. You can run these tests against your own API Management instance. See the [test section](https://github.com/ronaldbosma/azure-apim-samples/blob/main/generic-error-handling/README.md#test) in the sample implementation for details.
 
 ### Considerations
 
@@ -230,15 +253,15 @@ While this solution provides a robust approach to generic error handling, there 
 
 The solution does not comply with the Azure policy [API Management policies should inherit parent scope policies using <base />](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyDetailBlade/definitionId/%2Fproviders%2FMicrosoft.Authorization%2FpolicyDefinitions%2Fd5448c98-e503-4fdd-bcd2-784960c00d04) that ensures that every API Management policy includes the `<base />` tag at the beginning of each policy section - `<inbound>`, `<outbound>`, `<backend>` and `<on-error>` - to inherit policies from parent scopes.
 
-In some scenarios shown above, we set variables before calling `<base />` in the `<outbound>` section. Omitting `<base />` at the beginning can lead to bypassing shared rules such as logging and other critical controls.
+In some scenarios shown above, we've added conditions and set variables before calling `<base />` in the `<outbound>` section. Omitting `<base />` at the beginning can lead to bypassing shared rules such as logging and other critical controls and should not be done lightly.
 
 In my post [Validate API Management policies with PSRule](https://ronaldbosma.github.io/blog/2024/09/02/validate-api-management-policies-with-psrule/), I describe how you can validate your API Management policies with PSRule. You could create custom rules that verify that the `<base />` policy in the `<outbound>` section is only preceded by certain policies (like `set-variable`) to make sure important logic on a higher scope isn't bypassed.
 
 **Migrating Existing Environments**
 
-If you're implementing this solution in an existing environment with APIs that already have their own error handling, here's a migration approach:
+If you're implementing this solution in an existing environment with APIs that already have their own error handling, you might change their behavior unintentionally. Here's a migration approach:
 
-1. **Add bypass logic** - Wrap the error handling in the global policy in a check so it's only executed if the variable `skipGenericErrorHandling` is not set to `true`:
+1. **Add bypass logic** - Wrap the error handling in the global policy in a check so it's only executed if the `skipGenericErrorHandling` variable is not set to `true`:
    ```
    <when condition="@(context.Response.StatusCode >= 400 && 
                       !context.Variables.GetValueOrDefault<bool>("errorHandled", false) &&
@@ -261,6 +284,6 @@ This approach allows you to migrate APIs one at a time without disrupting existi
 
 Generic error handling in Azure API Management provides a centralized way to handle errors consistently across all your APIs. By implementing the logic at the global scope, you eliminate duplicate code and increase consistency.
 
-The solution is flexible enough to allow customization when needed. You can bypass the global error handling logic entirely, transform specific status codes or customize which codes should pass through. This gives you the best of both worlds: consistent defaults with the ability to handle special cases.
+This solution is flexible enough to allow customization when needed. You can bypass the global error handling logic entirely, transform specific status codes or customize which codes should pass through. This gives you the best of both worlds: consistent defaults with the ability to handle special cases.
 
-[The sample implementation on GitHub](https://github.com/ronaldbosma/azure-apim-samples/tree/main/generic-error-handling) includes working examples of all scenarios, automated tests and Bicep templates for deployment. You can use it as a starting point for implementing generic error handling in your own API Management instance.
+The [sample implementation on GitHub](https://github.com/ronaldbosma/azure-apim-samples/tree/main/generic-error-handling) includes working examples of all scenarios, automated tests and Bicep templates for deployment. You can use it as a starting point for implementing generic error handling in your own API Management instance.
