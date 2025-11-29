@@ -1,11 +1,10 @@
 ---
 title: "Generic Error Handling in API Management"
-date: 2025-11-29T15:45:00+01:00
-publishdate: 2025-11-29T15:45:00+01:00
-lastmod: 2025-11-29T15:45:00+01:00
+date: 2025-12-01T16:00:00+01:00
+publishdate: 2025-12-01T16:00:00+01:00
+lastmod: 2025-12-01T16:00:00+01:00
 tags: [ "Azure", "API Management", "Azure Integration Services" ]
 summary: "Learn how to implement centralized error handling in Azure API Management at the global scope, reducing duplicate logic and ensuring consistent error responses across all APIs while maintaining flexibility for custom scenarios."
-draft: true
 ---
 
 I've been working with Azure API Management for a while now and I've seen (and built) solutions where every API, or worse, every operation, had its own error handling logic. Those approaches often duplicate logic and lead to inconsistencies. Some APIs return only a status code, while others include problem details or use the default error schema that API Management provides. By implementing generic error handling, you can prevent duplication while improving consistency. 
