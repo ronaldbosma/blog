@@ -8,7 +8,7 @@ summary: "Learn how to implement centralized error handling in Azure API Managem
 draft: true
 ---
 
-I've been working with Azure API Management for a while now, and I've seen solutions where every API, or worse, every operation, had its own error handling logic. Most of it was duplicated, and I've also seen a lot of inconsistencies. Some APIs return an error code without a body, while others provide some sort of problem details or follow the default schema that API Management uses for errors. By implementing generic error handling, you can prevent duplicate logic while improving consistency.
+I've been working with Azure API Management for a while now and I've seen solutions where every API, or worse, every operation, had its own error handling logic. Most of it was duplicated and I've also seen a lot of inconsistencies. Some APIs return an error code without a body, while others provide some sort of problem details or follow the default schema that API Management uses for errors. By implementing generic error handling, you can prevent duplicate logic while improving consistency.
 
 Note that this solution isn't useful when API Management is used as a pure proxy where all requests and responses are passthrough. But it's valuable in scenarios where you have custom logic in API Management. For example:
 
@@ -29,7 +29,7 @@ In this post, I'll show you how to implement generic error handling at the globa
   - [Scenario 2: Bypass Generic Error Handling](#scenario-2-bypass-generic-error-handling)
   - [Scenario 3: Custom Error Handling](#scenario-3-custom-error-handling)
   - [Scenario 4: Override Passthrough Error Codes](#scenario-4-override-passthrough-error-codes)
-  - [Testing the Solution](#testing-the-solution)
+- [Testing the Solution](#testing-the-solution)
 - [Considerations](#considerations)
 - [Conclusion](#conclusion)
 
