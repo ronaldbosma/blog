@@ -1,8 +1,8 @@
 ---
 title: "Generic Error Handling in API Management"
-date: 2025-12-01T16:00:00+01:00
-publishdate: 2025-12-01T16:00:00+01:00
-lastmod: 2025-12-01T16:00:00+01:00
+date: 2025-12-01T17:15:00+01:00
+publishdate: 2025-12-01T17:15:00+01:00
+lastmod: 2025-12-01T17:15:00+01:00
 tags: [ "Azure", "API Management", "Azure Integration Services" ]
 summary: "Learn how to implement centralized error handling in Azure API Management at the global scope, reducing duplicate logic and ensuring consistent error responses across all APIs while maintaining flexibility for custom scenarios."
 ---
