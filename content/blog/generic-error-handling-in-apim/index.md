@@ -30,10 +30,10 @@ In this post, I'll show you how to implement generic error handling at the globa
 
 Applying generic error handling in API Management isn't useful when API Management is a pure proxy where all requests and responses are passthrough. But it is valuable when you have custom logic in API Management. For example:
 
-- When clients connect to API Management via OAuth, but the backends that API Management connects to use different auth implementations. Some might use basic authentication while others require an API Key or OAuth. If the backend returns 401 Unauthorized or 403 Forbidden, it means the credentials API Management uses are invalid. You don't want to return this status code to the client since their credentials are valid. A 500 Internal Server Error makes more sense.
-- If you're doing custom transformations and the backend returns 400 Bad Request, it doesn't always make sense to return that to the client. It could be a bug in your transformation code and a 500 Internal Server Error makes more sense.
+- When clients connect to API Management via OAuth, but the backends that API Management connects to use different authentication implementations. Some might use basic authentication while others require an API Key or OAuth. If the backend returns 401 Unauthorized or 403 Forbidden, it means the credentials API Management used are invalid. You don't want to return this status code to the client since their credentials are valid. A 500 Internal Server Error makes more sense.
+- If you're doing custom transformations and the backend returns 400 Bad Request, it doesn't always make sense to return that to the client. It could be a bug in your transformation code and a 500 Internal Server Error might make more sense.
 
-As mentioned before, you can implement the error handling in each API or operation, but that leads to duplicated logic and inconsistencies. A better approach is to implement generic error handling at the global scope, which applies to all APIs by default. This way, you define the error handling logic once and ensure consistent behaviour across all APIs. When specific APIs or operations need custom behaviour, they can override or bypass the global logic as needed.
+You can implement the error handling in each API or operation, but that leads to duplicated logic and inconsistencies. A better approach is to implement generic error handling at the global scope, which applies to all APIs by default. This way, you define the error handling logic once and ensure consistent behaviour across all APIs. When specific APIs or operations need custom behaviour, they can override or bypass the global logic as needed.
 
 ### Understanding API Management Scopes
 
@@ -53,7 +53,7 @@ In this post, we'll provide generic error handling at the global scope and use p
 
 Let's start with the requirements for our generic error handling solution:
 
-1. **Default passthrough codes** - Status codes 404 (Not Found), 409 (Conflict), 413 (Payload Too Large) and 429 (Too Many Requests) are returned as-is, but with the response body cleared to prevent leaking backend error details.
+1. **Default passthrough codes** - Status codes 404 (Not Found), 409 (Conflict), 413 (Payload Too Large) and 429 (Too Many Requests) are returned as-is, but with the response body cleared. These are some error codes that I've found useful to passthrough, but you can adjust this list as needed.
 
 2. **Error transformation** - All other error status codes (400 and above, except the passthrough codes) are converted to 500 Internal Server Error with the response body cleared.
 
@@ -63,7 +63,7 @@ Let's start with the requirements for our generic error handling solution:
 
 5. **Customizable passthrough codes** - APIs or operations can override which status codes should pass through by setting the `passthroughErrorStatusCodes` variable to a comma-separated list of status codes.
 
-These are of course just example requirements. You can adjust them to fit your own needs.
+These requirements can be used as a starting point. You can adjust them based on your specific needs.
 
 ### Implementation
 
@@ -71,7 +71,7 @@ I've created a [sample implementation](https://github.com/ronaldbosma/azure-apim
 
 - The global error handling policy
 - An Error Handling API with four operations, each demonstrating a different scenario
-- A backend API that simulates different backend responses by returning any HTTP status code (100-599) based on a path parameter
+- A backend API that simulates different backend responses by returning any HTTP status code (100-599) based on a parameter
 
 You can deploy this sample to your own API Management instance using Bicep and experiment with it. If you don't have an API Management instance yet, you can use my [Azure Integration Services Quickstart](https://github.com/ronaldbosma/azure-integration-services-quickstart) template to deploy one quickly.
 
@@ -79,7 +79,7 @@ Let's start with the global error handling policy.
 
 #### Global Error Handling Implementation
 
-Here's the core error handling logic that goes in the `<outbound>` section of the global policy:
+Here's the error handling logic that goes in the `<outbound>` section of the global policy:
 
 ```
 <choose>
@@ -214,7 +214,7 @@ This example is a bit silly, returning 418 (I'm a teapot), but it clearly demons
 - `errorHandled` is set to `true`, so the global policy is bypassed
 - Result: Client receives 418 as-is
 
-This pattern is useful when the backend returns a success code (like 200 OK) but the response body indicates a failure. You can transform it to an error code and let the global policy handle it consistently.
+This pattern is for example useful when the backend returns a success code (like 200 OK) but the response body indicates a failure. You can transform it to an error code and let the global policy handle it consistently.
 
 #### Scenario 4: Override Passthrough Error Codes
 
@@ -250,7 +250,7 @@ While this solution provides a robust approach to generic error handling, there 
 
 **Azure Policy Compliance**
 
-The solution does not comply with the Azure policy [API Management policies should inherit parent scope policies using <base />](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyDetailBlade/definitionId/%2Fproviders%2FMicrosoft.Authorization%2FpolicyDefinitions%2Fd5448c98-e503-4fdd-bcd2-784960c00d04) that ensures that every API Management policy includes the `<base />` tag at the beginning of each policy section - `<inbound>`, `<outbound>`, `<backend>` and `<on-error>` - to inherit policies from parent scopes.
+The solution does not comply with the Azure policy [API Management policies should inherit parent scope policies using <base />](https://portal.azure.com/#blade/Microsoft_Azure_Policy/PolicyDetailBlade/definitionId/%2Fproviders%2FMicrosoft.Authorization%2FpolicyDefinitions%2Fd5448c98-e503-4fdd-bcd2-784960c00d04) that ensures that every API Management policy includes the `<base />` tag **at the beginning** of each policy section - `<inbound>`, `<outbound>`, `<backend>` and `<on-error>` - to inherit policies from parent scopes.
 
 In some scenarios shown above, we've added conditions and set variables before calling `<base />` in the `<outbound>` section. Omitting `<base />` at the beginning can lead to bypassing shared rules such as logging and other critical controls and should not be done lightly.
 
