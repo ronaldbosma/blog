@@ -38,7 +38,7 @@ If you haven't installed PSRule yet, follow the instructions on the official [In
 
 To install Pester, refer to the [Installation and Update](https://pester.dev/docs/introduction/installation) guide. The sample tests in this post are based on Pester `v5`.
 
-You'll also need the rules, policies and related files from the previous blog post. You can download them [here](https://raw.githubusercontent.com/ronaldbosma/azure-apim-samples/raw/main/validate-apim-policies-with-psrule/start-testing-psrule-rules-for-apim-policies-with-pester.zip). To get started, create a new folder and unzip the files into it. After extraction, your folder structure should look like this:
+You'll also need the rules, policies and related files from the previous blog post. You can download them [here](https://github.com/ronaldbosma/azure-apim-samples/raw/refs/heads/main/validate-apim-policies-with-psrule/start-testing-psrule-rules-for-apim-policies-with-pester.zip). To get started, create a new folder and unzip the files into it. After extraction, your folder structure should look like this:
 
 ```
 /your-root

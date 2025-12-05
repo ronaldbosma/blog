@@ -50,7 +50,7 @@ We'll create the following custom rules:
 
 Follow the instructions on [Install PSRule](https://microsoft.github.io/PSRule/v2/install/) to install PSRule. Please note that this blog post is written using version `2.9.0` of PSRule.
 
-We'll also need some sample policies to test our rules against. You can download them [here](https://raw.githubusercontent.com/ronaldbosma/azure-apim-samples/raw/main/validate-apim-policies-with-psrule/start-sample-policies.zip). 
+We'll also need some sample policies to test our rules against. You can download them [here](https://github.com/ronaldbosma/azure-apim-samples/raw/refs/heads/main/validate-apim-policies-with-psrule/start-sample-policies.zip). 
 
 To get started, create a new root folder and unzip the sample policies into this folder. After unzipping, your folder structure should look like this:
 
