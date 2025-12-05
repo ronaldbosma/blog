@@ -2,7 +2,7 @@
 title: "Validate client certificates in API Management when it's behind an Application Gateway"
 date: 2024-02-19T19:00:00+01:00
 publishdate: 2024-02-19T19:00:00+01:00
-lastmod: 2024-11-13T17:45:00+01:00
+lastmod: 2025-12-05T10:45:00+01:00
 tags: [ "Azure", "API Management", "Application Gateway", "Azure Integration Services", "Bicep", "Client Certificates", "Infra as Code", "mTLS", "Security" ]
 series: [ "client-certificates-and-mtls-in-api-management" ]
 summary: "In this second post, we expand on the solution from the previous post. We'll deploy API Management inside a virtual network, positioning it behind an application gateway. We'll configure the application gateway with an mTLS listener to validate client certificates and forward them to API Management for further processing. This approach can also be used with other types of backends, such as an ASP.NET Web API."
@@ -28,6 +28,7 @@ We'll configure the application gateway with an mTLS listener to validate client
 
 Note that the application gateway terminates the TLS session, as described [here](https://learn.microsoft.com/en-us/azure/application-gateway/ssl-overview). This results in the client certificate not being sent to API Management, which means we can't rely on the options provided in the previous post to validate the client certificate. 
 
+> **UPDATE**: Microsoft announced the general availability of [Azure Application Gateway mTLS passthrough support](https://azure.microsoft.com/en-us/updates?id=488990) in November 2025. This post assumes mutual TLS strict mode is used and the client certificate is not automatically forwarded to the backend. See [Overview of mutual authentication with Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/mutual-authentication-overview?tabs=powershell#mutual-authentication) for more information about the mutual TLS passthrough mode.
 
 This post provides a solution in the form of a step-by-step guide, once again using Bicep to deploy all components to Azure. If you're interested in the final result, you can find it [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). _(Please note that the deployment process may take up to 30-45 minutes to complete.)_
 
