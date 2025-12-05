@@ -39,7 +39,7 @@ To make this work, we'll need to create several resources. The following diagram
 
 ![Overview](../../../../../images/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/diagrams-overview.webp)
 
-This post provides a step-by-step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim). If you want to know how to configure this through the Azure Portal, have a look at [Secure backend services using client certificate authentication in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates).
+This post provides a step-by-step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim). If you want to know how to configure this through the Azure Portal, have a look at [Secure backend services using client certificate authentication in Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates).
 
 ### Prerequisites
 
@@ -53,9 +53,9 @@ The following diagram provides an overview of the prerequisites:
 
 ![Prerequisites](../../../../../images/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/diagrams-prerequisites.webp)
 
-You can create these resources manually, but I've created a Bicep template that will deploy all the prerequisites. You can find the Bicep template [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/prerequisites/prerequisites.bicep).
+You can create these resources manually, but I've created a Bicep template that will deploy all the prerequisites. You can find the Bicep template [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/prerequisites/prerequisites.bicep).
 
-You can use the accompanying [deploy-prerequisites.ps1](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/prerequisites/deploy-prerequisites.ps1) PowerShell script to deploy the prerequisites. It uses the Azure CLI to:
+You can use the accompanying [deploy-prerequisites.ps1](https://github.com/ronaldbosma/azure-apim-samples/tree/main/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim/prerequisites/deploy-prerequisites.ps1) PowerShell script to deploy the prerequisites. It uses the Azure CLI to:
 
 1. Create the resource group if it doesn't exist.
 1. Get your user id to grant you access to Key Vault.  
@@ -315,7 +315,7 @@ Instead of receiving a 403 Forbidden response, you should now receive a 200 OK r
 
 > Note that currently, any client certificate will be accepted by the backend. This is because we're not validating the client certificate in the backend API Management instance. Instructions on how to do this are covered in the first and second posts of this series. You can find them [here](/blog/2024/02/02/validate-client-certificates-in-api-management/) and [here](/blog/2024/02/19/validate-client-certificates-in-api-management-when-its-behind-an-application-gateway/).
 
-You can find the end result [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim).
+You can find the end result [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/apim-client-certificate-series/03-securing-backend-connections-with-mtls-in-apim).
 
 ### Considerations
 

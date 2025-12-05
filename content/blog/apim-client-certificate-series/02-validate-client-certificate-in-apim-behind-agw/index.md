@@ -29,7 +29,7 @@ We'll configure the application gateway with an mTLS listener to validate client
 Note that the application gateway terminates the TLS session, as described [here](https://learn.microsoft.com/en-us/azure/application-gateway/ssl-overview). This results in the client certificate not being sent to API Management, which means we can't rely on the options provided in the previous post to validate the client certificate. 
 
 
-This post provides a solution in the form of a step-by-step guide, once again using Bicep to deploy all components to Azure. If you're interested in the final result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). _(Please note that the deployment process may take up to 30-45 minutes to complete.)_
+This post provides a solution in the form of a step-by-step guide, once again using Bicep to deploy all components to Azure. If you're interested in the final result, you can find it [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). _(Please note that the deployment process may take up to 30-45 minutes to complete.)_
 
 The application gateway configuration outlined in this post can also be applied to other scenarios, such as ASP.NET APIs hosted in App Services.
 
@@ -48,7 +48,7 @@ The application gateway configuration outlined in this post can also be applied 
 
 ### Prerequisites
 
-This first section will cover the prerequisites for this post. Use the result of the previous post as a starting point. You can find the code [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/01-validate-client-certificate-in-apim) and the self-signed certificates [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/00-self-signed-certificates).
+This first section will cover the prerequisites for this post. Use the result of the previous post as a starting point. You can find the code [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/apim-client-certificate-series/01-validate-client-certificate-in-apim) and the self-signed certificates [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/apim-client-certificate-series/00-self-signed-certificates).
 
 We're going to deploy API Management inside a virtual network with the `internal` mode enabled, restricting access from external clients. To enable external access, we'll route traffic through an application gateway. We'll configure two external endpoints: one for normal TLS and one for mTLS. You can find a visualization of the setup in the figure below.
 
@@ -547,7 +547,7 @@ It's important to note that in this scenario, we allow both TLS and mTLS traffic
 
 Because we're only allowing client certificates issued by a specific self-signed intermediate CA, we'll need to upload the complete certificate chain. The chain should be in a single `.cer` file and include all intermediate CAs and the root CA.
 
-You can use the sample [dev-intermediate-ca-with-root-ca.cer](https://github.com/ronaldbosma/blog-code-examples/blob/master/apim-client-certificate-series/00-self-signed-certificates/certificates/dev-intermediate-ca-with-root-ca.cer) or create your own. If you choose the latter, take the public part of all certificates in the chain and combine them in a single `.cer` file. The result should resemble the example below.
+You can use the sample [dev-intermediate-ca-with-root-ca.cer](https://github.com/ronaldbosma/azure-apim-samples/blob/main/apim-client-certificate-series/00-self-signed-certificates/certificates/dev-intermediate-ca-with-root-ca.cer) or create your own. If you choose the latter, take the public part of all certificates in the chain and combine them in a single `.cer` file. The result should resemble the example below.
 
 ```
 -----BEGIN CERTIFICATE-----
@@ -918,7 +918,7 @@ Additionally, the HTTPS listener on port `443` does not forward a client certifi
 GET https://apim-sample.dev/client-cert/validate-from-agw
 ```
 
-The operation returns the same response whether no certificate is supplied or an invalid client certificate is provided. A more comprehensive example can be found [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/api-management/validate-from-agw.operation.cshtml).
+The operation returns the same response whether no certificate is supplied or an invalid client certificate is provided. A more comprehensive example can be found [here](https://github.com/ronaldbosma/azure-apim-samples/blob/main/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/api-management/validate-from-agw.operation.cshtml).
 
 
 ### Plugging the security hole
@@ -998,7 +998,7 @@ With this, the security vulnerability has been addressed.
 
 In this post, we've explored the impact of validating a client certificate in API Management when it's behind an application gateway. There's quite a bit more involved than simply establishing an mTLS connection with API Management directly. Personally, I found the application gateway configuration to be rather complex at first, so I hope this post will give you a solid start.
 
-The final result of this blog post can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). I've divided the `main.bicep` file into several modules to improve readability.
+The final result of this blog post can be found [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw). I've divided the `main.bicep` file into several modules to improve readability.
 
 **Final remark**
 

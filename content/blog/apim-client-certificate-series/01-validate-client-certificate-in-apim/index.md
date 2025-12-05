@@ -22,7 +22,7 @@ Topics covered in this series:
 
 In this first post, we'll cover the basics of how to validate client certificates in API Management. We'll deploy both API Management and an API using Bicep. We'll also have a look at how to upload both CA and client certificates in API Management.
 
-This post provides a step by step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/01-validate-client-certificate-in-apim). If you want to know how to configure all of this through the Azure Portal, have a look at [How to secure APIs using client certificate authentication in API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates-for-clients).
+This post provides a step by step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/apim-client-certificate-series/01-validate-client-certificate-in-apim). If you want to know how to configure all of this through the Azure Portal, have a look at [How to secure APIs using client certificate authentication in API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates-for-clients).
 
 ### Table of Contents
 
@@ -53,7 +53,7 @@ Using [Generate and export certificates for point-to-site using PowerShell](http
 
 As you can see, we have one root CA certificate. Underneath it are two intermediate CA certificates that represent a development and test environment. Finally, we have two client certificates for each environment.
 
-I've created the script [generate-client-certificates.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/apim-client-certificate-series/00-self-signed-certificates/generate-client-certificates.ps1) to generate this certificate tree using PowerShell. It also exports all certificates in base64 encoded X.509 (.cer) files and additionally exports the client certificates with their private keys in PFX (.pfx) files. The results can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/00-self-signed-certificates/certificates).
+I've created the script [generate-client-certificates.ps1](https://github.com/ronaldbosma/azure-apim-samples/blob/main/apim-client-certificate-series/00-self-signed-certificates/generate-client-certificates.ps1) to generate this certificate tree using PowerShell. It also exports all certificates in base64 encoded X.509 (.cer) files and additionally exports the client certificates with their private keys in PFX (.pfx) files. The results can be found [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/apim-client-certificate-series/00-self-signed-certificates/certificates).
 
 #### Deploy API Management
 
@@ -240,7 +240,7 @@ GET https://{{apimHostname}}/client-cert/validate-using-context
 
 When you open the file in Visual Studio Code, you'll see a `Send Request` link above both requests. Clicking it will send the request to the API. The response will be displayed in the output window. This should be a `200 OK` with and empty response body for both operation since we haven't configured a client certificate yet.
 
-You can use your own certificates or download samples from [certificates](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/00-self-signed-certificates/certificates).
+You can use your own certificates or download samples from [certificates](https://github.com/ronaldbosma/azure-apim-samples/tree/main/apim-client-certificate-series/00-self-signed-certificates/certificates).
 
 To use the certificates, we'll need to update the user settings in Visual Studio Code. (See the [GitHub documentation](https://github.com/Huachao/vscode-restclient#ssl-client-certificates) for more details.)
 
@@ -457,6 +457,6 @@ In this post, we've explored the basics of validating client certificates in API
 
 Using Bicep in combination with the Azure CLI is a great way to automate the deployment of your resources, including API Management and its APIs, to Azure. It also provides an easy way to deploy your CA and client certificates to API Management.
 
-The end result of this blog post can be found [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/apim-client-certificate-series/01-validate-client-certificate-in-apim).
+The end result of this blog post can be found [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/apim-client-certificate-series/01-validate-client-certificate-in-apim).
 
 Don't remove your deployed Azure resources yet! In [the next post](/blog/2024/02/19/validate-client-certificates-in-api-management-when-its-behind-an-application-gateway/), we'll cover how to validate a client certificate in API Management when it's positioned behind an Azure Application Gateway. The solution provided in this post is a good starting point for the upcoming post.
