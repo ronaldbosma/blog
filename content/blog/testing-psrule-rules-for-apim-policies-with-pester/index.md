@@ -38,7 +38,7 @@ If you haven't installed PSRule yet, follow the instructions on the official [In
 
 To install Pester, refer to the [Installation and Update](https://pester.dev/docs/introduction/installation) guide. The sample tests in this post are based on Pester `v5`.
 
-You'll also need the rules, policies and related files from the previous blog post. You can download them [here](https://github.com/ronaldbosma/blog-code-examples/raw/master/validate-apim-policies-with-psrule/start-testing-psrule-rules-for-apim-policies-with-pester.zip). To get started, create a new folder and unzip the files into it. After extraction, your folder structure should look like this:
+You'll also need the rules, policies and related files from the previous blog post. You can download them [here](https://raw.githubusercontent.com/ronaldbosma/azure-apim-samples/raw/main/validate-apim-policies-with-psrule/start-testing-psrule-rules-for-apim-policies-with-pester.zip). To get started, create a new folder and unzip the files into it. After extraction, your folder structure should look like this:
 
 ```
 /your-root
@@ -77,7 +77,7 @@ In the previous blog post, we created a rule named `APIM.Policy.InboundBasePolic
 
 _The inbound section should always start with a `base` policy to ensure that critical logic, such as security checks, is applied first. This rule should apply to all scopes except for the global scope and policy fragments._
 
-This rule is implemented in the [/.ps-rule/APIM.Policy.Rule.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/.ps-rule/APIM.Policy.Rule.ps1) file and includes the following logic:
+This rule is implemented in the [/.ps-rule/APIM.Policy.Rule.ps1](https://github.com/ronaldbosma/azure-apim-samples/blob/main/validate-apim-policies-with-psrule/.ps-rule/APIM.Policy.Rule.ps1) file and includes the following logic:
 
 ```powershell
 # Synopsis: The first policy inside the inbound section should be the base policy to make sure important logic like security checks are applied first.
@@ -163,7 +163,7 @@ Locate the `Describe` block and add the following code:
 
 As you can see, the `It` block is used to define a test, followed by the scenario name.
 
-The test begins by creating a custom object that represents an API-scoped policy. The structure of this object matches what we create in our [custom convention](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/.ps-rule/APIM.Policy.Conventions.Rule.ps1). The `PSTypeName` property is important, because it's used by PSRule to determine the object's type when using the `-Type` filter on a rule. The policy XML is defined in the `Content` property, which, in this case, contains only an inbound section with a base policy.
+The test begins by creating a custom object that represents an API-scoped policy. The structure of this object matches what we create in our [custom convention](https://github.com/ronaldbosma/azure-apim-samples/blob/main/validate-apim-policies-with-psrule/.ps-rule/APIM.Policy.Conventions.Rule.ps1). The `PSTypeName` property is important, because it's used by PSRule to determine the object's type when using the `-Type` filter on a rule. The policy XML is defined in the `Content` property, which, in this case, contains only an inbound section with a base policy.
 
 > Note that you could also create a `.cshtml` file for each scenario and execute the rule against these files. However, I prefer to include the XML policy content directly in the test, as this allows me to see at a glance what the test does, without needing to open multiple files.
 
@@ -307,7 +307,7 @@ Before we add these scenarios, we will first refactor the tests to make them mor
 
 You might have noticed a lot of code duplication in each test. The creation of the custom object with the policy, the execution of PSRule and the assertions are all very similar. We can refactor this code into reusable functions.
 
-I've placed the functions in a separate file called `Functions.ps1` in the `tests` folder. You can find the full implementation [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/Functions.ps1). I’ll highlight the most important parts in the following sections.
+I've placed the functions in a separate file called `Functions.ps1` in the `tests` folder. You can find the full implementation [here](https://github.com/ronaldbosma/azure-apim-samples/blob/main/validate-apim-policies-with-psrule/tests/Functions.ps1). I’ll highlight the most important parts in the following sections.
 
 #### Policy object creation
 
@@ -385,7 +385,7 @@ As you can see, these functions perform assertions on the `RuleRecord` object, w
 
 #### Update tests
 
-To use these functions in your tests, download [Functions.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/Functions.ps1) and place it in the `tests` folder. Then, open `APIM.Policy.InboundBasePolicy.Tests.ps1` and add the following code to the end of the `BeforeAll` block to load the functions:
+To use these functions in your tests, download [Functions.ps1](https://github.com/ronaldbosma/azure-apim-samples/blob/main/validate-apim-policies-with-psrule/tests/Functions.ps1) and place it in the `tests` folder. Then, open `APIM.Policy.InboundBasePolicy.Tests.ps1` and add the following code to the end of the `BeforeAll` block to load the functions:
 
 ```powershell
 # Load functions
@@ -404,12 +404,12 @@ With the functions in place, the tests can be refactored. For example, the test 
 
 The old test was 13 lines long, while the refactored implementation is only 5 lines. This makes it more readable and easier to maintain.
 
-You can find the final implementation of `APIM.Policy.InboundBasePolicy.Tests.ps1` with refactored tests and all scenarios [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/APIM.Policy.InboundBasePolicy.Tests.ps1). I've also created tests for the other rules. For example, see [APIM.Policy.UseBackendEntity.Tests.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/APIM.Policy.UseBackendEntity.Tests.ps1) and [APIM.Policy.FileExtension.Tests.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/APIM.Policy.FileExtension.Tests.ps1).
+You can find the final implementation of `APIM.Policy.InboundBasePolicy.Tests.ps1` with refactored tests and all scenarios [here](https://github.com/ronaldbosma/azure-apim-samples/blob/main/validate-apim-policies-with-psrule/tests/APIM.Policy.InboundBasePolicy.Tests.ps1). I've also created tests for the other rules. For example, see [APIM.Policy.UseBackendEntity.Tests.ps1](https://github.com/ronaldbosma/azure-apim-samples/blob/main/validate-apim-policies-with-psrule/tests/APIM.Policy.UseBackendEntity.Tests.ps1) and [APIM.Policy.FileExtension.Tests.ps1](https://github.com/ronaldbosma/azure-apim-samples/blob/main/validate-apim-policies-with-psrule/tests/APIM.Policy.FileExtension.Tests.ps1).
 
 
 ### Test convention
 
-As I mentioned before, I prefer creating the custom object with the policy inside my tests instead of using separate policy files. However, there is a downside to this approach: our custom convention defined in [APIM.Policy.Conventions.Rule.ps1](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/.ps-rule/APIM.Policy.Conventions.Rule.ps1) is not covered by these tests.
+As I mentioned before, I prefer creating the custom object with the policy inside my tests instead of using separate policy files. However, there is a downside to this approach: our custom convention defined in [APIM.Policy.Conventions.Rule.ps1](https://github.com/ronaldbosma/azure-apim-samples/blob/main/validate-apim-policies-with-psrule/.ps-rule/APIM.Policy.Conventions.Rule.ps1) is not covered by these tests.
 
 I attempted to use the [Get-PSRuleTarget](https://microsoft.github.io/PSRule/v2/commands/PSRule/en-US/Get-PSRuleTarget/) cmdlet on the `src` folder to obtain a list of all `APIM.Policy` and `APIM.PolicyWithInvalidXml` types, but it only returns the `.cshtml` type.
 
@@ -527,7 +527,7 @@ It "should import policy files with invalid XML as APIM.PolicyWithInvalidXml" {
 }
 ```
 
-You can find the fully implemented `APIM.Policy.Conventions.Import.Tests.ps1` file [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/APIM.Policy.Conventions.Import.Tests.ps1).
+You can find the fully implemented `APIM.Policy.Conventions.Import.Tests.ps1` file [here](https://github.com/ronaldbosma/azure-apim-samples/blob/main/validate-apim-policies-with-psrule/tests/APIM.Policy.Conventions.Import.Tests.ps1).
 
 
 ### Run tests in Azure pipeline
@@ -536,13 +536,13 @@ With all tests in place, we can now create a pipeline to execute them. I’ve cr
 
 Initially, I tried to use the `Pester` task from the [Pester Test Runner](https://marketplace.visualstudio.com/items?itemName=Pester.PesterRunner) Azure DevOps extension. However, tests related to rules that should be skipped (e.g. for a specific scope) failed. It appears that the results from PSRule differ when using the task compared to running Pester with the PowerShell cmdlet.
 
-So instead, I chose to use a PowerShell script to execute the tests. This script is based on an example from the blog post [Increase the success rate of Azure DevOps pipelines using Pester](https://www.logitblog.com/increase-the-success-rate-of-azure-devops-pipelines-using-pester/) by Ryan Ververs-Bijkerk. I’ve added additional logic to install both the PSRule and Pester modules. You can find the PowerShell script [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/tests/Invoke-PesterTests.ps1).
+So instead, I chose to use a PowerShell script to execute the tests. This script is based on an example from the blog post [Increase the success rate of Azure DevOps pipelines using Pester](https://www.logitblog.com/increase-the-success-rate-of-azure-devops-pipelines-using-pester/) by Ryan Ververs-Bijkerk. I’ve added additional logic to install both the PSRule and Pester modules. You can find the PowerShell script [here](https://github.com/ronaldbosma/azure-apim-samples/blob/main/validate-apim-policies-with-psrule/tests/Invoke-PesterTests.ps1).
 
-The pipeline executes the PowerShell script to run the tests and generate test results, which are then published. You can find the pipeline [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/validate-apim-policies-with-psrule/pipelines/pester-azure-pipelines.yml).
+The pipeline executes the PowerShell script to run the tests and generate test results, which are then published. You can find the pipeline [here](https://github.com/ronaldbosma/azure-apim-samples/blob/main/validate-apim-policies-with-psrule/pipelines/pester-azure-pipelines.yml).
 
 
 ## Conclusion
 
 Pester and PSRule are a great combination. By using a test driven approach, I found it much easier to create new rules and update existing ones. Testing the custom convention to load the API Management policy files was a bit more difficult, but I'm happy to have found a practical workaround.
 
-You can find the combined sample of my [previous posts](/blog/2024/09/02/validate-api-management-policies-with-psrule/) and this post [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/validate-apim-policies-with-psrule).
+You can find the combined sample of my [previous posts](/blog/2024/09/02/validate-api-management-policies-with-psrule/) and this post [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/validate-apim-policies-with-psrule).

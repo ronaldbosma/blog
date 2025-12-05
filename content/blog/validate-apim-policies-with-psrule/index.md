@@ -50,7 +50,7 @@ We'll create the following custom rules:
 
 Follow the instructions on [Install PSRule](https://microsoft.github.io/PSRule/v2/install/) to install PSRule. Please note that this blog post is written using version `2.9.0` of PSRule.
 
-We'll also need some sample policies to test our rules against. You can download them [here](https://github.com/ronaldbosma/blog-code-examples/raw/master/validate-apim-policies-with-psrule/start-sample-policies.zip). 
+We'll also need some sample policies to test our rules against. You can download them [here](https://raw.githubusercontent.com/ronaldbosma/azure-apim-samples/raw/main/validate-apim-policies-with-psrule/start-sample-policies.zip). 
 
 To get started, create a new root folder and unzip the sample policies into this folder. After unzipping, your folder structure should look like this:
 
@@ -430,9 +430,9 @@ For attribute values, there are a couple of solutions. You can surround the valu
 </choose>
 ```
 
-To test this yourself, download [invalid-xml-1.operation.cshtml](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/validate-apim-policies-with-psrule/src/bad/invalid-xml-1.operation.cshtml) and [invalid-xml-2.operation.cshtml](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/validate-apim-policies-with-psrule/src/bad/invalid-xml-2.operation.cshtml), and place them in the `bad` folder. 
+To test this yourself, download [invalid-xml-1.operation.cshtml](https://raw.githubusercontent.com/ronaldbosma/azure-apim-samples/main/validate-apim-policies-with-psrule/src/bad/invalid-xml-1.operation.cshtml) and [invalid-xml-2.operation.cshtml](https://raw.githubusercontent.com/ronaldbosma/azure-apim-samples/main/validate-apim-policies-with-psrule/src/bad/invalid-xml-2.operation.cshtml), and place them in the `bad` folder. 
 
-Also download [good.operation.cshtml](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/validate-apim-policies-with-psrule/src/good/good.operation.cshtml) and place it in the `good` folder. This file includes the suggested solutions for the invalid XML syntax.
+Also download [good.operation.cshtml](https://raw.githubusercontent.com/ronaldbosma/azure-apim-samples/main/validate-apim-policies-with-psrule/src/good/good.operation.cshtml) and place it in the `good` folder. This file includes the suggested solutions for the invalid XML syntax.
 
 When you run PSRule again, you might initially think everything is working because you see output for the `APIM.Policy.FileExtension` rule. However, if you scroll to the top of the output, you'll find an error indicating that a policy file with invalid XML could not be loaded:
 
@@ -628,4 +628,4 @@ The choice between the approach described in this post and using PSRule for Azur
 
 PSRule is a powerful tool for managing the quality of your Azure API Management policies. By creating custom rules, you can validate your policies against your own standards.
 
-You can find a fully functional example [here](https://github.com/ronaldbosma/blog-code-examples/tree/master/validate-apim-policies-with-psrule). This sample includes additional rules and sample policies for further exploration, along with automated tests for each rule, which I discuss in [Testing PSRule Rules for API Management Policies with Pester](/blog/2024/09/26/testing-psrule-rules-for-api-management-policies-with-pester/).
+You can find a fully functional example [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/validate-apim-policies-with-psrule). This sample includes additional rules and sample policies for further exploration, along with automated tests for each rule, which I discuss in [Testing PSRule Rules for API Management Policies with Pester](/blog/2024/09/26/testing-psrule-rules-for-api-management-policies-with-pester/).
