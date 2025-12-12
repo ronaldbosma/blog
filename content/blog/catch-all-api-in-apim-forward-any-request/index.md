@@ -90,6 +90,8 @@ az deployment group create `
 
 You can try out the API using requests from the sample repo: [tests.http](https://github.com/ronaldbosma/azure-apim-samples/blob/main/catch-all-api/tests.http). Replace the base URL variable with your API Management hostname and send GET, POST, PUT, PATCH and DELETE requests to arbitrary paths (e.g. `/resource?param=foo`). The backend service will echo back what it received.
 
+While the example focuses on routing, you can still add policies at the API or operation level to add logic such as rewriting URLs, transforming payloads or handling authorization. This lets you keep the catch-all surface simple while applying logic where needed.
+
 Although this API setup is quite flexible, there are some considerations to keep in mind:
 - There's no clear API contract for consumers, so the experience in e.g. the Developer Portal is limited
 - Request logging is tied to the per-method operation (GET or POST) and not broken down further by explicit operations
