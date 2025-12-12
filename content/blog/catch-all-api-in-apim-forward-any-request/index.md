@@ -1,11 +1,10 @@
 ---
 title: "Catch-All API in Azure API Management: Forward Any Request"
-date: 2025-12-12T14:30:00+01:00
-publishdate: 2025-12-12T14:30:00+01:00
-lastmod: 2025-12-12T14:30:00+01:00
+date: 2025-12-15T16:00:00+01:00
+publishdate: 2025-12-15T16:00:00+01:00
+lastmod: 2025-12-15T16:00:00+01:00
 tags: [ "Azure", "API Management", "Bicep", "Azure Integration Services" ]
 summary: "Sometimes you just want to forward any request from Azure API Management to a backend without defining a detailed API contract. In this post I show how to create a simple Catch-All API that supports multiple HTTP methods and matches any URL."
-draft: true
 ---
 
 Usually when exposing APIs via Azure API Management, you define a clear contract using OpenAPI specifications. This ensures that consumers know exactly what endpoints are available, what parameters to use and what responses to expect. However, there are scenarios where you might want to forward any request to a backend service without defining a detailed API contract.
