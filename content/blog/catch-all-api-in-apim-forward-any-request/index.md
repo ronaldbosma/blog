@@ -29,7 +29,7 @@ The goal is straightforward: accept requests for a base path, regardless of nest
 
 Here's a screenshot of a deployed example in API Management that forwards to an echo backend:
 
-![Catch-All API in APIM](../../../../../images/apim-catch-all-api/catch-all-api.png)
+![Catch-All API in APIM](../../../../../images/catch-all-api-in-apim-forward-any-request/catch-all-api.png)
 
 ### Designing the Operation
 
