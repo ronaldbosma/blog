@@ -75,7 +75,16 @@ At a high level, the Bicep template does the following:
 - Points `serviceUrl` to an echo backend (`https://echo.playground.azure-api.net/api`)
 - For each method, adds an operation with `method` set explicitly and `urlTemplate` as `/{*path}`
 
-You can deploy a working sample with the Bicep file in my repo: [catch-all-api.bicep](https://github.com/ronaldbosma/azure-apim-samples/blob/main/catch-all-api/catch-all-api.bicep). 
+You can deploy a working sample with the Bicep file in my repo: [catch-all-api.bicep](https://github.com/ronaldbosma/azure-apim-samples/blob/main/catch-all-api/catch-all-api.bicep). To deploy it, run the following Azure CLI command. Replace `<your-resource-group-name>` and `<your-api-management-service-name>` with your values.
+
+```powershell
+az deployment group create `
+	--name "deploy-catch-all-api" `
+	--resource-group "<your-resource-group-name>" `
+	--template-file './catch-all-api.bicep' `
+	--parameters apiManagementServiceName="<your-api-management-service-name>" `
+	--verbose
+```
 
 > Note: You need to create an operation for each HTTP method you want to support. A wildcard like `*` doesn’t work. I did deploy an API with `*` as the HTTP method and the operation appeared in the Azure Portal without specifying a method. The OpenAPI spec showed it as GET, but the operation didn’t work and returned 404 Operation Not Found. Only after explicitly setting the HTTP method to, for example, GET did I get a valid response.
 
