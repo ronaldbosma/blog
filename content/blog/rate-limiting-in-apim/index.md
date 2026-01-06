@@ -1,11 +1,10 @@
 ---
 title: "Rate Limiting in Azure API Management"
-date: 2026-01-06T12:00:00+01:00
-publishdate: 2026-01-06T12:00:00+01:00
-lastmod: 2026-01-06T12:00:00+01:00
+date: 2026-01-06T14:00:00+01:00
+publishdate: 2026-01-06T14:00:00+01:00
+lastmod: 2026-01-06T14:00:00+01:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Security" ]
 summary: "Learn how to use Azure API Management's rate-limit and rate-limit-by-key policies to protect backends from overwhelming traffic and fairly distribute capacity among clients. Includes practical examples, monitoring guidance and key considerations for different scenarios."
-draft: true
 ---
 
 I've been working with Azure API Management on projects where protecting backend services from excessive traffic matters. Rate limiting helps prevent backends from being overwhelmed while also ensuring fair distribution of capacity among clients.
