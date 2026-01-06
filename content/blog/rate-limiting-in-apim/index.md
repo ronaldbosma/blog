@@ -17,11 +17,10 @@ I've created a [sample on GitHub](https://github.com/ronaldbosma/azure-apim-samp
 ### Table of Contents
 
 - [Rate Limit Per Subscription](#rate-limit-per-subscription)
-  - [Nested Rate Limits](#nested-rate-limits)
 - [Rate Limit Per Key](#rate-limit-per-key)
 - [Response Handling](#response-handling)
 - [What Rate Limit to Apply?](#what-rate-limit-to-apply)
-- [Alternative and Additional Measures](#alternative-and-additional-measures)
+- [Considerations](#considerations)
 - [Sample](#sample)
 - [Conclusion](#conclusion)
 
@@ -43,16 +42,14 @@ When rate limiting is defined on multiple levels (for example, at both the API a
 
 The rate limit also applies to calls made without a subscription key. For example, if you set a limit of 10 calls per minute, 10 calls can be made in a minute without a subscription key.
 
+The `rate-limit` policy has the following constraints:
+- This policy can be used only once per policy definition
+- Policy expressions are not allowed in the `calls` and `renewal-period` attributes
+- The policy is not allowed on the global and workspace scopes (see [policy usage documentation](https://learn.microsoft.com/en-us/azure/api-management/rate-limit-policy#usage))
+
 #### Policy Fragments Share Counters
 
 Beware when using the `rate-limit` policy in combination with policy fragments. I had the idea to create a policy fragment with some default rate limiting configuration that I could use across APIs. However, the rate limit is not applied on the scope where the fragment is included. The rate limit is scoped on the fragment itself. Meaning that if you use the policy fragment in multiple APIs and/or operations, they all share the same rate limit counter. This is almost certainly not what you want.
-
-#### Constraints
-
-The `rate-limit` policy has some important constraints:
-
-- Policy expressions are not allowed in the `calls` and `renewal-period` attributes
-- The policy is not allowed on the global and workspace scopes (see [policy usage documentation](https://learn.microsoft.com/en-us/azure/api-management/rate-limit-policy#usage))
 
 #### Nested Rate Limits
 
@@ -75,6 +72,7 @@ A few things to note about this approach:
 - You cannot use policy expressions in the `id` attributes
 - The API and operation must already exist when applying this policy
 - You need to explicitly specify all operations that should have custom limits. If you add a new operation to the API later, you must remember to update the rate limit configuration
+- If rate limits are also defined on the API and operation scope, the most restrictive limit applies
 
 You can use the same nested approach for operations on the API scope:
 
@@ -113,13 +111,7 @@ The delimiter `;` is safe to use because it's not allowed in API and operation I
 
 By including the `context.Subscription.Id` in the key, you can define a rate limit per subscription similar to what `rate-limit` does. You can also include other identifiers that identify a client, such as values from a JWT token or custom headers.
 
-Unlike the `rate-limit` policy, the `rate-limit-by-key` policy is allowed on the global level, which can be useful for setting cross-cutting rate limits.
-
-#### V2 Tier Token Bucket Algorithm
-
-The v2 tiers use a token bucket algorithm for rate limiting, which differs from the sliding window algorithm in classic tiers.
-
-When you configure the `rate-limit-by-key` policy in the v2 tiers at more than one scope using the same `counter-key` value, ensure that the `renewal-period` and `calls` values are consistent in all instances. Inconsistent values can cause unpredictable behavior.
+Unlike the `rate-limit` policy, the `rate-limit-by-key` policy is allowed on the global and workspace scope, which can be useful for setting cross-cutting rate limits. This policy is however, not supported in the Consumption tier.
 
 #### Additional Attributes
 
@@ -182,7 +174,11 @@ This query:
 
 Tip: Create an alert that triggers when a 429 status code is returned to detect when rate limits are hit and help you understand if adjustments are needed.
 
-### Alternative and Additional Measures
+### Considerations
+
+Because of the distributed nature of throttling architecture, rate limiting is never completely accurate. The difference between the configured number of allowed requests and the actual number varies depending on request volume and rate, backend latency and other factors.
+
+The v2 tiers use a token bucket algorithm for rate limiting, which differs from the sliding window algorithm in classic tiers. When you configure the `rate-limit-by-key` policy in the v2 tiers at more than one scope using the same `counter-key` value, ensure that the `renewal-period` and `calls` values are consistent in all instances. Inconsistent values can cause unpredictable behavior.
 
 In addition to configuring rate limits on APIs and operations, you can use other approaches to protect your backends:
 
