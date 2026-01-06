@@ -2,7 +2,7 @@
 title: "Rate Limiting in Azure API Management"
 date: 2026-01-06T14:00:00+01:00
 publishdate: 2026-01-06T14:00:00+01:00
-lastmod: 2026-01-06T14:00:00+01:00
+lastmod: 2026-01-06T16:00:00+01:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Security" ]
 summary: "Learn how to use Azure API Management's rate-limit and rate-limit-by-key policies to protect backends from overwhelming traffic and fairly distribute capacity among clients. Includes practical examples, monitoring guidance and key considerations for different scenarios."
 ---
@@ -131,6 +131,8 @@ For both policies, it's possible to use named values to configure the calls and 
 ```
 
 This can be useful if you need to apply different rate limits per environment, or if you want to use the same values in multiple policies and prefer to manage them centrally.
+
+Note that once you use named values in the `calls` and `renewal-period` attributes, you can only set those named values to integer values. Changing them to something else will be blocked by API Management.
 
 ### Rate Limit Responses
 
