@@ -15,6 +15,7 @@ In this post, I'll show you how the different rate limit policies work in API Ma
 
 - [Rate Limit Per Subscription](#rate-limit-per-subscription)
 - [Rate Limit Per Key](#rate-limit-per-key)
+- [Using Named Values for Configuration](#using-named-values-for-configuration)
 - [Rate Limit Responses](#rate-limit-responses)
 - [What Rate Limit to Apply?](#what-rate-limit-to-apply)
 - [Considerations](#considerations)
@@ -120,6 +121,16 @@ The `rate-limit-by-key` policy has two additional attributes that are not availa
 - `increment-count`: The number by which the counter is increased per request. Policy expressions are allowed but will postpone evaluation and counter increment to end of outbound pipeline
 
 These attributes provide more control over how requests are counted. For example, you can use `increment-condition` to only count requests that meet certain criteria or use `increment-count` to give different weights to different types of requests.
+
+### Using Named Values for Configuration
+
+For both policies, it's possible to use named values to configure the calls and renewal period, as long as they have an integer value. Here's an example:
+
+```
+<rate-limit calls="{{rate-limit-calls}}" renewal-period="{{rate-limit-renewal-period}}" />
+```
+
+This can be useful if you need to apply different rate limits per environment, or if you want to use the same values in multiple policies and prefer to manage them centrally.
 
 ### Rate Limit Responses
 
