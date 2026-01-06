@@ -106,13 +106,13 @@ I use this policy to set total limits per API or operation, regardless of the cl
 
 #### Setting Limits Per API or Operation
 
-When setting a rate limit on an API, you can use the API ID as the key with a policy expression:
+When setting a total rate limit on an API, you can use the API ID as the key with a policy expression:
 
 ```
 <rate-limit-by-key calls="20" renewal-period="30" counter-key="@(context.Api.Id)" />
 ```
 
-When defining a rate limit for a specific operation, use the combination of API and operation ID as the key:
+When defining a total rate limit for a specific operation, use the combination of API and operation ID as the key:
 
 ```
 <rate-limit-by-key calls="10" renewal-period="30" counter-key="@($"{context.Api.Id};{context.Operation.Id}")" />
@@ -122,10 +122,6 @@ The delimiter `;` is safe to use because it's not allowed in API names.
 
 **DON'T** use only the operation ID for the key. Operations with the same ID in different APIs will share the rate limit, which is almost never what you want:
 
-```
-<!-- DON'T DO THIS -->
-<rate-limit-by-key calls="5" renewal-period="30" counter-key="@(context.Operation.Id)" />
-```
 
 #### Dynamic Keys Based on Client Identity
 
@@ -161,23 +157,23 @@ When a rate limit is hit, API Management returns a `429 Too Many Requests` statu
 }
 ```
 
-By default, no headers are returned for successful requests. Once the rate limit is hit, the `Retry-After` header is returned, which specifies after how many seconds the client can retry.
+By default, no headers are returned for requests. Once the rate limit is hit, the `Retry-After` header is returned, which specifies after how many seconds the client can retry.
 
 #### Custom Header Names
 
 Both the `rate-limit` and `rate-limit-by-key` policies support custom header names:
 
 - The `retry-after-header-name` attribute can be used to change the name of the retry header
-- The `total-calls-header-name` attribute sets a header to return the total calls allowed. This header is returned on both successful requests and when the rate limit is hit
+- The `total-calls-header-name` attribute sets a header to return the total calls allowed. This header is returned on all requests
 - The `remaining-calls-header-name` attribute sets a header to return the remaining number of calls. This is only returned on requests where the rate limit is not hit
 
 Here's an example with custom headers:
 
 ```
 <rate-limit calls="15" renewal-period="30" 
-            retry-after-header-name="Retry-After-On-API" 
-            remaining-calls-header-name="Remaining-Calls-On-API" 
-            total-calls-header-name="Total-Calls-On-API" />
+            retry-after-header-name="Retry-After" 
+            remaining-calls-header-name="Remaining-Calls" 
+            total-calls-header-name="Total-Calls" />
 ```
 
 ### Monitoring with Kusto
@@ -185,26 +181,19 @@ Here's an example with custom headers:
 To understand how your APIs are being used and whether you need to adjust rate limits, you can query Application Insights data. The following Kusto query retrieves the maximum number of requests logged in a specified time frame per API operation:
 
 ```kusto
-let timeWindow=90d;
-let groupResultsByXTime=1m;
-let numberOfTopMaxRequestsToSelect=15;
-
-let requestsPerOperation=requests
-| where timestamp >= ago(timeWindow)
+requests
 | where customDimensions["Service Type"] == "API Management"
 | extend api = tostring(customDimensions["API Name"])
 | extend operation = tostring(customDimensions["Operation Name"])
-| summarize numberOfRequests = count() by bin(timestamp, groupResultsByXTime), api, operation;
-
-requestsPerOperation
-| summarize topMaxRequests = array_slice(array_sort_desc(make_list(numberOfRequests)), 0, numberOfTopMaxRequestsToSelect), 
+| summarize numberOfRequests = count() by bin(timestamp, 1m), api, operation
+| summarize topMaxRequests = array_slice(array_sort_desc(make_list(numberOfRequests)), 0, 15), 
             maxRequest = max(numberOfRequests) by api, operation
 | project api, operation, maxRequest, topMaxRequests
 | sort by api asc, operation asc
 ```
 
 This query:
-- Groups requests by 1-minute intervals (configurable via `groupResultsByXTime`)
+- Groups requests by 1-minute intervals
 - Calculates the maximum number of requests in any single interval
 - Returns a list of the top 15 maximum request counts
 - Helps you identify peak usage patterns and set appropriate rate limits
@@ -267,6 +256,6 @@ See the [readme](https://github.com/ronaldbosma/azure-apim-samples/blob/main/rat
 
 ### Conclusion
 
-Azure API Management provides flexible rate limiting options through the `rate-limit` and `rate-limit-by-key` policies. Use `rate-limit` for straightforward per-subscription limits at the API or operation scope. Use `rate-limit-by-key` when you need dynamic keys, global limits, or rate limiting based on custom identifiers.
+Azure API Management provides flexible rate limiting options through the `rate-limit` and `rate-limit-by-key` policies. Use `rate-limit` for straightforward per-subscription limits at the product, API or operation scope. Use `rate-limit-by-key` when you need dynamic keys, global limits, or rate limiting based on custom identifiers.
 
 Rate limiting protects your backend services from being overwhelmed and ensures fair distribution of capacity among clients. Combined with monitoring and alerting, these policies help you maintain a reliable and responsive API platform.
