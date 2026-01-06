@@ -16,7 +16,7 @@ In this post, I'll show you how the different rate limit policies work in API Ma
 
 - [Rate Limit Per Subscription](#rate-limit-per-subscription)
 - [Rate Limit Per Key](#rate-limit-per-key)
-- [Response Handling](#response-handling)
+- [Rate Limit Responses](#rate-limit-responses)
 - [What Rate Limit to Apply?](#what-rate-limit-to-apply)
 - [Considerations](#considerations)
 - [Sample](#sample)
@@ -120,7 +120,7 @@ The `rate-limit-by-key` policy has two additional attributes that are not availa
 
 These attributes provide more control over how requests are counted. For example, you can use `increment-condition` to only count requests that meet certain criteria or use `increment-count` to give different weights to different types of requests.
 
-### Response Handling
+### Rate Limit Responses
 
 When a rate limit is hit, API Management returns a `429 Too Many Requests` status code with the following default response body:
 
