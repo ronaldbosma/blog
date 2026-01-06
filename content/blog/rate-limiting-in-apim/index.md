@@ -12,8 +12,6 @@ I've been working with Azure API Management on projects where protecting backend
 
 In this post, I'll show you how the different rate limit policies work in API Management. I won't go into which specific limits to use, because that depends on your situation. Instead, I'll focus on how to configure the `rate-limit` and `rate-limit-by-key` policies, explain their behavior across different scopes and share some tips I've learned along the way.
 
-I've created a [sample on GitHub](https://github.com/ronaldbosma/azure-apim-samples/tree/main/rate-limiting) that demonstrates these policies in action. It includes APIs configured with both policies, policy fragments, product-level limits and a tests.http file to try out different scenarios.
-
 ### Table of Contents
 
 - [Rate Limit Per Subscription](#rate-limit-per-subscription)
@@ -40,7 +38,7 @@ This limits each subscription to 10 calls every 30 seconds.
 
 When rate limiting is defined on multiple levels (for example, at both the API and operation scope), the first limit to reach 0 will cause an error. This means the most restrictive limit applies.
 
-The rate limit also applies to calls made without a subscription key. For example, if you set a limit of 10 calls per minute, 10 calls can be made in a minute without a subscription key.
+The rate limit also applies to calls made without a subscription key (if the API allows anonymous access). For example, if you set a limit of 10 calls per minute, 10 calls can be made in a minute without a subscription key.
 
 The `rate-limit` policy has the following constraints:
 - This policy can be used only once per policy definition
@@ -90,7 +88,7 @@ This has the same downside that you need to specify all operations explicitly. T
 
 The [rate-limit-by-key](https://learn.microsoft.com/en-us/azure/api-management/rate-limit-by-key-policy) policy sets a rate limit for a specific key. If you use it in multiple APIs and/or operations with the same key, they all share the same rate limit counter.
 
-This policy is useful when you for example want to set a total rate limit on an API or operation, regardless of the client. You can also create dynamic rate limiting based on custom identifiers, like a client's IP address or values from a JWT token.
+This policy is useful when you for example want to set a total rate limit on an API or operation, regardless of the client. It can also be used to apply dynamic rate limiting based on custom identifiers, like a client's IP address or values from a JWT token.
 
 When setting a total rate limit on an API, you can use the API ID as the key with a policy expression:
 
@@ -109,7 +107,7 @@ The delimiter `;` is safe to use because it's not allowed in API and operation I
 
 Avoid using only the operation ID for the key. Operations with the same ID in different APIs will share the rate limit, which is almost never what you want.
 
-By including the `context.Subscription.Id` in the key, you can define a rate limit per subscription similar to what `rate-limit` does. You can also include other identifiers that identify a client, such as values from a JWT token or custom headers.
+By including the `context.Subscription.Id` in the key, you can define a rate limit per subscription similar to what `rate-limit` does. Other identifiers that identify a client can also be included, such as values from a JWT token or custom headers.
 
 Unlike the `rate-limit` policy, the `rate-limit-by-key` policy is allowed on the global and workspace scope, which can be useful for setting cross-cutting rate limits. This policy is however, not supported in the Consumption tier.
 
@@ -133,7 +131,7 @@ When a rate limit is hit, API Management returns a `429 Too Many Requests` statu
 }
 ```
 
-By default, no headers are returned for requests. Once the rate limit is hit, the `Retry-After` header is returned, which specifies after how many seconds the client can retry.
+By default, no headers are returned for requests where the rate limit isn't hit. Once the rate limit is hit, the `Retry-After` header is returned, which specifies after how many seconds the client can retry.
 
 Both the `rate-limit` and `rate-limit-by-key` policies support custom header names:
 
@@ -172,6 +170,8 @@ This query:
 - Returns a list of the top 15 maximum request counts
 - Helps you identify peak usage patterns and set appropriate rate limits
 
+Note that sampling in Application Insights may affect the accuracy of the data, especially under high load. Consider this when analyzing the results.
+
 Tip: Create an alert that triggers when a 429 status code is returned to detect when rate limits are hit and help you understand if adjustments are needed.
 
 ### Considerations
@@ -180,7 +180,7 @@ Because of the distributed nature of throttling architecture, rate limiting is n
 
 The v2 tiers use a token bucket algorithm for rate limiting, which differs from the sliding window algorithm in classic tiers. When you configure the `rate-limit-by-key` policy in the v2 tiers at more than one scope using the same `counter-key` value, ensure that the `renewal-period` and `calls` values are consistent in all instances. Inconsistent values can cause unpredictable behavior.
 
-In addition to configuring rate limits on APIs and operations, you can use other approaches to protect your backends:
+In addition to configuring rate limits on APIs and operations, other approaches can be used to protect your backends:
 
 - The [circuit breaker](https://learn.microsoft.com/en-us/azure/api-management/backends?tabs=portal#circuit-breaker) property on an API Management backend prevents overwhelming the backend service when under high load
 - The [limit-concurrency](https://learn.microsoft.com/en-us/azure/api-management/limit-concurrency-policy) policy limits the number of concurrent requests
