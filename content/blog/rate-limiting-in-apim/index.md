@@ -108,7 +108,9 @@ Avoid using only the operation ID for the key. Operations with the same ID in di
 
 By including the `context.Subscription.Id` in the key, you can define a rate limit per subscription similar to what `rate-limit` does. Other identifiers that identify a client can also be included, such as values from a JWT token or custom headers.
 
-Unlike the `rate-limit` policy, the `rate-limit-by-key` policy is allowed on the global and workspace scope, which can be useful for setting cross-cutting rate limits. This policy is however, not supported in the Consumption tier.
+Unlike the `rate-limit` policy, the `rate-limit-by-key` policy is allowed on the global and workspace scope, which can be useful for setting cross-cutting rate limits. 
+You can also use the `rate-limit-by-key` policy multiple times within the same policy definition. For example, you can define a rate limit for the entire API and another rate limit per operation at the API scope, as I've done [here](https://github.com/ronaldbosma/azure-apim-samples/blob/main/rate-limiting/rate-limit-by-key-api/api.xml).
+This policy is, however, not supported in the Consumption tier.
 
 #### Additional Attributes
 
