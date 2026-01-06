@@ -191,8 +191,6 @@ In addition to configuring rate limits on APIs and operations, you can use other
 - Application Gateway or similar products with DDoS (Distributed Denial-of-Service) protection
 - Response caching to reduce backend load (consider whether caching should occur before or after rate limit checks)
 
-Create an alert that triggers when a 429 status code is returned to detect when rate limits are hit and help you understand if adjustments are needed.
-
 ### Sample
 
 I've created a [sample on GitHub](https://github.com/ronaldbosma/azure-apim-samples/tree/main/rate-limiting) that demonstrates the rate limiting policies in action. The sample includes:
