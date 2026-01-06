@@ -21,6 +21,7 @@ I've created a [sample on GitHub](https://github.com/ronaldbosma/azure-apim-samp
 - [Rate Limit Per Key](#rate-limit-per-key)
 - [Response Handling](#response-handling)
 - [What Rate Limit to Apply?](#what-rate-limit-to-apply)
+- [Alternative and Additional Measures](#alternative-and-additional-measures)
 - [Sample](#sample)
 - [Conclusion](#conclusion)
 
@@ -180,6 +181,17 @@ This query:
 - Helps you identify peak usage patterns and set appropriate rate limits
 
 Tip: Create an alert that triggers when a 429 status code is returned to detect when rate limits are hit and help you understand if adjustments are needed.
+
+### Alternative and Additional Measures
+
+In addition to configuring rate limits on APIs and operations, you can use other approaches to protect your backends:
+
+- The [circuit breaker](https://learn.microsoft.com/en-us/azure/api-management/backends?tabs=portal#circuit-breaker) property on an API Management backend prevents overwhelming the backend service when under high load
+- The [limit-concurrency](https://learn.microsoft.com/en-us/azure/api-management/limit-concurrency-policy) policy limits the number of concurrent requests
+- Application Gateway or similar products with DDoS (Distributed Denial-of-Service) protection
+- Response caching to reduce backend load (consider whether caching should occur before or after rate limit checks)
+
+Create an alert that triggers when a 429 status code is returned to detect when rate limits are hit and help you understand if adjustments are needed.
 
 ### Sample
 
