@@ -8,7 +8,7 @@ summary: "Learn how to use Azure API Management's rate-limit and rate-limit-by-k
 draft: true
 ---
 
-I've been working with Azure API Management on projects where protecting backend services from excessive traffic is important. Rate limiting helps prevent backends from being overwhelmed while also ensuring fair distribution of capacity among clients.
+I've been working with Azure API Management on projects where protecting backend services from excessive traffic matters. Rate limiting helps prevent backends from being overwhelmed while also ensuring fair distribution of capacity among clients.
 
 In this post, I'll show you how the different rate limit policies work in API Management. I won't go into which specific limits to use, because that depends on your situation. Instead, I'll focus on how to configure the `rate-limit` and `rate-limit-by-key` policies, explain their behavior across different scopes and share some tips I've learned along the way.
 
@@ -30,7 +30,7 @@ The [rate-limit](https://learn.microsoft.com/en-us/azure/api-management/rate-lim
 
 If you define the policy at the API scope, calls to all operations for the same subscription are counted together. If you define it at the operation scope, only calls to that specific operation are counted for the subscription.
 
-Here's a basic example at the policy:
+Here's a basic example of the policy:
 
 ```
 <rate-limit calls="10" renewal-period="30">
@@ -90,7 +90,7 @@ This has the same downside that you need to specify all operations explicitly. T
 
 The [rate-limit-by-key](https://learn.microsoft.com/en-us/azure/api-management/rate-limit-by-key-policy) policy sets a rate limit for a specific key. If you use it in multiple APIs and/or operations with the same key, they all share the same rate limit counter.
 
-This policy is useful when you for example want to set a total rate limit on an API or operation, regardless of the client. You can also create dynamic rate limiting based on custom identifiers, like a clients IP address or values from a JWT token.
+This policy is useful when you for example want to set a total rate limit on an API or operation, regardless of the client. You can also create dynamic rate limiting based on custom identifiers, like a client's IP address or values from a JWT token.
 
 When setting a total rate limit on an API, you can use the API ID as the key with a policy expression:
 
@@ -107,7 +107,7 @@ When defining a total rate limit for a specific operation, use the combination o
 
 The delimiter `;` is safe to use because it's not allowed in API and operation IDs.
 
-**DON'T** use only the operation ID for the key. Operations with the same ID in different APIs will share the rate limit, which is almost never what you want:
+Avoid using only the operation ID for the key. Operations with the same ID in different APIs will share the rate limit, which is almost never what you want.
 
 By including the `context.Subscription.Id` in the key, you can define a rate limit per subscription similar to what `rate-limit` does. You can also include other identifiers that identify a client, such as values from a JWT token or custom headers.
 
@@ -139,7 +139,7 @@ Both the `rate-limit` and `rate-limit-by-key` policies support custom header nam
 
 - The `retry-after-header-name` attribute can be used to change the name of the retry header
 - The `total-calls-header-name` attribute sets a header to return the total calls allowed. This header is returned for all requests
-- The `remaining-calls-header-name` attribute sets a header to return the remaining number of calls. This is only returned for requests where the rate limit is not hit
+- The `remaining-calls-header-name` attribute sets a header to return the remaining number of calls. This is only returned for requests where the rate limit isn't hit
 
 Here's an example with custom headers:
 
