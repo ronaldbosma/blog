@@ -11,7 +11,7 @@ draft: true
 
 I've been working on multiple integration projects in the last couple of years using Azure Integration Services. When connecting to an external system, one of the first things I do is create an availability test. This helps me monitor if the system is up, verify that all security measures are in place and up to date (like client secrets or certificates), and verify that the system can be reached.
 
-Most of the time there are VNets, Network Security Groups, Azure Firewalls and IP whitelists between the integration resources and the backend system. I've had multiple occasions where somebody cleaned up the infrastructure and removed too much. The availability test would quickly identify this issue, making it easier to troubleshoot.
+Most of the time there are VNets, Network Security Groups, Azure Firewalls and IP whitelists between the integration resources and the backend system. I've had multiple occasions where somebody cleaned up the infrastructure and removed too much. The availability test quickly identified this issue, making it easier to troubleshoot.
 
 In this post, I'll show you how to track availability in Application Insights using a standard test. While Microsoft's documentation on [Application Insights availability tests](https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=standard) gives a good overview of creating a standard test via the portal, I'll focus on creating one through Bicep.
 
@@ -81,13 +81,13 @@ resource availabilityTest 'Microsoft.Insights/webtests@2022-06-15' = {
         Id: 'emea-fr-pra-edge' // France Central
       }
       {
-        Id: 'emea-ch-zrh-edge' // Switzerland North
+        Id: 'emea-ch-zrh-edge' // France South
       }
     ]
 
     Request: {
       HttpVerb: 'GET'
-      RequestUrl: '${helpers.getApiManagementGatewayUrl(apiManagementSettings.serviceName)}/backend/status'
+      RequestUrl: 'https://<your-api-management-service-name>.azure-api.net/backend/status'
     }
 
     ValidationRules: {
@@ -107,7 +107,7 @@ The `Name` property is what you'll see in the availability test overview in the 
 
 The `Frequency` property controls how often the test runs. A frequency of 300 means the test executes every 5 minutes from all configured locations. This is an important distinction: if you have 5 locations configured, the test will run 5 times every 5 minutes, not once every 5 minutes total. The tests from different locations don't run at exactly the same time but are distributed across the 5-minute window.
 
-The `Locations` array specifies which Azure regions will run the test. You can find the complete list of available locations in the [Microsoft documentation](https://learn.microsoft.com/en-us/previous-versions/azure/azure-monitor/app/monitor-web-app-availability#location-population-tags). I typically configure multiple locations to get better coverage and to distinguish between regional issues and actual backend failures.
+The `Locations` array specifies in which Azure regions the test will run. You can find the complete list of available locations in the [Microsoft documentation](https://learn.microsoft.com/en-us/previous-versions/azure/azure-monitor/app/monitor-web-app-availability#location-population-tags). I typically configure multiple locations to get better coverage and to distinguish between regional issues and actual backend failures. If you expect clients from specific regions, make sure to include those regions in your test locations.
 
 The `Request` section defines what HTTP request to make. In this example, I'm calling a status endpoint on API Management, but you can call any publicly accessible endpoint.
 
@@ -119,14 +119,16 @@ You can find the complete implementation in the [availability-tests.bicep](https
 
 ## SSL Certificate Validation
 
-You'll notice that `SSLCheck` is set to false in the example above. There's a good reason for this approach.
+You'll notice that `SSLCheck` is set to false in the example above. I have two reasons for this approach.
 
-I don't check the SSL certificate of backends I'm not responsible for. However, in most integration projects we use Azure API Management as the API Gateway, and it usually sits behind an Application Gateway. For these scenarios, I create at least two availability tests:
+First, I don't check the SSL certificate of backends I'm not responsible for. 
+
+Secondly, in most integration projects we use Azure API Management as the API Gateway and I usually also create availability tests for API Management itself. In that case, I create two separate tests:
 
 1. A test that checks the availability of API Management using the standard status endpoint `/status-0123456789abcdef` (or `/internal-status-0123456789abcdef` for the Consumption tier) with `SSLCheck` disabled
-2. A second test on the same endpoint specifically to verify the SSL server certificate of API Management (or the Application Gateway if that's in front of API Management)
+2. A second test on the same endpoint specifically to verify the SSL server certificate of API Management (or e.g. an Application Gateway if that's in front of API Management)
 
-I split this into two tests because the test with SSL check enabled will fail if the certificate is about to expire. When that happens, you need to drill down into the availability test results to verify whether the cause is certificate expiration or actual downtime of API Management. By separating these concerns, troubleshooting becomes much easier.
+I split this into two tests because the test with SSL check enabled will fail if the certificate is about to expire. When that happens, you need to drill down into the availability test results to verify whether the cause is certificate expiration or actual downtime of API Management. By separating these concerns, you can quickly identify if there's a real availability issue or just a certificate warning.
 
 Here's an example of a test with SSL validation enabled:
 
@@ -156,7 +158,7 @@ resource sslValidationTest 'Microsoft.Insights/webtests@2022-06-15' = {
 
     Request: {
       HttpVerb: 'GET'
-      RequestUrl: '${helpers.getApiManagementGatewayUrl(apiManagementSettings.serviceName)}/status-0123456789abcdef'
+      RequestUrl: 'https://<your-api-management-service-name>.azure-api.net/status-0123456789abcdef'
     }
 
     ValidationRules: {
@@ -171,7 +173,7 @@ resource sslValidationTest 'Microsoft.Insights/webtests@2022-06-15' = {
 }
 ```
 
-For the SSL check, in a real-world scenario I would set the frequency to the maximum of 900 (15 minutes) and execute the test from a single location. We don't need to be notified the instant that the certificate expires within 30 days, and this approach minimizes costs. However, for demo purposes I set the frequency to 300 (5 minutes) and configured multiple locations.
+For the SSL check, in a real-world scenario I would set the frequency to the maximum of 900 (15 minutes) and execute the test from a single location. We don't need to be notified the instant that the certificate expires within 30 days, and this approach minimizes costs. However, for demo purposes I set the frequency to 300 (5 minutes) and configured multiple locations in [my sample](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/infra/modules/application/availability-tests.bicep).
 
 ## Viewing Availability Test Results
 
@@ -179,27 +181,17 @@ After deploying the availability tests, you can view the results in several plac
 
 The main availability overview shows all your tests with their success rates. Navigate to your Application Insights resource and select "Availability" from the left menu. You'll see a timeline showing the availability percentage and a list of all configured tests:
 
-![Availability Overview](../../../../../images/track-availability-in-app-insights-series/track-availability-in-app-insights-using-standard-test/availability-overview.png)
+![Availability Overview](../../../../../images/track-availability-in-app-insights-series/track-availability-in-app-insights-using-standard-test/availability-test-results.png)
 
 Click on any test to see more detailed results, including which locations succeeded or failed:
 
 ![Test Details](../../../../../images/track-availability-in-app-insights-series/track-availability-in-app-insights-using-standard-test/availability-test-details.png)
 
-You can drill down further to see individual test runs. Click on any dot in the scatter plot to view the full request and response details:
+To view individual test run details, select the "Standard Test - Backend API Status" test, click on either `Successful` or `Failed`, and then click on an availability test result in the right pane:
 
-![Test Run Details](../../../../../images/track-availability-in-app-insights-series/track-availability-in-app-insights-using-standard-test/availability-test-run-details.png)
+![Test Run Details](../../../../../images/track-availability-in-app-insights-series/track-availability-in-app-insights-using-standard-test/standard-test-end-to-end-transaction-details.png)
 
-You can also query the results yourself using Kusto Query Language (KQL). The availability test results are stored in the `availabilityResults` table in Application Insights or the `AppAvailabilityResults` table in Log Analytics. Here's an example query:
-
-```kusto
-availabilityResults
-| where timestamp > ago(24h)
-| where name == "Standard Test - Backend API Status"
-| project timestamp, name, location, success, duration, message
-| order by timestamp desc
-```
-
-This query retrieves all test results from the last 24 hours for a specific test, showing the timestamp, location, success status, duration and any error messages.
+You can also query the results yourself using Kusto Query Language (KQL). The availability test results are stored in the `availabilityResults` table in Application Insights and the `AppAvailabilityResults` table in Log Analytics. 
 
 ## Setting Up Alerts
 
@@ -211,6 +203,7 @@ First, create an action group that defines what happens when an alert is trigger
 resource actionGroup 'Microsoft.Insights/actionGroups@2023-01-01' = {
   name: actionGroupName
   location: 'Global'
+
   properties: {
     enabled: true
     groupShortName: 'alerts'
@@ -233,7 +226,6 @@ Next, create a metric alert that triggers when an availability test fails:
 resource failedAvailabilityTestAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {
   name: failedAvailabilityTestAlertName
   location: 'global'
-  tags: tags
 
   properties: {
     description: 'Alert that triggers when backend status availability test fails'
@@ -289,7 +281,7 @@ When an alert fires, it will appear in this list, and you'll receive an email no
 
 While standard tests are useful for basic availability monitoring, there are some restrictions to consider:
 
-The standard test doesn't support multiple steps, so you can't use it in scenarios where you first need to retrieve an access token. If you need to authenticate with OAuth or another multi-step authentication flow, you'll need to use custom availability tests with Azure Functions or Logic Apps, which I'll cover in the next posts in this series.
+The standard test doesn't support multiple steps, so you can't use it in scenarios where you for example first need to retrieve an access token. If you need to authenticate with OAuth or another multi-step authentication flow, you'll need to use custom availability tests with Azure Functions or Logic Apps, which I'll cover in the next posts in this series.
 
 Standard tests don't support mutual TLS (mTLS) either. If your backend requires client certificates for authentication, you'll need to use custom availability tests.
 
@@ -297,7 +289,7 @@ You can add headers to standard tests, like an API key, but you can't refer to a
 
 The tests run on shared Azure resources and can't access resources that aren't exposed to the internet. If your backend is behind a private network, you'll need to deploy custom availability tests within your VNet.
 
-From a cost perspective, a web test costs €0.0005 per execution, which seems cheap. But if you execute it every minute, a single test will cost a bit more than €20 per month. If you have 10 tests running every minute, you'll spend over €200 per month, and you'll most likely deploy them into multiple environments. So it's important to carefully consider the frequency and number of locations from which you want to execute these tests. I usually add only a few standard tests and execute the rest from Azure Functions with a service plan, where the additional cost per test is low (mostly network traffic and logging).
+From a cost perspective, a web test costs €0.0005 per execution, which seems cheap. But if you execute it every minute, a single test will cost a bit more than €20 per month. If you have 10 tests running every minute, you'll spend over €200 per month, and you'll most likely deploy them into multiple environments. So it's important to carefully consider the frequency and number of locations from which you want to execute these tests. I usually add only a few standard tests and execute the rest from Azure Functions with a service plan, where the additional cost per test is lower (mostly network traffic and logging).
 
 ## Conclusion
 
