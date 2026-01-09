@@ -60,6 +60,7 @@ resource availabilityTest 'Microsoft.Insights/webtests@2022-06-15' = {
   properties: {
     Name: 'Standard Test - Backend API Status'
     Description: 'Status of the backend API tested from a standard test (webtest)'
+    SyntheticMonitorId: 'Standard Test - API Management SSL Certificate Check'
 
     Kind: 'standard'
     Enabled: true
@@ -95,15 +96,13 @@ resource availabilityTest 'Microsoft.Insights/webtests@2022-06-15' = {
       IgnoreHttpStatusCode: false
       SSLCheck: false
     }
-
-    SyntheticMonitorId: availabilityTestName
   }
 }
 ```
 
 Let's break down the key configuration options:
 
-The `Name` property is what you'll see in the availability test overview in the Azure portal. The `hidden-link` tag in the tags section links the web test to the Application Insights resource, which allows Application Insights to display the test results.
+The `Name` property is what you'll see in the availability test overview in the Azure portal. The `SyntheticMonitorId` is the unique ID of this test and is typically the same value as the `Name` property. The `hidden-link` tag in the tags section links the web test to the Application Insights resource, which allows Application Insights to display the test results.
 
 The `Frequency` property controls how often the test runs. A frequency of 300 means the test executes every 5 minutes from all configured locations. This is an important distinction: if you have 5 locations configured, the test will run 5 times every 5 minutes, not once every 5 minutes total. The tests from different locations don't run at exactly the same time but are distributed across the 5-minute window.
 
@@ -143,6 +142,7 @@ resource sslValidationTest 'Microsoft.Insights/webtests@2022-06-15' = {
   properties: {
     Name: 'Standard Test - SSL Certificate Validation'
     Description: 'Validates the SSL certificate of API Management'
+    SyntheticMonitorId: 'Standard Test - SSL Certificate Validation'
 
     Kind: 'standard'
     Enabled: true
@@ -167,8 +167,6 @@ resource sslValidationTest 'Microsoft.Insights/webtests@2022-06-15' = {
       SSLCheck: true
       SSLCertRemainingLifetimeCheck: 30
     }
-
-    SyntheticMonitorId: sslTestName
   }
 }
 ```
