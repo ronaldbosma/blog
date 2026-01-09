@@ -259,6 +259,8 @@ resource failedAvailabilityTestAlert 'Microsoft.Insights/metricAlerts@2018-03-01
 
 The key properties to understand:
 
+The `name` of the alert can have white spaces so you can give the alert a descriptive name. I usually include some details about the environment, like the app insight name, to make it easier to identify the alert later.
+
 The `severity` property ranges from 0 (critical) to 4 (informational). I've set it to 1 (error) because availability issues typically require prompt attention.
 
 The `autoMitigate` property automatically resolves the alert when the condition is no longer true. When the availability test starts succeeding again, the alert will resolve itself.
