@@ -1,6 +1,6 @@
 ---
 title: "Track Availability in Application Insights using Standard Test"
-date: 2026-01-08T15:00:00+01:00
+date: 2026-01-12T10:00:00+01:00
 publishdate: 2026-01-08T15:00:00+01:00
 lastmod: 2026-01-08T15:00:00+01:00
 tags: [ "Azure", "Application Insights", "Azure Monitor", "Azure Integration Services", "Bicep" ]
