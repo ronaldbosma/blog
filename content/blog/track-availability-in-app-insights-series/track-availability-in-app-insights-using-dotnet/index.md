@@ -109,7 +109,8 @@ The `AvailabilityTest` class handles the core logic for tracking availability. I
 internal class AvailabilityTest(
     string name, 
     Func<Task> checkAvailabilityAsync, 
-    TelemetryClient telemetryClient) : IAvailabilityTest
+    TelemetryClient telemetryClient
+) : IAvailabilityTest
 {
 	/// <inheritdoc/>
 	public async Task ExecuteAsync()
@@ -118,7 +119,9 @@ internal class AvailabilityTest(
 		{
 			Name = name,
 			RunLocation = Environment.GetEnvironmentVariable("REGION_NAME") ?? "Unknown",
-			Success = false
+			Success = false,
+			// Sets the start time of availability test
+			Timestamp = DateTimeOffset.UtcNow
 		};
 
 		Stopwatch stopwatch = new();
@@ -136,9 +139,6 @@ internal class AvailabilityTest(
 				availability.Id = activity.SpanId.ToString();
 				availability.Context.Operation.ParentId = activity.ParentSpanId.ToString();
 				availability.Context.Operation.Id = activity.RootId;
-
-				// Set start time of availability test
-				availability.Timestamp = DateTimeOffset.UtcNow;
 
 				await checkAvailabilityAsync();
 			}
