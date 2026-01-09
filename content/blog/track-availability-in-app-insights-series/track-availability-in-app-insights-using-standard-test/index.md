@@ -195,7 +195,7 @@ You can also query the results yourself using Kusto Query Language (KQL). The av
 
 To act on a failed availability test, you can create an alert that sends an email to your team or triggers other actions.
 
-First, create an action group that defines what happens when an alert is triggered. In this example, I'll configure it to send an email:
+First, create an action group using the [Microsoft.Insights/actionGroups](https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/actiongroups?pivots=deployment-language-bicep) that defines what happens when an alert is triggered. In this example, I'll configure it to send an email:
 
 ```bicep
 resource actionGroup 'Microsoft.Insights/actionGroups@2023-01-01' = {
@@ -218,7 +218,7 @@ resource actionGroup 'Microsoft.Insights/actionGroups@2023-01-01' = {
 
 The action group can include multiple types of receivers: email, SMS, Azure Functions, Logic Apps and more. The `useCommonAlertSchema` property ensures the alert payload follows a consistent format across different alert types.
 
-Next, create a metric alert that triggers when an availability test fails:
+Next, create a metric alert using the [Microsoft.Insights/metricAlerts](https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/metricalerts?pivots=deployment-language-bicep) resource that triggers when an availability test fails:
 
 ```bicep
 resource failedAvailabilityTestAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {
