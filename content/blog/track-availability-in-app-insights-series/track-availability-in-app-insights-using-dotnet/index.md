@@ -388,6 +388,10 @@ The alert is scoped to the Application Insights resource rather than a specific 
 
 The `availabilityResult/name` dimension with a wildcard value (`*`) makes this alert work for all availability tests, whether they're standard tests or custom TrackAvailability tests. This dimension also ensures that alerts are split by test name. When both test A and test B fail, you'll receive two separate alerts, one for each test. This gives you granular visibility into which tests are failing.
 
+Once configured, you can view fired alerts in the Azure portal by navigating to your Application Insights resource and selecting “Alerts” from the left menu. You’ll see a list of all alerts with their current state. If you click on a failed availability test alert and expand the 'Additional details', the `availabilityResult/name` dimension specifies which test has failed.
+
+![End-to-End Transaction Details](../../../../../images/track-availability-in-app-insights-series/track-availability-in-app-insights-using-dotnet/alert-details.png)
+
 If you've set up an action group with an email address, the email subject will contain the name of the alert. To see which test triggered the alert, open the email and locate the `Dimensions.Dimension value1` property, which will contain the test name.
 
 This approach is great because you only need to set up the alert once and it will work for all current and future tests. However, in some cases you might want to create an alert that triggers on a specific test. For example, you might want to notify a different team when a particular backend fails. You can do this by specifying the test name in the `availabilityResult/name` dimension:
