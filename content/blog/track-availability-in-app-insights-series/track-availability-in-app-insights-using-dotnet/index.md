@@ -97,7 +97,7 @@ The following class diagram shows the structure:
 
 ![Class Diagram](../../../../../images/track-availability-in-app-insights-series/track-availability-in-app-insights-using-dotnet/diagrams-functions-class-diagram.png)
 
-The `AvailabilityTest` class handles the core logic for tracking availability. It accepts a function that performs the actual availability check, executes it within the proper telemetry context, and publishes the result to Application Insights:
+The [AvailabilityTest](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/src/functionApp/TrackAvailabilityInAppInsights.FunctionApp/AvailabilityTests/AvailabilityTest.cs) class handles the core logic for tracking availability. It accepts a function that performs the actual availability check, executes it within the proper telemetry context, and publishes the result to Application Insights:
 
 ```csharp
 /// <summary>
@@ -165,16 +165,16 @@ internal class AvailabilityTest(
 
 This implementation addresses the shortcomings of the basic example. It uses a `Stopwatch` to measure the test duration and sets the timestamp to capture when the test started. It also uses an `Activity` to enable distributed tracing. By creating an activity and linking it to the availability telemetry through the operation context properties, Application Insights can correlate the availability test results with any HTTP requests or other telemetry generated during the test execution. This gives you the end-to-end transaction view that's essential for troubleshooting failures.
 
-Note that the `TelemetryClient` is injected into the class. This allows you to configure it once in your application's startup code and share it across multiple tests. In an Azure Function, you can set it up like this:
+> In the [official documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=track#add-and-edit-code-in-the-app-service-editor) the `availability.Timestamp` is set in the finally block, after the check has completed. However, this records the end time of the test rather than the start time, which messes up the timeline in the end-to-end transaction details in App Insights. By setting it at the beginning of the `ExecuteAsync` method, we accurately capture when the test started.
+
+The [AvailabilityTestFactory](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/src/functionApp/TrackAvailabilityInAppInsights.FunctionApp/AvailabilityTests/AvailabilityTestFactory.cs) creates instances of `AvailabilityTest`. I introduced this factory because `AvailabilityTest` has dependencies like `TelemetryClient` that aren't relevant for the client code to know about. The factory handles these dependencies and provides a clean interface for creating tests.
+
+Note that the `TelemetryClient` is also injected into the factory class. By configuring the following in your application's startup, the `TelemetryClient` is automatically registered with the correct connection string taken from the `APPLICATIONINSIGHTS_CONNECTION_STRING` environment variable:
 
 ```csharp
 services.AddApplicationInsightsTelemetryWorkerService()
         .ConfigureFunctionsApplicationInsights();
 ```
-
-It will automatically read the connection string from the `APPLICATIONINSIGHTS_CONNECTION_STRING` environment variable.
-
-The `AvailabilityTestFactory` creates instances of `AvailabilityTest`. I introduced this factory because `AvailabilityTest` has dependencies like `TelemetryClient` that aren't relevant for the client code to know about. The factory handles these dependencies and provides a clean interface for creating tests.
 
 The following sequence diagram shows how these classes work together:
 
@@ -208,7 +208,7 @@ For a complete implementation example, check out [ApimSslCertificateCheckAvailab
 
 ## HTTP GET Request Test
 
-In most cases I just want to perform a GET request to check if a URL is accessible. To make this even simpler, I created `HttpGetRequestAvailabilityTest` that implements this generic behavior and uses `AvailabilityTest` under the covers:
+In most cases I just want to perform a GET request to check if a URL is accessible. To make this even simpler, I created [HttpGetRequestAvailabilityTest](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/src/functionApp/TrackAvailabilityInAppInsights.FunctionApp/AvailabilityTests/HttpGetRequestAvailabilityTest.cs) that implements this generic behavior and uses `AvailabilityTest` under the covers:
 
 ```csharp
 /// <summary>
