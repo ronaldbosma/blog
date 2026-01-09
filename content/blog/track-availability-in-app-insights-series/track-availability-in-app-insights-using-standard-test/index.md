@@ -289,7 +289,7 @@ You can add headers to standard tests, like an API key, but you can't refer to a
 
 The tests run on shared Azure resources and can't access resources that aren't exposed to the internet. If your backend is behind a private network, you'll need to deploy custom availability tests within your VNet.
 
-From a cost perspective, a web test costs €0.0005 per execution, which seems cheap. But if you execute it every minute, a single test will cost a bit more than €20 per month. If you have 10 tests running every minute, you'll spend over €200 per month, and you'll most likely deploy them into multiple environments. So it's important to carefully consider the frequency and number of locations from which you want to execute these tests. I usually add only a few standard tests and execute the rest from Azure Functions with a service plan, where the additional cost per test is lower (mostly network traffic and logging).
+From a cost perspective, a web test costs €0.0005 per execution, which seems cheap. But if you execute it every minute, a single test will cost a bit more than €20 per month. If you have 10 tests running every minute, you'll spend over €200 per month, and you'll most likely deploy them into multiple environments. So it's important to carefully consider the frequency and number of locations from which you want to execute these tests. I usually have the tests execute less often in dev & test environments. I also only add a few standard tests and execute the rest from e.g. Azure Functions with a service plan, where the additional cost per test is lower (mostly network traffic and logging).
 
 ## Conclusion
 
