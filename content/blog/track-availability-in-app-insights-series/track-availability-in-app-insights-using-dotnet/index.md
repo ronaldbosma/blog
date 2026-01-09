@@ -1,6 +1,6 @@
 ---
 title: "Track Availability in Application Insights using .NET"
-date: 2026-01-09T14:00:00+01:00
+date: 2026-01-19T10:00:00+01:00
 publishdate: 2026-01-09T14:00:00+01:00
 lastmod: 2026-01-09T14:00:00+01:00
 tags: [ "Azure", "Application Insights", "Azure Monitor", "Azure Functions", "Azure Integration Services", ".NET" ]
@@ -9,7 +9,7 @@ summary: "Standard availability tests in Application Insights have limitations l
 draft: true
 ---
 
-In my [previous post](/blog/2026/01/12/track-availability-in-app-insights-using-standard-test/), I showed you how to create standard availability tests in Application Insights. While these tests work well for basic HTTP(S) checks of publicly accessible endpoints, they have some restrictions that can limit their usefulness in real-world scenarios.
+In my [previous post](/blog/2026/01/12/track-availability-in-application-insights-using-standard-test/), I showed you how to create standard availability tests in Application Insights. While these tests work well for basic HTTP(S) checks of publicly accessible endpoints, they have some restrictions that can limit their usefulness in real-world scenarios.
 
 Standard tests don't support multiple steps, so you can't use them when you e.g. first need to retrieve an access token before calling your backend. They don't support mutual TLS (mTLS) either, which is a problem if your backend requires client certificates for authentication. You also can't refer to secrets in Key Vault and standard tests can't access resources behind private networks since they run on shared Azure resources.
 
@@ -17,7 +17,7 @@ This post shows you how to create custom TrackAvailability tests: using .NET tha
 
 This is the second post in a series about tracking availability in Application Insights:
 
-- [Track Availability in Application Insights using Standard Test](/blog/2026/01/12/track-availability-in-app-insights-using-standard-test/)
+- [Track Availability in Application Insights using Standard Test](/blog/2026/01/12/track-availability-in-application-insights-using-standard-test/)
 - **Track Availability in Application Insights using .NET (Azure Function) - _this post_**
 - Track Availability in Application Insights using Logic App workflow - _coming soon_
 
