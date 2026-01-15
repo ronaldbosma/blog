@@ -3,7 +3,7 @@ title: "Track Availability in Application Insights using Standard Test"
 date: 2026-01-12T08:45:00+01:00
 publishdate: 2026-01-12T08:45:00+01:00
 lastmod: 2026-01-12T08:45:00+01:00
-tags: [ "Azure", "Application Insights", "Azure Monitor", "Azure Integration Services", "Bicep" ]
+tags: [ "Azure", "Application Insights", "Azure Monitor", "Bicep" ]
 series: [ "track-availability-in-app-insights" ]
 summary: "When connecting to external systems in integration projects, availability tests help you monitor system uptime, verify security measures are up to date and confirm systems can be reached. This post shows you how to create Application Insights standard tests through Bicep to automate your availability monitoring with infrastructure-as-code."
 ---
