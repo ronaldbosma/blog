@@ -11,9 +11,9 @@ draft: true
 
 In my [previous post](/blog/2026/01/12/track-availability-in-application-insights-using-standard-test/), I showed you how to create standard availability tests in Application Insights. While these tests work well for basic HTTP(S) checks of publicly accessible endpoints, they have some restrictions that can limit their usefulness in real-world scenarios.
 
-Standard tests don't support multiple steps, so you can't use them when you e.g. first need to retrieve an access token before calling your backend. They don't support mutual TLS (mTLS) either, which is a problem if your backend requires client certificates for authentication. You also can't refer to secrets in Key Vault and standard tests can't access resources behind private networks since they run on shared Azure resources.
+Standard tests don't support multiple steps, so you can't use them when you e.g. first need to retrieve an access token before calling your backend. They don't support mutual TLS (mTLS) either, which is a problem if your backend requires client certificates for authentication. You also can't refer to secrets in Key Vault and standard tests can't access resources behind private networks since the tests run on shared Azure resources.
 
-This post shows you how to create custom TrackAvailability tests: using .NET that run as Azure Functions. This approach gives you full control over the test logic and enables scenarios that aren't possible with standard tests. An example of this type of test is shown in Microsoft's documentation on [Application Insights availability tests](https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=track), but I've created some generic classes to make it easier to implement new tests. While I'll use Azure Functions in the examples, you can host these tests on other platforms like Azure App Service, Container Instances or Kubernetes as well.
+This post shows you how to create custom TrackAvailability tests using .NET that run as Azure Functions. This approach gives you full control over the test logic and enables scenarios that aren't possible with standard tests. An example of this type of test is shown in Microsoft's documentation on [Application Insights availability tests](https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=track), but I've created some generic classes to make it easier to implement new tests. While I'll use Azure Functions in the examples, you can host these tests on other platforms like Azure App Service, Container Instances or Kubernetes as well.
 
 This is the second post in a series about tracking availability in Application Insights:
 
@@ -85,19 +85,19 @@ finally
 }
 ```
 
-This example shows the core concept: initialize the `TelemetryClient`, create an `AvailabilityTelemetry` object, perform your check in a try-catch block and track the result with `TrackAvailability()`. However, looking at the sample in the [Application Insights availability tests documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=track#add-and-edit-code-in-the-app-service-editor), this basic example is missing some important pieces. It doesn't set the start time and duration of the test, and it doesn't configure anything for end-to-end tracing where the availability test results and HTTP requests are correlated in Application Insights.
+This example shows the core concept: initialize the `TelemetryClient`, create an `AvailabilityTelemetry` object, perform your check in a try-catch block and track the result with `TrackAvailability()`. However, looking at the sample in the [Application Insights availability tests documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=track#add-and-edit-code-in-the-app-service-editor), this basic example is missing some important pieces. It doesn't set the start time and duration of the test. It also doesn't configure anything for end-to-end tracing where the availability test results and HTTP requests are correlated in Application Insights.
 
 Let's improve this implementation and make it reusable.
 
 ## Generic Availability Test Implementation
 
-Most availability tests I create follow the same structure: perform a check and publish the results to Application Insights. To avoid repeating this boilerplate code, I've created generic classes that make it easier to add new tests.
+Most availability tests follow the same structure: perform a check and publish the results to Application Insights. To avoid repeating this boilerplate code, I've created generic classes that make it easier to add new tests.
 
 The following class diagram shows the structure:
 
 ![Class Diagram](../../../../../images/track-availability-in-app-insights-series/track-availability-in-app-insights-using-dotnet/diagrams-functions-class-diagram.png)
 
-The [AvailabilityTest](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/src/functionApp/TrackAvailabilityInAppInsights.FunctionApp/AvailabilityTests/AvailabilityTest.cs) class handles the core logic for tracking availability. It accepts a function that performs the actual availability check, executes it within the proper telemetry context, and publishes the result to Application Insights:
+The [AvailabilityTest](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/src/functionApp/TrackAvailabilityInAppInsights.FunctionApp/AvailabilityTests/AvailabilityTest.cs) class handles the core logic for tracking availability. It accepts a function that performs the actual availability check, executes it within the proper telemetry context and publishes the result to Application Insights:
 
 ```csharp
 /// <summary>
@@ -112,7 +112,6 @@ internal class AvailabilityTest(
     TelemetryClient telemetryClient
 ) : IAvailabilityTest
 {
-	/// <inheritdoc/>
 	public async Task ExecuteAsync()
 	{
 		AvailabilityTelemetry availability = new()
@@ -273,7 +272,7 @@ The following sequence diagram shows the flow when using this test:
 
 ![Sequence Diagram GET Request](../../../../../images/track-availability-in-app-insights-series/track-availability-in-app-insights-using-dotnet/diagrams-functions-sequence-diagram-get-request.png)
 
-While this might seem more complex than the basic example, it makes creating new availability tests very simple. Here's how you'd use it in an Azure Function:
+While this is more complex than the basic example, it makes creating new availability tests very simple. Here's how you'd use it in an Azure Function:
 
 ```csharp
 /// <summary>
@@ -281,21 +280,19 @@ While this might seem more complex than the basic example, it makes creating new
 /// </summary>
 public class BackendStatusAvailabilityTest(IAvailabilityTestFactory availabilityTestFactory)
 {
-	private const string TestName = "Azure Function - Backend API Status";
-	private const string RequestUri = "/backend/status";
-	private const string HttpClientName = "apim";
-
 	[Function(nameof(BackendStatusAvailabilityTest))]
 	public async Task Run([TimerTrigger("0 * * * * *")] TimerInfo timerInfo)
 	{
 		var availabilityTest = availabilityTestFactory.CreateAvailabilityTest(
-            TestName, RequestUri, HttpClientName);
+			name: "Azure Function - Backend API Status",
+			requestUri: "/backend/status",
+			httpClientName: "apim");
 		await availabilityTest.ExecuteAsync();
 	}
 }
 ```
 
-Creating a new test now requires just a few lines of code: define the test name, request URI and HTTP client name, then let the factory handle the rest. The HTTP client name refers to a named client configured in your application's startup, where you can set the base URL and any other HTTP client configuration.
+Creating a new HTTP GET availability test now requires just a few lines of code: define the test name, request URI and HTTP client name, then let the factory handle the rest. The factory method creates an `HttpGetRequestAvailabilityTest` instance that performs the GET request and tracks the result. The HTTP client name refers to a named client configured in your application's startup, where you can set the base URL and any other HTTP client configuration.
 
 ## Viewing Availability Test Results
 
@@ -303,7 +300,7 @@ After deploying the availability tests, you can view the results in the same pla
 
 ![Availability Overview](../../../../../images/track-availability-in-app-insights-series/track-availability-in-app-insights-using-dotnet/availability-test-results.png)
 
-Notice that the tests from the Azure Function have the `CUSTOM` label, indicating they are custom TrackAvailability tests rather than standard web tests.
+Notice that the tests from the Azure Function have the `CUSTOM` label, indicating they are custom TrackAvailability tests rather than standard web tests. They also don't have the edit, disable and ... buttons because there is no web test resource in Azure associated with them.
 
 When you expand a test to see detailed results, you'll notice that we only have results from one region:
 
@@ -384,7 +381,7 @@ resource failedAvailabilityTestAlert 'Microsoft.Insights/metricAlerts@2018-03-01
 
 This alert configuration has several key aspects worth understanding.
 
-The alert is scoped to the Application Insights resource rather than a specific web test. It monitors the `availabilityResults/availabilityPercentage` metric, which is available for all availability tests tracked in Application Insights. The alert triggers when the average availability percentage drops below 100% within a 5-minute window. In production scenarios, you might want to set this lower to reduce false positives from transient network issues.
+The alert is scoped to the Application Insights resource rather than a specific web test. It monitors the `availabilityResults/availabilityPercentage` metric, which is available for all availability tests tracked in Application Insights. The alert triggers when the average availability percentage drops below 100% within a 5-minute window. In production scenarios, you might want to tweak these settings to reduce false positives from transient network issues.
 
 The `availabilityResult/name` dimension with a wildcard value (`*`) makes this alert work for all availability tests, whether they're standard tests or custom TrackAvailability tests. This dimension also ensures that alerts are split by test name. When both test A and test B fail, you'll receive two separate alerts, one for each test. This gives you granular visibility into which tests are failing.
 
