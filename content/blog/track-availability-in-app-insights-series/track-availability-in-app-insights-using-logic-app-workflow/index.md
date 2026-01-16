@@ -61,7 +61,7 @@ The workflow is structured as follows:
   - If successful (200 OK), the `Track is available (in App Insights)` action is called
   - If failed (any other status), the `Track is unavailable (in App Insights)` action is called
 
-This workflow demonstrates the key advantage of using Logic Apps: most of the logic is visual and doesn't require coding. You can easily modify the HTTP request, add authentication or include additional steps using the workflow designer.
+This workflow demonstrates an advantage of using Logic Apps: most of the logic is visual and doesn't require coding. You can easily modify the HTTP request, add authentication or include additional steps using the workflow designer.
 
 The logic to track availability in Application Insights is implemented in C# using a [Logic App with custom code project](https://learn.microsoft.com/en-us/azure/logic-apps/create-run-custom-code-functions), which lets you deploy .NET code directly to the Logic App without additional resources like a Function App. I've created functions similar to what I showed in the previous post, but packaged as Logic App custom functions.
 
