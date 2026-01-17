@@ -17,7 +17,7 @@ In this post, I'll show you how to track availability in Application Insights us
 This is the first post in a series about tracking availability in Application Insights:
 
 - **Track Availability in Application Insights using Standard Test - _this post_**
-- Track Availability in Application Insights using .NET (Azure Function) - _coming soon_
+- [Track Availability in Application Insights using .NET (Azure Function)](/blog/2026/01/19/track-availability-in-application-insights-using-.net/)
 - Track Availability in Application Insights using Logic App workflow - _coming soon_
 
 ### Table of Contents
@@ -270,7 +270,7 @@ The `evaluationFrequency` and `windowSize` properties control how often the aler
 
 The `failedLocationCount` in the criteria section determines how many locations must fail before the alert triggers. Setting it to 1 means the alert fires if any single location reports a failure. In production, you might want to set this to a higher number to avoid false positives from transient issues in a single region.
 
-This example creates an alert for a specific test, which means you need to create an alert per test. In the next blog post, I'll show how to create a single alert that covers all availability tests.
+This example creates an alert for a specific test, which means you need to create an alert per test. In the [next blog post](/blog/2026/01/19/track-availability-in-application-insights-using-.net/#setting-up-alerts), I show how to create a single alert that covers all availability tests.
 
 Once configured, you can view fired alerts in the Azure portal by navigating to your Application Insights resource and selecting "Alerts" from the left menu. You'll see a list of all alerts with their current state:
 
@@ -282,7 +282,7 @@ When an alert fires, it will appear in this list and you'll receive an email not
 
 While standard tests are useful for basic availability monitoring, there are some restrictions to consider:
 
-The standard test doesn't support multiple steps, so you can't use it in scenarios where you for example first need to retrieve an access token. If you need to authenticate with OAuth or another multi-step authentication flow, you'll need to use custom 'TrackAvailability' tests, which I'll cover in the next posts in this series.
+The standard test doesn't support multiple steps, so you can't use it in scenarios where you for example first need to retrieve an access token. If you need to authenticate with OAuth or another multi-step authentication flow, you'll need to use custom 'TrackAvailability' tests, which I'll cover in the [next post](/blog/2026/01/19/track-availability-in-application-insights-using-.net/) in this series.
 
 Standard tests don't support mutual TLS (mTLS) either. If your backend requires client certificates for authentication, you'll need to use a custom availability test as well.
 
