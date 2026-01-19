@@ -18,7 +18,7 @@ This is the first post in a series about tracking availability in Application In
 
 - **Track Availability in Application Insights using Standard Test - _this post_**
 - [Track Availability in Application Insights using .NET (Azure Function)](/blog/2026/01/19/track-availability-in-application-insights-using-.net/)
-- Track Availability in Application Insights using Logic App workflow - _coming soon_
+- [Track Availability in Application Insights using Logic App workflow](/blog/2026/01/26/track-availability-in-application-insights-using-logic-app-workflow/)
 
 ### Table of Contents
 
