@@ -5,7 +5,7 @@ publishdate: 2026-01-16T09:45:00+01:00
 lastmod: 2026-01-16T09:45:00+01:00
 tags: [ "Azure", "Application Insights", "Azure Monitor", "Logic Apps", "Azure Integration Services" ]
 series: [ "track-availability-in-app-insights" ]
-summary: "I've worked with clients following a low-code first strategy where Logic Apps are preferred over .NET solutions. This post shows you how to create custom availability tests using Logic App workflows and track the results in Application Insights. This approach gives you access to all Logic App capabilities while requiring minimal code."
+summary: "I've worked with clients following a low-code first strategy where Logic Apps are preferred over .NET solutions. This post shows you how to create custom availability tests using Logic App (Standard) workflows and track the results in Application Insights. This approach gives you access to all Logic App capabilities while requiring minimal code."
 draft: true
 ---
 
@@ -41,7 +41,7 @@ The solution includes the following components:
 - **API**: Represents a backend system for which we want to track availability. It randomly returns a 200 OK or 503 Service Unavailable response based on a configurable 'approximate failure percentage'
 - **Application Insights**: Receives the custom availability telemetry and shows the test results
 
-While this example uses an API on API Management, the same approach applies when calling any other backend system for which you want to track availability. You can also use other Logic App connectors besides HTTP, like calling a function in SAP using a SAP-specific connector.
+While this example uses an API on API Management, the same approach applies when calling any other backend system for which you want to track availability. You can also use other Logic App connectors besides HTTP, like calling a function in SAP using an SAP-specific connector.
 
 To make deployment easier, I've created an Azure Developer CLI (`azd`) template: [Track Availability in Application Insights](https://github.com/ronaldbosma/track-availability-in-app-insights). The template demonstrates three scenarios for tracking availability: standard test (webtest), .NET Azure Function and Logic App workflow. If you want to deploy and try the solution, check out the [getting started section](https://github.com/ronaldbosma/track-availability-in-app-insights#getting-started) for the prerequisites and deployment instructions. This post focuses on the Logic App implementation.
 
@@ -232,7 +232,7 @@ Note that I'm explicitly logging the exception in the catch block because I've n
 
 ## Viewing Availability Test Results
 
-After deploying the availability tests, you can view the results in the same places as standard tests and the Azure Functions. Navigate to your Application Insights resource and select "Availability" from the left menu:
+After deploying the availability tests, you can view the results in the same places as standard tests and Azure Function tests. Navigate to your Application Insights resource and select "Availability" from the left menu:
 
 ![Availability Test Details](../../../../../images/track-availability-in-app-insights-series/track-availability-in-app-insights-using-logic-app-workflow/availability-test-results.png)
 
@@ -272,7 +272,7 @@ The key benefits include:
 - Visual workflow design that's easy to understand and maintain
 - Access to all Logic App connectors and capabilities
 - Minimal custom code required (only for tracking availability)
-- Potential cost savings if you already have a Logic App deployed, but beware of stateful workflow costs icm with diagnostic settings (as mentioned in the considerations)
+- Potential cost savings if you already have a Logic App deployed, but beware of stateful workflow costs in combination with diagnostic settings (as mentioned in the considerations)
 
 While there are some limitations around configuration and multi-region testing, the Logic App approach offers a practical solution for many availability testing scenarios. The generic custom functions I've shown can be reused across multiple workflows, making it straightforward to add new availability tests as needed.
 
