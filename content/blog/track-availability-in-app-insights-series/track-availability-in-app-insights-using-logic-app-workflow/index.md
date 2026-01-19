@@ -65,7 +65,7 @@ This workflow demonstrates an advantage of using Logic Apps: most of the logic i
 
 The logic to track availability in Application Insights is implemented in C# using a [Logic App with custom code project](https://learn.microsoft.com/en-us/azure/logic-apps/create-run-custom-code-functions), which lets you deploy .NET code directly to the Logic App without additional resources like a Function App. I've created functions similar to what I showed in the previous post, but packaged as Logic App custom functions.
 
-> I started on a [custom connector](https://github.com/ronaldbosma/LogicApps.ServiceProviders.ApplicationInsights.TrackAvailability), but the deploy size went from several KBs to hundreds of MBs. So I decided to use a custom code project instead with a size of about 600KB.
+> I started on a [custom connector](https://github.com/ronaldbosma/LogicApps.ServiceProviders.ApplicationInsights.TrackAvailability), but the deploy size went from several KBs to hundreds of MBs. So I decided to use a custom code project instead because the size then increases to only ~600KB.
 
 The following image shows the use of the `TrackIsAvailable` function in the `Track is available (in App Insights)` action:
 
@@ -73,7 +73,7 @@ The following image shows the use of the `TrackIsAvailable` function in the `Tra
 
 The function takes the test name and start time as parameters and tracks a successful availability test. The `TrackIsUnavailable` function tracks a failure and takes an additional parameter for the error message.
 
-Here's the implementation from [AvailabilityTestFunctions.cs](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/src/logicApp/Functions/AvailabilityTestFunctions.cs) with the functions:
+Here's the implementation from [AvailabilityTestFunctions.cs](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/src/logicApp/Functions/AvailabilityTestFunctions.cs) with both functions:
 
 ```csharp
 public class AvailabilityTestFunctions
@@ -96,14 +96,21 @@ public class AvailabilityTestFunctions
 	}
 
 	[Function("TrackIsUnavailable")]
-	public Task TrackIsUnavailable([WorkflowActionTrigger] string testName, DateTimeOffset startTime, string message)
+	public Task TrackIsUnavailable(
+		[WorkflowActionTrigger] string testName, 
+		DateTimeOffset startTime, 
+		string message)
 	{
 		_logger.LogInformation("TrackIsUnavailable function invoked with testName: {TestName}, startTime: {StartTime}, message: {Message}", testName, startTime, message);
 
 		return TrackAvailability(testName, false, startTime, message);
 	}
 
-	public Task TrackAvailability([WorkflowActionTrigger] string testName, bool success, DateTimeOffset startTime, string message)
+	public Task TrackAvailability(
+		[WorkflowActionTrigger] string testName, 
+		bool success, 
+		DateTimeOffset startTime, 
+		string message)
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(testName, nameof(testName));
 
@@ -148,13 +155,13 @@ The `TrackAvailability` method does the actual work:
 - Sets various IDs on the availability telemetry to enable end-to-end correlation
 - Publishes the telemetry to Application Insights using the `TelemetryClient`
 
-The `TelemetryClient` is registered in the [Startup.cs](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/src/logicApp/Functions/Startup.cs) of the Logic App's custom code project. The `ILoggerFactory` is already registered by default.
+The `TelemetryClient` is registered in the [Startup.cs](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/src/logicApp/Functions/Startup.cs) of the Logic App's custom code project. The `ILoggerFactory` is already registered by the Logic App runtime.
 
-I could have created a single function that performed both the HTTP GET and tracked the (un)availability of the backend, which would look similar to what I describe in my previous post. But I decided to only put the 'track availability' code in functions to visualize the logic and so other logic can rely on the Logic App capabilities. For example, using a managed identity to call a backend is super easy in a workflow, as I describe in my post [Call OAuth-Protected APIs with Managed Identity from Logic Apps](/blog/2025/09/24/call-oauth-protected-apis-with-managed-identity-from-logic-apps/).
+> I could have created a single function that performed both the HTTP GET and tracked the (un)availability of the backend, which would look similar to what I describe in my previous post. But I decided to only put the 'track availability' code in functions to visualize the logic and so other logic can rely on the Logic App capabilities. For example, using a managed identity to call a backend is super easy in a workflow, as I describe in my post [Call OAuth-Protected APIs with Managed Identity from Logic Apps](/blog/2025/09/24/call-oauth-protected-apis-with-managed-identity-from-logic-apps/).
 
 ## SSL Certificate Validation Workflow
 
-Similar to my previous posts, I've created a separate availability test to check the SSL server certificate of API Management. Here's what this workflow looks like in the designer:
+Similar to my previous posts, I've also created a separate availability test to check the SSL server certificate of API Management. Here's what this workflow looks like in the designer:
 
 ![Logic App Workflow - SSL Certificate Check](../../../../../images/track-availability-in-app-insights-series/track-availability-in-app-insights-using-logic-app-workflow/logic-app-workflow-ssl-cert-check.png)
 
@@ -171,11 +178,13 @@ The workflow is structured as follows:
   - If the certificate is still valid (more than the threshold days remaining), the workflow tracks the test as available
 - **Error handling**: If determining the expiry fails, the test is tracked as unavailable
 
-The `GetSslServerCertificateExpirationInDays` function retrieves the SSL certificate and calculates how many days remain until it expires. Here's the implementation from [SslServerCertificateFunctions.cs](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/src/logicApp/Functions/SslServerCertificateFunctions.cs):
+The `GetSslServerCertificateExpirationInDays` function retrieves the SSL certificate of a host and calculates how many days remain until it expires. Here's the implementation from [SslServerCertificateFunctions.cs](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/src/logicApp/Functions/SslServerCertificateFunctions.cs):
 
 ```csharp
 [Function("GetSslServerCertificateExpirationInDays")]
-public async Task<int> GetSslServerCertificateExpirationInDays([WorkflowActionTrigger] string hostname, int port)
+public async Task<int> GetSslServerCertificateExpirationInDays(
+	[WorkflowActionTrigger] string hostname, 
+	int port)
 {
 	_logger.LogInformation("GetSslServerCertificateExpirationInDays function invoked with hostname: {Hostname}, port: {Port}", hostname, port);
 	
@@ -203,7 +212,9 @@ public async Task<int> GetSslServerCertificateExpirationInDays([WorkflowActionTr
 		throw new Exception($"No SSL server certificate found for host {hostname} on port {port}");
 	}
 	catch (Exception ex)	{
-		_logger.LogError(ex, "Error retrieving SSL server certificate expiration for host {Hostname} on port {Port}: {Exception}", hostname, port, ex.ToString());
+		_logger.LogError(
+			ex, "Error retrieving SSL server certificate expiration for host {Hostname} on port {Port}: {Exception}", 
+			hostname, port, ex.ToString());
 		throw;
 	}
 }
@@ -216,8 +227,6 @@ The function performs the following steps:
 - Authenticates with the server using `AuthenticateAsClientAsync`, which retrieves the server's certificate
 - Extracts the certificate's expiration date and calculates the remaining days until expiry
 - Returns the number of days or throws an exception if the certificate couldn't be retrieved
-
-I'm using the `TcpClient` class in this solution while I used a custom `HttpClientHandler` in the previous blog post. I could have used a similar `HttpClientHandler` solution here or the `TcpClient` in the previous post. Both work, but the `TcpClient` solution makes it easier to retrieve the certificate expiration.
 
 Note that I'm explicitly logging the exception in the catch block because I've noticed that the Logic App's end-to-end transaction details don't show exception details like the message or stack trace. By explicitly logging the error, the information is captured in Application Insights and available when troubleshooting issues.
 
@@ -239,7 +248,7 @@ When you drill into the details of a specific test result, you can view the end-
 
 ![End-to-end Transaction Details](../../../../../images/track-availability-in-app-insights-series/track-availability-in-app-insights-using-logic-app-workflow/logic-app-workflow-end-to-end-transaction-details.png)
 
-The end-to-end transaction view shows the correlation between the Logic App workflow execution, the HTTP request to API Management and the availability test result. The timeline is a bit 'messy' compared to the Azure Function implementation because of the way the workflow tracks the availability result as a separate action. However, all the telemetry is properly correlated, allowing you to trace the complete flow.
+The end-to-end transaction view shows the correlation between the Logic App workflow execution, the HTTP request to API Management and the availability test result. The timeline is a bit 'messy' compared to the Azure Function implementation because of the way the workflow tracks the availability result as a separate action after the HTTP call is performed. However, all the telemetry is properly correlated, allowing you to trace the complete flow.
 
 ## Setting Up Alerts
 
@@ -249,13 +258,11 @@ Setting up alerts for Logic App-based availability tests works the same as for A
 
 While Logic App workflows provide a great low-code solution for availability testing, there are some considerations to keep in mind:
 
-The availability test workflows need to be stateful because of the Recurrence trigger. If you have diagnostic settings enabled on your Logic App and Storage Account, you'll incur additional costs. I deployed the sample template with and without diagnostic settings and let the tests run for a day. The costs were roughly €0.50 higher, which translates to about €15 per month for two tests running every minute. While that's still cheaper than a standard test (if you ignore the Logic App costs), the expenses can accumulate if you have many tests running across multiple environments. If you enabled diagnostic settings primarily for logging on your own resources, like queues and containers, rather than the ones Logic App creates, you could reduce costs by using separate storage accounts. Create your custom resources in a storage account with diagnostic settings enabled while keeping the storage account used by Logic App without diagnostic settings.
+This solution can have additional costs. The availability test workflows need to be stateful because of the Recurrence trigger. If you have diagnostic settings enabled on your Storage Account, you'll incur additional costs. I deployed the sample template with and without diagnostic settings and let the tests run for a day. The costs were roughly €0.50 higher, which translates to about €15 per month for two tests running every minute. While that's still cheaper than a standard test (if you ignore the Logic App costs), the expenses can accumulate if you have many tests running across multiple environments. If you enabled diagnostic settings primarily to have logging on your own resources (queues, containers, etc.) rather than the ones the Logic App creates, you could reduce costs by using separate storage accounts. Create your custom resources in a storage account with diagnostic settings enabled while keeping the storage account used by Logic App without diagnostic settings.
 
-Another approach to reduce costs could be to execute the availability tests less frequently in e.g. your dev/test environments. While it's easy to configure the timer trigger of an Azure Function via an app setting, this isn't supported by the Recurrence trigger of a Logic App workflow. You can't set the interval or frequency using an app setting, making it difficult to use different schedules per environment. You could put a placeholder in the `workflow.json` and add the correct values during deployment, but that adds complexity to your deployment process.
+Another approach to reduce costs could be to execute the availability tests less frequently in e.g. your dev/test environments. However, while it's easy to configure the timer trigger of an Azure Function via an app setting, this isn't supported by the Recurrence trigger of a Logic App workflow. You can't set the interval or frequency using an app setting, making it difficult to use different schedules per environment. You could put a placeholder in the `workflow.json` and add the correct values during deployment, but that adds complexity to your deployment process. So, it's a trade-off between ease of configuration and cost optimization.
 
 If you expect to create multiple availability tests, consider creating a generic workflow with an HTTP trigger that takes the test name and the URL to test. That workflow will perform the HTTP GET and track the availability. You can then create a simplified workflow per availability test that has the Recurrence trigger and calls the generic workflow with the correct test name and URL. I've used this in one of my own projects and it works great.
-
-Logic Apps charge based on workflow executions and connector actions. If you already have a Logic App (Standard) deployed, adding availability test workflows is cost-effective. But if you need to deploy a new Logic App just for availability testing, compare the costs with Azure Functions or standard tests to determine the most economical option for your scenario.
 
 ## Conclusion
 
