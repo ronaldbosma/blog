@@ -51,7 +51,7 @@ The first workflow performs a simple HTTP GET request to check if the backend AP
 
 ![Logic App Workflow - Backend Status](../../../../../images/track-availability-in-app-insights-series/track-availability-in-app-insights-using-logic-app-workflow/logic-app-workflow-backend-status.png)
 
-The workflow is structured as follows:
+The workflow needs to be stateful because it uses the Recurrence trigger, which is only available for stateful workflows. It is structured as follows:
 
 - **Recurrence trigger**: Executes the workflow every minute
 - **Initialize TestName**: Sets a variable with the test name that will be used when tracking availability
