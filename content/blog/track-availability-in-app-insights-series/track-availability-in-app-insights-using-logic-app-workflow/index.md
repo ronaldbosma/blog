@@ -13,7 +13,7 @@ In my [previous post](/blog/2026/01/19/track-availability-in-application-insight
 
 I've worked with clients following a low-code first strategy where Logic Apps are preferred over high-code solutions like .NET Azure Functions. For those cases, I've created a solution where a Logic App (Standard) workflow can be used as an availability test. It still has a bit of code to track the results in Application Insights, but most logic can be created in the workflow itself, meaning you can use all the features that Logic Apps provide.
 
-Additionally, if you already have a Logic App deployed you don't have to deploy additional resources like a Function App and App Service Plan (depending on your hosting model and tier), which could increase costs.
+Additionally, if you already have a Logic App deployed you don't have to deploy additional resources like a Function App and App Service Plan (depending on your hosting model and tier), which could increase costs. But there are some considerations to keep in mind related to costs, which I discuss later in this post.
 
 This is the third post in a series about tracking availability in Application Insights:
 
@@ -249,7 +249,9 @@ Setting up alerts for Logic App-based availability tests works the same as for A
 
 While Logic App workflows provide a great low-code solution for availability testing, there are some considerations to keep in mind:
 
-In dev/test environments, you might want to execute the availability tests less frequent to save costs. While it's easy to configure the timer trigger of an Azure Function via an app setting, this isn't supported by the Recurrence trigger of a Logic App workflow. You can't set the interval or frequency using an app setting, making it difficult to use different schedules per environment. You could put a placeholder in the `workflow.json` and add the correct values during deployment, but that adds complexity to your deployment process.
+The availability test workflows need to be stateful because of the Recurrence trigger. If you have diagnostic settings enabled on your Logic App and Storage Account, you'll incur additional costs. I deployed the sample template with and without diagnostic settings and let the tests run for a day. The costs were roughly €0.50 higher, which translates to about €15 per month for two tests running every minute. While that's still cheaper than a standard test (if you ignore the Logic App costs), the expenses can accumulate if you have many tests running across multiple environments. If you enabled diagnostic settings primarily for logging on your own resources, like queues and containers, rather than the ones Logic App creates, you could reduce costs by using separate storage accounts. Create your custom resources in a storage account with diagnostic settings enabled while keeping the storage account used by Logic App without diagnostic settings.
+
+Another approach to reduce costs could be to execute the availability tests less frequently in e.g. your dev/test environments. While it's easy to configure the timer trigger of an Azure Function via an app setting, this isn't supported by the Recurrence trigger of a Logic App workflow. You can't set the interval or frequency using an app setting, making it difficult to use different schedules per environment. You could put a placeholder in the `workflow.json` and add the correct values during deployment, but that adds complexity to your deployment process.
 
 If you expect to create multiple availability tests, consider creating a generic workflow with an HTTP trigger that takes the test name and the URL to test. That workflow will perform the HTTP GET and track the availability. You can then create a simplified workflow per availability test that has the Recurrence trigger and calls the generic workflow with the correct test name and URL. I've used this in one of my own projects and it works great.
 
@@ -263,7 +265,7 @@ The key benefits include:
 - Visual workflow design that's easy to understand and maintain
 - Access to all Logic App connectors and capabilities
 - Minimal custom code required (only for tracking availability)
-- Potential cost savings if you already have a Logic App deployed
+- Potential cost savings if you already have a Logic App deployed, but beware of stateful workflow costs icm with diagnostic settings (as mentioned in the considerations)
 
 While there are some limitations around configuration and multi-region testing, the Logic App approach offers a practical solution for many availability testing scenarios. The generic custom functions I've shown can be reused across multiple workflows, making it straightforward to add new availability tests as needed.
 
