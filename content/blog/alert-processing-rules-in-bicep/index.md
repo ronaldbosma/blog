@@ -4,7 +4,7 @@ date: 2026-02-02T16:00:00+01:00
 publishdate: 2026-01-20T14:00:00+01:00
 lastmod: 2026-01-20T14:00:00+01:00
 tags: [ "Azure", "Application Insights", "Azure Monitor", "Bicep" ]
-summary: "Alert processing rules let you suppress or reroute Azure Monitor alerts without changing alert rules. In this post I explain the actionRules resource in Bicep and show two availability test scenarios: adding an action group and suppressing notifications on a schedule for specific tests."
+summary: "Alert processing rules let you add action groups or suppress notifications without changing alert rules. In this post I explain the actionRules resource in Bicep and show two scenarios: adding an action group and suppressing notifications on a schedule for failed availability tests."
 draft: true
 ---
 
