@@ -1,5 +1,5 @@
 ---
-title: "Alert Processing Rules in Bicep: Suppress and Route Azure Monitor Alerts"
+title: "Alert Processing Rules in Bicep: Add Action Groups or Suppress Notifications"
 date: 2026-02-02T16:00:00+01:00
 publishdate: 2026-01-20T14:00:00+01:00
 lastmod: 2026-01-20T14:00:00+01:00
