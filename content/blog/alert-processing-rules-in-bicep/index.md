@@ -10,7 +10,7 @@ draft: true
 
 In my last series of blog posts [Track Availability in App Insights](/series/track-availability-in-app-insights/), I created availability tests to check the availability of systems. I also showed how to create alerts so you can be notified when a system is down or back up again. I've set this up for various clients and several had systems that were unavailable on a regular basis for various reasons. For example every night at the same time to perform a backup. Now, nothing is more annoying than to be notified of this every single day, because you have to check if the notifications are 'expected' or if something else is going on. That's where alert processing rules can help.
 
-As per the [official Microsoft documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-processing-rules?tabs=portal):  
+The [official documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-processing-rules?tabs=portal) defines alert processing rules:  
 > _"Alert processing rules allow you to apply processing on fired alerts. Alert processing rules are different from alert rules. Alert rules generate new alerts that notify you when something happens, while alert processing rules modify the fired alerts as they're being fired to change the usual alert behavior._
 > 
 > _You can use alert processing rules to add [action groups](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/action-groups) or remove (suppress) action groups from your fired alerts. You can apply alert processing rules to different resource scopes, from a single resource, or to an entire subscription, as long as they are within the same subscription as the alert processing rule. You can also use them to apply various filters or have the rule work on a predefined schedule._"
@@ -21,7 +21,7 @@ The official documentation already covers how to create these alert processing r
 
 - [Understanding Microsoft.AlertsManagement/actionRules](#understanding-microsoftalertsmanagementactionrules)
   - [Scope](#scope)
-  - [Rule Settings](#rule-settings)
+  - [Actions](#actions)
   - [Scheduling](#scheduling)
 - [Alert Processing Rule Samples](#alert-processing-rule-samples)
   - [Scenario 1: Send an Alert to an Action Group for Specific Availability Tests](#scenario-1-send-an-alert-to-an-action-group-for-specific-availability-tests)
@@ -41,15 +41,15 @@ First, you need to define one or more scopes. All alerts fired for the scope or 
 
 When you want to apply an alert processing rule to alerts fired by an alert rule, there's an important detail to note. If you specify an alert rule ID as the scope, this will affect alerts that are triggered *about* the alert rule. For example, an alert on the activity log of the alert rule. This is probably not what you want. In our availability test example, the affected resource is actually Application Insights. So you need to specify the App Insights ID as the scope and add a filter on the alert rule ID or name.
 
-Filters (conditions) can be used to further narrow down which alerts the processing rule applies to. When multiple filters are defined, they all apply because there's a logical AND between the filters. Each filter can have up to 5 values, and there's a logical OR between the values.
+Filters (conditions) can be used to further narrow down which alerts the processing rule applies to. When multiple filters are defined, they all apply because there's a logical AND between the filters. Each filter can have up to 5 values and there's a logical OR between the values.
 
 For example, let's say you want to scope the processing rule on subscription `12345678-abcd-abcd-abcd-1234567890ab` with the following filters:
-- A resource group name contains the text 'integration'
+- The resource group name contains the text 'integration'
 - And the resource type is Application Insights or API Management or App Service
 - And the severity is Critical (0) or Error (1)
 - And the alert condition is 'Fired'
 
-You can use the following conditions block:
+You can use the following scopes and conditions block:
 
 ```bicep
 scopes: [
@@ -91,9 +91,11 @@ conditions: [
 ]
 ```
 
-Note that you can't specify multiple conditions for the same field to create a logical AND. See the [condition documentation](https://learn.microsoft.com/en-us/azure/templates/microsoft.alertsmanagement/actionrules?pivots=deployment-language-bicep#condition) for the possible values for `field` and `operator`.
+Note that you can't specify multiple conditions for the same field to create a logical AND. 
 
-#### Rule Settings
+See the [condition documentation](https://learn.microsoft.com/en-us/azure/templates/microsoft.alertsmanagement/actionrules?pivots=deployment-language-bicep#condition) for the possible values for `field` and `operator`.
+
+#### Actions
 
 There are two types of actions you can configure in an alert processing rule.
 
@@ -122,7 +124,9 @@ actions: [
 
 You can configure multiple action groups in a single processing rule.
 
-What happens with conflicting processing rules? Let's say you have an alert with action group A, a processing rule that adds action group B and another processing rule that suppresses all notifications. In this case, all alerts are suppressed for both action group A and B. Also, you can't specify both an `AddActionGroups` and `RemoveAllActionGroups` action on the same processing rule.
+Note that you can't specify both an `AddActionGroups` and `RemoveAllActionGroups` action on the same processing rule.
+
+When you have conflicting processing rules, suppression takes priority. For example, if you have an alert with action group A, a processing rule that adds action group B and another processing rule that suppresses all notifications, all alerts are suppressed for both action group A and B. 
 
 #### Scheduling
 
@@ -140,15 +144,14 @@ schedule: {
 }
 ```
 
-The third option is to create a recurring schedule. You can repeat every day, week or month. When repeating every day, the rule applies to all days. For weekly recurrence, you need to specify at least one day. With monthly recurrence, you can select all days or choose specific days.
+The third option is to create a recurring schedule. You can repeat every day, week or month. When repeating every day, the rule applies to all days. For weekly recurrence, you need to specify at least one day of the week. With monthly recurrence, you need to specify which days of the month.
 
-You'll also need to specify the time when the rule should be active. You can set a start time and end time.
+Optionally, you can specify the time when the rule should be active. You can set a start time and end time.
 
 Here's an example of a rule that's active every week on Saturday and Sunday:
 
 ```bicep
 schedule: {
-  timeZone: 'W. Europe Standard Time'
   recurrences: [
     {
       recurrenceType: 'Weekly'
@@ -161,7 +164,25 @@ schedule: {
 }
 ```
 
-You can also optionally specify a start date and end date for the recurrence.
+And here's an example of a rule that's active every month on the first day of the month from 00:00 to 01:00 UTC:
+
+```bicep
+schedule: {
+  timeZone: 'UTC'
+  recurrences: [
+    {
+      recurrenceType: 'Monthly'
+      daysOfMonth: [
+        1
+      ]
+      startTime: '00:00:00'
+      endTime: '01:00:00'
+    }
+  ]
+}
+```
+
+The schedule's `effectiveFrom` and `effectiveUntil` properties can also be used in combination with recurrences to limit the overall time window when the recurring schedule is active.
 
 If no time zone is specified, it defaults to UTC. The [Microsoft.AlertsManagement/actionRules](https://learn.microsoft.com/en-us/azure/templates/microsoft.alertsmanagement/actionrules?pivots=deployment-language-bicep) documentation doesn't specify a list with possible time zones, but [this time zone list](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/default-time-zones#time-zones) seems to match. Use the value in the Time zone column.
 
@@ -169,9 +190,9 @@ If no time zone is specified, it defaults to UTC. The [Microsoft.AlertsManagemen
 
 ### Alert Processing Rule Samples
 
-Now let's look at two practical scenarios based on availability tests. For both scenarios, we want to filter on specific availability tests. We can do this by adding a filter on the alert context field.
+Now let's look at two practical scenarios based on availability tests. I'm using the alert I describe in [Track Availability in Application Insights using .NET (Azure Function)](/blog/2026/01/19/track-availability-in-application-insights-using-.net/#setting-up-alerts). For both scenarios, we want to filter on specific availability tests. We can do this by adding a filter on the alert context field.
 
-Here's an example of the alert context of an alert that fired when the availability test `Standard Test - Backend API Status` failed:
+Here's an example of the alert context of an alert that fired when the availability test `Sample Availability Test 1` failed:
 
 ```json
 "alertContext": {
@@ -189,7 +210,7 @@ Here's an example of the alert context of an alert that fired when the availabil
         "dimensions": [
           {
             "name": "availabilityResult/name",
-            "value": "Standard Test - Backend API Status",
+            "value": "Sample Availability Test 1",
             "type": null,
             "values": null,
             "operator": null
@@ -211,14 +232,17 @@ Here's an example of the alert context of an alert that fired when the availabil
 
 Because we've specified the availability test name as a dimension in the alert, it's included in the alert context and we can filter on it in our processing rule.
 
+> Tip: If you want to see the alert context of an alert that fired in your environment, create an HTTP POST endpoint that logs the incoming request body. Then create an action group with a webhook action that points to your endpoint and attach it to the alert rule. When the alert fires, check the logged request body for the alert context.
+
 #### Scenario 1: Send an Alert to an Action Group for Specific Availability Tests
 
-In this scenario, we want to send a notification to an action group if an alert fires or is resolved for the failed availability test alert and the test name is 'Sample Availability Test 1' or 'Sample Availability Test 2'.
+In this scenario, we want to send a notification to an action group if an alert fires or is resolved for the failed availability test alert where the test name is 'Sample Availability Test 1' or 'Sample Availability Test 2'.
 
 ```bicep
 resource notifyActionGroupOnSpecificFailedAvailabilityTests 'Microsoft.AlertsManagement/actionRules@2021-08-08' = {
   name: 'apr-notify-action-group-on-specific-failed-availability-tests'
   location: 'Global'
+
   properties: {
     enabled: true
     
@@ -256,18 +280,21 @@ resource notifyActionGroupOnSpecificFailedAvailabilityTests 'Microsoft.AlertsMan
 }
 ```
 
-The key parts of this configuration are the scope set to the Application Insights resource and the conditions that filter on both the alert rule ID and the alert context. The alert context filter uses the `Contains` operator to match on the availability test names. The location property must be set to 'Global' for alert processing rules.
+The key parts of this configuration are the scope set to the Application Insights resource and the conditions that filter on both the alert rule ID and the alert context. The alert context filter uses the `Contains` operator to match on the availability test names. 
+
+The location property must be set to 'Global' for alert processing rules.
 
 Because we haven't specified a schedule, this processing rule will be active all the time and add the action group to any alerts that match the conditions.
 
 #### Scenario 2: Suppress Notifications When a Specific Availability Test Fails During a Certain Time Window
 
-Every night, the availability tests 'Sample Availability Test 1' and 'Sample Availability Test 2' fail starting at 01:00, and they succeed again before 01:30. We don't want to be notified of this every day, so we can add an alert processing rule that suppresses notifications for the alert for the specific tests:
+Let's assume the availability tests 'Sample Availability Test 1' and 'Sample Availability Test 2' fail every night starting at 01:00 and they succeed again before 01:30. We don't want to be notified of this every day, so we can add an alert processing rule that suppresses notifications for these specific tests:
 
 ```bicep
-resource suppressLogicAppWorkflowTests 'Microsoft.AlertsManagement/actionRules@2021-08-08' = {
-  name: 'apr-suppress-on-specific-failed-logic-app-workflow-tests'
+resource suppressNotificationsForSpecificFailedAvailabilityTests 'Microsoft.AlertsManagement/actionRules@2021-08-08' = {
+  name: 'apr-suppress-notifications-for-specific-failed-availability-tests'
   location: 'Global'
+
   properties: {
     enabled: true
 
@@ -321,7 +348,7 @@ There's one thing to note here. Our availability test alert is stateful, meaning
 
 Alert processing rules give you fine-grained control over how Azure Monitor alerts behave without modifying the alert rules themselves. You can use them to add action groups to specific alerts or suppress notifications during maintenance windows or other expected downtime.
 
-The `Microsoft.AlertsManagement/actionRules` resource in Bicep provides a declarative way to manage these rules alongside your other Azure infrastructure. The ability to filter on alert context is particularly useful when working with availability tests, letting you handle different tests differently based on their specific characteristics or schedules.
+The `Microsoft.AlertsManagement/actionRules` resource in Bicep provides a declarative way to manage these rules alongside your other Azure infrastructure. The ability to filter on alert context is particularly useful.
 
 For more information on alert processing rules, check out the [official Microsoft documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-processing-rules). You can also refer to my [Track Availability in App Insights](/series/track-availability-in-app-insights/) series for more context on setting up availability tests and alerts.
 
