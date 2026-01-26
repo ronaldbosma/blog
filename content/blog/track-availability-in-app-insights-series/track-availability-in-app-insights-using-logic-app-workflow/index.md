@@ -1,12 +1,11 @@
 ---
 title: "Track Availability in Application Insights using Logic App Workflow"
-date: 2026-01-26T16:00:00+01:00
-publishdate: 2026-01-16T09:45:00+01:00
-lastmod: 2026-01-16T09:45:00+01:00
+date: 2026-01-26T17:00:00+01:00
+publishdate: 2026-01-26T17:00:00+01:00
+lastmod: 2026-01-26T17:00:00+01:00
 tags: [ "Azure", "Application Insights", "Azure Monitor", "Logic Apps", "Azure Integration Services" ]
 series: [ "track-availability-in-app-insights" ]
 summary: "I've worked with clients following a low-code first strategy where Logic Apps are preferred over .NET solutions. This post shows you how to create custom availability tests using Logic App (Standard) workflows and track the results in Application Insights. This approach gives you access to all Logic App capabilities while requiring minimal code."
-draft: true
 ---
 
 In my [previous post](/blog/2026/01/19/track-availability-in-application-insights-using-.net/), I showed you how to create custom availability tests using .NET and Azure Functions. While that solution gives you full control over the test logic and enables complex scenarios, it requires writing and maintaining code.
