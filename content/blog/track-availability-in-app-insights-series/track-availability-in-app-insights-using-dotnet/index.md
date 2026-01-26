@@ -406,6 +406,8 @@ dimensions: [
 
 This configuration will only trigger alerts for the specified test, allowing you to take different actions or handle different tests with different severity levels.
 
+> Instead of creating multiple similar alert rules for different tests, you can also use [alert processing rules](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-processing-rules/) to add or remove action groups based on the test name. This way, you can have a single alert rule for all tests and use processing rules to customize the notification behavior per test. I cover this in more detail in [this post](/blog/2026/02/02/alert-processing-rules-in-bicep-suppress-and-route-azure-monitor-alerts/).
+
 ## Considerations
 
 While custom availability tests offer more flexibility than standard tests, there are some considerations to keep in mind.
