@@ -258,7 +258,9 @@ Setting up alerts for Logic App-based availability tests works the same as for A
 
 While Logic App workflows provide a great low-code solution for availability testing, there are some considerations to keep in mind:
 
-This solution can have additional costs. The availability test workflows need to be stateful because of the Recurrence trigger. If you have diagnostic settings enabled on your Logic App and Storage Account, you'll incur additional costs. I deployed the sample template with and without diagnostic settings and let the tests run for a day. The costs were almost €1.50 higher, primarily from "Analytics Logs Data Ingestion" for the Storage Account, which was about 56% of the total Log Analytics usage. 
+This solution can save costs but can also have additional costs compared to running your availability tests in Azure Functions. If you have an existing Logic App (Standard) hosted on a Workflow Service Plan, you can't deploy a Function App on the same plan. So, if you don't have a Function App deployed yet, using Logic App workflows can save costs because you don't have to deploy additional resources.
+
+On the other hand, the availability test workflows need to be stateful because of the Recurrence trigger. If you have diagnostic settings enabled on your Logic App and Storage Account, you'll incur additional costs. I deployed the sample template with and without diagnostic settings and let the tests run for a day. The costs were almost €1.50 higher, primarily from "Analytics Logs Data Ingestion" for the Storage Account, which was about 56% of the total Log Analytics usage. 
 
 Considering that we have two tests running every minute, if you extrapolate that to a month, the additional cost would be around €15 - €20 per test. This is similar to the cost of a standard availability test in Application Insights (if you ignore the Logic App resource costs). These expenses can accumulate if you have many tests running across multiple environments. 
 
