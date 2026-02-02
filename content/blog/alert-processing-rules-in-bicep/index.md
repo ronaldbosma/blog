@@ -1,11 +1,10 @@
 ---
 title: "Alert Processing Rules in Bicep: Add Action Groups or Suppress Notifications"
-date: 2026-02-02T16:00:00+01:00
-publishdate: 2026-01-20T14:00:00+01:00
-lastmod: 2026-01-20T14:00:00+01:00
+date: 2026-02-02T17:45:00+01:00
+publishdate: 2026-02-02T17:45:00+01:00
+lastmod: 2026-02-02T17:45:00+01:00
 tags: [ "Azure", "Application Insights", "Azure Monitor", "Bicep" ]
 summary: "Alert processing rules let you add action groups or suppress notifications without changing alert rules. In this post I explain the actionRules resource in Bicep and show two scenarios: adding an action group and suppressing notifications on a schedule for failed availability tests."
-draft: true
 ---
 
 In my last series of blog posts [Track Availability in App Insights](/series/track-availability-in-app-insights/), I created availability tests to check the availability of systems. I also showed how to create alerts so you can be notified when a system is down or back up again. I've set this up for various clients and several had systems that were unavailable on a regular basis for various reasons. For example every night at the same time to perform a backup. Now, nothing is more annoying than to be notified of this every single day, because you have to check if the notifications are 'expected' or if something else is going on. That's where alert processing rules can help.
