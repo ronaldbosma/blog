@@ -7,7 +7,7 @@ tags: [ "Azure", "Application Insights", "Azure Monitor", "Bicep" ]
 summary: "Alert processing rules let you add action groups or suppress notifications without changing alert rules. In this post I explain the actionRules resource in Bicep and show two scenarios: adding an action group and suppressing notifications on a schedule for failed availability tests."
 ---
 
-In my last series of blog posts [Track Availability in App Insights](/series/track-availability-in-app-insights/), I created availability tests to check the availability of systems. I also showed how to create alerts so you can be notified when a system is down or back up again. I've set this up for various clients and several had systems that were unavailable on a regular basis for various reasons. For example every night at the same time to perform a backup. Now, nothing is more annoying than to be notified of this every single day, because you have to check if the notifications are 'expected' or if something else is going on. That's where alert processing rules can help.
+In my last series of blog posts [Track Availability in App Insights](/series/track-availability-in-app-insights/), I created availability tests to check the availability of systems. I also showed how to create alerts so you can be notified when a system is down or back up again. I've set this up for multiple clients and several had systems that were unavailable on a regular basis for different reasons. For example, every night during backups. Nothing is more annoying than to be notified of this every single day, because you have to check if the notifications are 'expected' or if something is wrong. Alert processing rules solve this problem.
 
 The [official documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-processing-rules?tabs=portal) defines alert processing rules:  
 > _"Alert processing rules allow you to apply processing on fired alerts. Alert processing rules are different from alert rules. Alert rules generate new alerts that notify you when something happens, while alert processing rules modify the fired alerts as they're being fired to change the usual alert behavior._
@@ -38,7 +38,7 @@ First, you need to define one or more scopes. All alerts fired for the scope or 
 - A resource group
 - A specific resource
 
-When you want to apply an alert processing rule to alerts fired by an alert rule, there's an important detail to note. If you specify an alert rule ID as the scope, this will affect alerts that are triggered *about* the alert rule. For example, an alert on the activity log of the alert rule. This is probably not what you want. In our availability test example, the affected resource is actually Application Insights. So you need to specify the App Insights ID as the scope and add a filter on the alert rule ID or name.
+When you want to apply an alert processing rule to alerts fired by an alert rule, there's an important detail to note. If you specify an alert rule ID as the scope, this will affect alerts that are triggered *about* the alert rule. For example, an alert on the activity log of the alert rule. This is probably not what you want. In our availability test example, the affected resource is Application Insights. So, you need to specify the App Insights ID as the scope and add a filter on the alert rule ID or name.
 
 Filters (conditions) can be used to further narrow down which alerts the processing rule applies to. When multiple filters are defined, they all apply because there's a logical AND between the filters. Each filter can have up to 5 values and there's a logical OR between the values.
 
@@ -279,9 +279,7 @@ resource notifyActionGroupOnSpecificFailedAvailabilityTests 'Microsoft.AlertsMan
 }
 ```
 
-The key parts of this configuration are the scope set to the Application Insights resource and the conditions that filter on both the alert rule ID and the alert context. The alert context filter uses the `Contains` operator to match on the availability test names. 
-
-The location property must be set to 'Global' for alert processing rules.
+The key parts of this configuration are the scope set to the Application Insights resource and the conditions that filter on both the alert rule ID and the alert context. The alert context filter uses the `Contains` operator to match on the availability test names. Also, the location property must be set to 'Global' for alert processing rules.
 
 Because we haven't specified a schedule, this processing rule will be active all the time and add the action group to any alerts that match the conditions.
 
@@ -341,7 +339,7 @@ resource suppressNotificationsForSpecificFailedAvailabilityTests 'Microsoft.Aler
 
 This configuration is similar to the first scenario, but instead of adding an action group, we're removing all action groups to suppress notifications. The schedule is set to recur daily from 01:00 to 01:30 in the W. Europe Standard Time zone.
 
-There's one thing to note here. Our availability test alert is stateful, meaning that once it fires, it will not fire again or trigger any more actions until it's resolved. If the alert fires within the specified schedule of the alert processing rule but isn't resolved within the specified time window, you won't be notified that the availability test is still failing. If this is a concern, you can create an additional alert that checks for this situation.
+Note that our availability test alert is stateful, meaning that once it fires, it will not fire again or trigger any more actions until it's resolved. If the alert fires within the specified schedule of the alert processing rule but it is not resolved within the specified time window, you won't be notified that the availability test is still failing. If this is a concern, you can create an additional alert that checks for this situation.
 
 ### Conclusion
 
