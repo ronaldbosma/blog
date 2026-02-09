@@ -26,7 +26,7 @@ pygmentsCodeFences = true
   picture = "/images/author.webp"
   title = "Ronald Bosma"
   subtitle = "Software Engineer & Architect"
-  mdtext = '''I'm a software engineer & architect working for Info Support in the Netherlands. I have over 16 years of experience in building distributed systems with Microsoft technology.  
+  mdtext = '''I'm a software engineer & architect working for Info Support in the Netherlands. I have 15+ years of experience in building distributed systems with Microsoft technology.  
 
 Since the start of my career I've had a deep interest in test automation. I'm a TDD enthusiast and in recent years I've come to appreciate Specification by Example and tools like Reqnroll. My interests also include Azure, Bicep, CI/CD and architecture.
 
@@ -57,4 +57,5 @@ So true: _&#34;The bitterness of poor quality remains long after the sweet taste
     name = "RSS"
     weight = 300
     identifier = "rss"
+
     url = "/index.xml"
