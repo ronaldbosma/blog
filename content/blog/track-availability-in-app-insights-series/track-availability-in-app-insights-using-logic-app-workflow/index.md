@@ -2,7 +2,7 @@
 title: "Track Availability in Application Insights using Logic App Workflow"
 date: 2026-01-26T17:00:00+01:00
 publishdate: 2026-01-26T17:00:00+01:00
-lastmod: 2026-01-26T17:00:00+01:00
+lastmod: 2026-02-20T16:45:00+01:00
 tags: [ "Azure", "Application Insights", "Azure Monitor", "Logic Apps", "Azure Integration Services" ]
 series: [ "track-availability-in-app-insights" ]
 summary: "I've worked with clients following a low-code first strategy where Logic Apps are preferred over .NET solutions. This post shows you how to create custom availability tests using Logic App (Standard) workflows and track the results in Application Insights. This approach gives you access to all Logic App capabilities while requiring minimal code."
@@ -265,7 +265,7 @@ Considering that we have two tests running every minute, if you extrapolate that
 
 If you enabled the diagnostic settings on the storage account primarily for logging on your own queues, containers, etc. rather than the ones the Logic App creates, you could reduce costs by using separate storage accounts. Create your custom resources in a storage account with diagnostic settings enabled while keeping the storage account used by the Logic App without diagnostic settings.
 
-Another approach to reduce costs could be to execute the availability tests less frequently in, e.g., your development and test environments. Unfortunately, you can't set the interval or frequency of the Recurrence trigger using an app setting, making it difficult to use different schedules per environment. You could put a placeholder in the `workflow.json` and add the correct values during deployment, but that adds complexity to your deployment process. So, it's a trade-off between ease of configuration and cost optimization.
+Another approach to reduce costs is to run the availability tests less frequently in development and test environments. This means configuring the Recurrence trigger with interval and frequency values loaded from app settings (environment variables). At the moment, you can't configure this directly in the Logic App designer. You can configure it in the code view instead. Sandro Pereira has a great post about this: [Dynamic Logic App Schedules: Using Environment Variables](https://blog.sandro-pereira.com/2026/02/20/dynamic-logic-app-recurrence-environment-variables/).
 
 If you expect to create multiple availability tests, consider creating a generic workflow with an HTTP trigger that takes the test name and the URL to test. That workflow will perform the HTTP GET and track the availability. You can then create a simplified workflow per availability test that has the Recurrence trigger and calls the generic workflow with the correct test name and URL. I've used this in one of my own projects and it works great.
 
