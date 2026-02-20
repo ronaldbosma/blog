@@ -1,0 +1,318 @@
+---
+title: "Tips and Tricks for Authoring Azure Developer CLI (azd) Templates"
+date: 2026-02-20T14:45:00+01:00
+publishdate: 2026-02-20T14:45:00+01:00
+lastmod: 2026-02-20T14:45:00+01:00
+tags: [ "Azure", "Azure Developer CLI", "azd", "Bicep" ]
+summary: "I've created several Azure Developer CLI (azd) templates over the past year. In this post, I share practical tips and tricks for authoring azd templates, including parameter management, naming conventions, hooks, pipelines and handling Entra ID resources."
+draft: true
+---
+
+I've been working with the Azure Developer CLI (azd) for the past year, creating several templates to simplify the deployment of Azure solutions. What started as a simple Bicep template for deploying Azure Integration Services has evolved into multiple published azd templates that anyone can use with just three commands.
+
+In this post, I'll share the tips and tricks I've learned while authoring and publishing these templates. We'll cover everything from basic template creation to advanced topics like handling Entra ID resources and automating dependency updates.
+
+### Table of Contents
+
+- [What is the Azure Developer CLI?](#what-is-the-azure-developer-cli)
+- [Use Existing Templates](#use-existing-templates)
+- [Create Your Own Template](#create-your-own-template)
+- [Publish Your Template](#publish-your-template)
+- [Create a Comprehensive README](#create-a-comprehensive-readme)
+- [Working with Parameters](#working-with-parameters)
+- [Apply a Naming Convention](#apply-a-naming-convention)
+- [Use Hooks for Customization](#use-hooks-for-customization)
+- [Automate Testing with Pipelines](#automate-testing-with-pipelines)
+- [Environment Variables and Local Development](#environment-variables-and-local-development)
+- [Keep Dependencies Up to Date](#keep-dependencies-up-to-date)
+- [Version Your Template](#version-your-template)
+- [Handle Entra ID Resources](#handle-entra-id-resources)
+- [Conclusion](#conclusion)
+
+### What is the Azure Developer CLI?
+
+The [Azure Developer CLI](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/) is an open-source tool that accelerates your path from a local development environment to Azure. It provides developer-friendly commands that map to key stages in your workflow, including code, build, deploy and monitor. The CLI works consistently across the terminal, your editor, GitHub Actions pipelines and more.
+
+It's different from the Azure CLI. While the Azure CLI (az) is used to manage Azure resources and focuses on infrastructure, the Azure Developer CLI (azd) can be used to deploy complete applications, including both infrastructure and application code.
+
+I discovered azd while working on a Bicep template for deploying Azure Integration Services connected to Application Insights, Key Vault and other resources. A colleague pointed me to azd because it makes deployment of Bicep and Terraform templates super easy. With just three simple commands, you can download a template, authenticate to Azure and deploy your infrastructure and application:
+
+```powershell
+azd init --template ronaldbosma/azure-integration-services-quickstart
+azd auth login
+azd up
+```
+
+I tried it out, loved it and never looked back.
+
+### Use Existing Templates
+
+Before creating your own template, have a look at [Awesome azd](https://azure.github.io/awesome-azd/). It has a great collection of ready-to-use templates and there might be one that fits your needs.
+
+### Create Your Own Template
+
+If you have an interesting repository with Bicep or Terraform infrastructure scripts and optionally application code that might be useful to others, consider turning it into an azd template. This makes it super easy for other people to use and deploy.
+
+The guide on [Create Azure Developer CLI templates overview](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/make-azd-compatible) provides a great overview for getting started with your own azd templates.
+
+### Publish Your Template
+
+Once you've created your template, you can publish it on [Awesome azd](https://azure.github.io/awesome-azd/) so other users can find it. The [contribution guide](https://azure.github.io/awesome-azd/docs/contribute/) explains the process.
+
+If your template can be used in Microsoft training courses (like AZ-104 or AZ-204), check if you can also publish it on [Trainer Demo Deploy](https://microsoftlearning.github.io/trainer-demo-deploy/). This site contains a subset of templates specifically created for trainers. The [contribution guide](https://microsoftlearning.github.io/trainer-demo-deploy/docs/contribute) provides details on how to submit your template.
+
+### Create a Comprehensive README
+
+To make it easy for people to use your template, create a README that explains what your template deploys and how to get started. Include any additional tools users need to install aside from azd, and what permissions they need in Azure to deploy it. I always include the three steps to initialize the template, authenticate to Azure and deploy:
+
+```powershell
+azd init --template ronaldbosma/track-availability-in-app-insights
+azd auth login
+azd up
+```
+
+Also include a short explanation of how users can test the application once it's deployed. If you want to publish on [Trainer Demo Deploy](https://microsoftlearning.github.io/trainer-demo-deploy/), create a more extensive demo guide that trainers can use.
+
+If there are any known deployment issues, include a troubleshooting section that explains how to fix or work around them. For example, many of my templates deploy API Management. If you don't purge the instance during cleanup, you'll run into errors when trying to deploy the template again.
+
+When your template has hooks, add a section to the README explaining what they do. If your template includes a GitHub Actions workflow or Azure DevOps pipeline, describe what it does and how to configure it. Include the authentication mechanism your pipeline expects and any additional permissions needed for the pipeline's service principal.
+
+You can find an example of a comprehensive README in my [Track Availability in Application Insights](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/README.md) template.
+
+### Working with Parameters
+
+#### Default Values
+
+In my [Track Availability in Application Insights](https://github.com/ronaldbosma/track-availability-in-app-insights) template, I have several settings that have sensible defaults but that users should be able to override. Here's an example from the [main.parameters.json](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/infra/main.parameters.json):
+
+```json
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "${AZURE_ENV_NAME}"
+    },
+    "location": {
+      "value": "${AZURE_LOCATION}"
+    },
+    "approximateFailurePercentage": {
+      "value": "${APPROXIMATE_FAILURE_PERCENTAGE=10}"
+    },
+    "sslCertRemainingLifetimeDays": {
+      "value": "${SSL_CERT_REMAINING_LIFETIME_DAYS=30}"
+    },
+    "alertRecipientEmailAddress": {
+      "value": "${ALERT_RECIPIENT_EMAIL_ADDRESS}"
+    }
+  }
+}
+```
+
+The value for the Bicep parameter `approximateFailurePercentage` (and corresponding environment variable `APPROXIMATE_FAILURE_PERCENTAGE`) will be 10 by default. Users can override this in several ways, such as using the [azd env set](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-env-set) command:
+
+```powershell
+azd env set APPROXIMATE_FAILURE_PERCENTAGE 50
+```
+
+Add a section to your project's README that describes the different configuration settings and how to change them.
+
+#### Optional Resources
+
+My [Azure Integration Services Quickstart](https://github.com/ronaldbosma/azure-integration-services-quickstart) template has resources that I sometimes want to deploy and other times not. To make this possible, I added boolean parameters in the [main.parameters.json](https://github.com/ronaldbosma/azure-integration-services-quickstart/blob/main/infra/main.parameters.json) for each optional resource. For API Management, for example:
+
+```json
+"includeApiManagement": {
+  "value": "${INCLUDE_API_MANAGEMENT}"
+}
+```
+
+Then, in my [main.bicep](https://github.com/ronaldbosma/azure-integration-services-quickstart/blob/main/infra/main.bicep), I defined a boolean parameter called `includeApiManagement` and output the value to the environment variable `INCLUDE_API_MANAGEMENT`:
+
+```bicep
+@description('Include the API Management service in the deployment.')
+param includeApiManagement bool
+
+// ...Logic to optionally deploy API Management...
+
+output INCLUDE_API_MANAGEMENT bool = includeApiManagement
+```
+
+When you deploy this template for the first time, it will ask you for each parameter what value should be used (true or false in this case). After provisioning succeeds, the values are stored in their corresponding environment variables. This means if you make a change to the template and redeploy it, it won't ask the user to specify a value again.
+
+### Apply a Naming Convention
+
+Before I started using azd, I had created several Bicep templates. One thing that annoyed me was having to specify the names of different resources before deploying a template. I had these in a script, but if I wanted to deploy multiple instances of a template, I had to change all these names.
+
+I created a set of Bicep user-defined functions to apply the naming convention described in the [Cloud Adoption Framework](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming). I only had to specify a workload and environment, and the rest was taken care of.
+
+> See [Apply Azure naming convention using Bicep functions](https://ronaldbosma.github.io/blog/2024/06/05/apply-azure-naming-convention-using-bicep-functions/) if you're interested in how it works.
+
+When you initialize and deploy an azd template, the minimum you need to specify is the environment name, Azure subscription and region. With that in mind, I made an azd-specific version of this naming convention where the workload and environment are merged into one.
+
+With this approach, you only have to specify the already required `location` and `environmentName` parameters in your Bicep script. The instance ID can then be generated with the `generateInstanceId` function, which returns a unique string based on a combination of the Azure subscription ID, environment name and location. The `getResourceName` function can then be used to create names for different resources:
+
+```bicep
+@description('Location to use for all resources')
+param location string
+
+@description('The name of the environment to deploy to')
+param environmentName string
+
+// Generate an instance ID to ensure unique resource names
+var instanceId string = generateInstanceId(environmentName, location)
+
+var resourceGroupName string = getResourceName('resourceGroup', environmentName, location, instanceId)
+var apiManagementServiceName string = getResourceName('apiManagement', environmentName, location, instanceId)
+var appInsightsName string = getResourceName('applicationInsights', environmentName, location, instanceId)
+```
+
+See [Naming Convention for Azure Developer CLI (azd) templates](https://github.com/ronaldbosma/bicep-samples/tree/main/naming-conventions/naming-convention-azd) for more details.
+
+> If you use this naming convention, you can deploy the template multiple times in the same subscription with the same environment name as long as the region differs. However, `azd down` looks at the `azd-env-name` tag to determine what to remove, and this doesn't contain the region. This means if you execute the `azd down` command, all instances of the deployed template that share the same environment name will be removed.
+
+### Use Hooks for Customization
+
+[Hooks](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/azd-extensibility) are a great way to customize your workflow. I've used them to create certificates in Key Vault and assign them to app registrations, or to build .NET projects for Logic Apps with custom code. I mostly use PowerShell hooks because I'm more experienced with it, but you can also use bash.
+
+When executing a hook, you'll most likely need to pass environment variables to the script, such as the Azure subscription ID and resource group. You can use [azd env get-value](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-env-get-value), but the easiest approach that works for me is to use the native PowerShell way to access environment variables with `$env:VARIABLE_NAME`. Locally, this retrieves values from the `.azure/<environment>/.env` file, but it also works in a pipeline where you might pass them as environment variables to an action or task.
+
+I started out using environment variables directly in my scripts, but now I always use parameters with the environment variables as defaults. This makes it easier to execute and test your script:
+
+```powershell
+param(
+    [Parameter(Mandatory = $false)]
+    [string]$SubscriptionId = $env:AZURE_SUBSCRIPTION_ID,
+    
+    [Parameter(Mandatory = $false)]
+    [string]$ResourceGroup = $env:AZURE_RESOURCE_GROUP
+)
+```
+
+By default, azd uses its own login through `azd auth login`. If you're using the Azure CLI in a hook, make sure it's set to the same subscription where you deployed your template with azd. This is easily done with the following snippet:
+
+```powershell
+az account set --subscription $SubscriptionId
+if ($LASTEXITCODE -ne 0) {
+    throw "Unable to set the Azure subscription. Please make sure that you're logged into the Azure CLI with the same credentials as the Azure Developer CLI."
+}
+```
+
+### Automate Testing with Pipelines
+
+To make changes to my templates with more confidence, I include a GitHub Actions workflow that automates the build, deployment, test and cleanup process. This also makes it easier to verify external contributions from other users or from automated tools.
+
+My workflows usually consist of the following jobs:
+
+- **Build, Verify and Package**: Sets up the build environment, validates the Bicep template and packages the project's code and integration tests
+- **Deploy to Azure**: Provisions the Azure infrastructure and deploys the packaged applications to the created resources
+- **Verify**: Runs automated integration tests to verify the deployed resources and application. In some cases, it also verifies logging (for example, to check that availability tests succeed)
+- **Clean Up Resources**: Removes all deployed Azure resources
+
+I'll share more details about this setup in my next blog post.
+
+### Environment Variables and Local Development
+
+If you've deployed a template from your local machine and want to execute some code locally before deploying it to Azure, or if you have integration tests that verify your application and want to execute them locally, you probably need some of the environment variable values stored in `.azure/<environment>/.env`.
+
+I've created a bit of code that locates the azd `.env` file and loads the variables into the [Environment class](https://learn.microsoft.com/en-us/dotnet/api/system.environment?view=net-10.0) using the [dotenv.net](https://github.com/bolorundurowb/dotenv.net) library. You can then use the [ConfigurationBuilder](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.configuration.configurationbuilder?view=net-10.0-pp) to load the configuration as you normally would.
+
+The code is located in [AzdDotEnv.cs](https://github.com/ronaldbosma/protect-apim-with-oauth/blob/main/tests/IntegrationTests/Configuration/AzdDotEnv.cs) and can be used as follows:
+
+```csharp
+// Loads Azure Developer CLI environment variables
+// It's optional since .env file might be missing in CI/CD pipelines
+AzdDotEnv.Load(optional: true);
+
+var configuration = new ConfigurationBuilder()
+    .AddEnvironmentVariables()
+    .Build();
+```
+
+This approach works locally, but also when your code runs in Azure or a pipeline where you have actual environment variables instead of a `.env` file.
+
+### Keep Dependencies Up to Date
+
+A practice you should apply to all your projects is keeping dependencies up to date. With a good pipeline in place, this can be automated using a tool like [Mend Renovate](https://docs.renovatebot.com/) or [Dependabot](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/dependabot-quickstart-guide). I'm using Renovate because it's able to update the versions of Bicep resources, which isn't currently supported by Dependabot.
+
+Renovate runs once a month and creates a pull request with updates of all dependencies that have a newer version. This automatically triggers my GitHub Actions workflow to verify the changes. I only have to approve once the workflow successfully completes.
+
+### Version Your Template
+
+The `azure.yaml` file contains the version of a template, but in addition, I'm using the [Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository) feature in GitHub to keep track of my template versions. This provides an overview of all the changes.
+
+By adding a tag for a release, it's also possible for users to retrieve a specific version using the `--branch` or `-b` parameter of [azd init](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-init). Although the name of the parameter might suggest otherwise, it works for both branches and tags. This example retrieves version `v1.14.0` of my `azure-integration-services-quickstart` template:
+
+```powershell
+azd init --template ronaldbosma/azure-integration-services-quickstart --branch "v1.14.0"
+```
+
+Here are the steps to update a template to version `1.14.0`:
+
+1. Update the version in `azure.yaml` and commit the change:
+
+   ```yaml
+   name: azure-integration-services-quickstart
+   metadata:
+     template: azure-integration-services-quickstart@1.14.0
+   ```
+
+2. Add a `v1.14.0` tag to the last commit:
+
+   ```powershell
+   git tag "v1.14.0"
+   git push origin "v1.14.0"
+   ```
+
+3. Publish a new `v1.14.0` release. You can do this manually, but if you use [gh release create](https://cli.github.com/manual/gh_release_create), you can automatically generate release notes based on the merged pull requests since the last release:
+
+   ```powershell
+   gh release create "v1.14.0" `
+       --generate-notes `
+       --target main `
+       --latest
+   ```
+
+### Handle Entra ID Resources
+
+At the moment, azd doesn't support removing Entra ID resources, as reported in [this issue](https://github.com/Azure/azure-dev/issues/4724). You need to create a hook to remove these resources yourself.
+
+I have several templates that deploy one or more app registrations with service principals. I started out with a hook in each template that took the IDs of the app registrations that were created and removed them. But when adding more app registrations, I also had to update the hook, which was easily forgotten.
+
+I took a different approach. Similar to the `azd-env-name` and `azd-service-name` tags that you need to add to services when deploying application code, I introduced a tag called `azd-env-id` that has a unique identifier for the deployed environment. This tag is added to all resources, including app registrations:
+
+```bicep
+var azdEnvironmentId string = getResourceName('azdEnvironment', environmentName, location, instanceId)
+
+var tags = {
+  'azd-env-name': environmentName
+  'azd-env-id': azdEnvironmentId
+}
+```
+
+I'm generating a unique environment ID using my naming convention function. I'm not using the environment name because you could deploy the same template with the same environment name in different Azure subscriptions within the same tenant. To make sure we only remove Entra ID resources for a specific environment, a unique environment ID is used.
+
+Most Azure resources use key-value pairs for tags, whereas Entra ID resources have a string array for their tags. I'm using this Bicep helper function to flatten the tag dictionary to an array:
+
+```bicep
+@export()
+func flattenTags(tags object) string[] => map(items(tags), tag => '${tag.key}: ${tag.value}')
+```
+
+Then, in my predown hook, I search for all app registrations that have this tag and remove them accordingly.
+
+When removing an app registration and service principal from Entra ID, they're first soft deleted (moved to deleted items). This can be annoying if you want to redeploy the same environment later, as you can't create a new app registration with the same name as a soft-deleted one. It's a good idea to permanently remove these resources from the deleted items as well.
+
+My first script worked great when run locally, but once I introduced pipelines, I noticed that removal sometimes failed. The success rate was very flaky. I've had a similar issue with generating secrets on an app registration and I think the flakiness is caused by eventual consistency. My Azure tenant is in West Europe, while my GitHub Actions workflow runs in North Central US and seems to interact with Entra ID in North Central US as well. See [this issue](https://github.com/Azure/azure-cli/issues/32467) for more details if you're interested.
+
+I'm now using a script that takes eventual consistency into account by adding retries. You can find a working version in [predown-remove-app-registrations.ps1](https://github.com/ronaldbosma/protect-apim-with-oauth/blob/main/hooks/predown-remove-app-registrations.ps1).
+
+### Conclusion
+
+Creating azd templates has made it significantly easier to share and deploy Azure solutions. With just three commands, anyone can initialize, authenticate and deploy a complete application with its infrastructure.
+
+The tips I've shared in this post cover the lessons I've learned from creating multiple azd templates. From basic parameter management to advanced topics like handling Entra ID resources and eventual consistency, these practices have helped me create more robust and user-friendly templates.
+
+If you have Bicep or Terraform templates lying around, I encourage you to turn them into azd templates. The initial setup effort is minimal, and it makes your work much more accessible to others. Plus, contributing to [Awesome azd](https://azure.github.io/awesome-azd/) is a great way to give back to the community.
+
+In my next blog post, I'll dive deeper into the GitHub Actions workflow setup I use to automatically test my templates, providing examples and best practices for CI/CD with azd templates.
