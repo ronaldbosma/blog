@@ -41,7 +41,7 @@ It's different from the Azure CLI. While the Azure CLI (az) is used to manage Az
 
 I discovered azd while working on a Bicep template for deploying Azure Integration Services. A colleague pointed me to azd because it makes deployment of Bicep and Terraform templates super easy. With just three simple commands, you can download a template, authenticate to Azure and deploy your infrastructure and application:
 
-```
+```powershell
 azd init --template ronaldbosma/azure-integration-services-quickstart
 azd auth login
 azd up
@@ -152,7 +152,7 @@ After provisioning succeeds, the values are stored in their corresponding enviro
 
 Before I started using azd, I had created several Bicep templates. One thing that annoyed me was having to specify the names of different resources before deploying a template. I had these in a script, but if I wanted to deploy multiple instances of a template, I had to change all these names.
 
-I created a set of Bicep user-defined functions that applies the naming convention described in the [Cloud Adoption Framework](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming) to combat this. Using the naming convention, I only have to specify a workload and environment, and the rest is taken care of.
+I created a set of Bicep user-defined functions that apply the naming convention described in the [Cloud Adoption Framework](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming) to combat this. Using the naming convention, I only have to specify a workload and environment, and the rest is taken care of.
 
 > See [Apply Azure naming convention using Bicep functions](https://ronaldbosma.github.io/blog/2024/06/05/apply-azure-naming-convention-using-bicep-functions/) if you're interested in how it works.
 
@@ -188,7 +188,7 @@ See [Naming Convention for Azure Developer CLI (azd) templates](https://github.c
 
 ### Use Hooks for Customization
 
-[Hooks](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/azd-extensibility) are a great way to customize your workflow. I've used them in several scenarios. For example to create certificates in Key Vault and assign them to app registrations, or to build .NET projects for Logic Apps with custom code. I mostly use PowerShell hooks because I'm more experienced with it, but you can also use bash.
+[Hooks](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/azd-extensibility) are a great way to customize your workflow. I've used them in several scenarios. For example, to create certificates in Key Vault and assign them to app registrations, or to build .NET projects for Logic Apps with custom code. I mostly use PowerShell hooks because I'm more experienced with it, but you can also use bash.
 
 #### Environment Variables in Hooks
 
@@ -298,7 +298,7 @@ To introduce a new version (e.g. `1.14.0`), I follow these steps:
 
 At the moment, azd doesn't support removing Entra ID resources, as reported in [this issue](https://github.com/Azure/azure-dev/issues/4724). If you have a template that deploys Entra ID resources, you need to create a hook to remove them.
 
-I have several templates that deploy one or more app registrations with service principals. I started out with a simple hook in that took the IDs of the app registrations that were created and removed them. But when adding or removing app registrations, I also had to update the hook, which I sometimes forgot.
+I have several templates that deploy one or more app registrations with service principals. I started out with a simple hook that took the IDs of the app registrations that were created and removed them. But when adding or removing app registrations, I also had to update the hook, which I sometimes forgot.
 
 So, I took a different approach. Similar to the `azd-env-name` and `azd-service-name` tags that you need to add to services when deploying application code, I introduced a tag called `azd-env-id` that has a unique identifier for the deployed environment. This tag is added to all resources, including app registrations:
 
@@ -313,7 +313,7 @@ var tags = {
 // ...Use tags when creating resources, like an app registration...
 ```
 
-I'm generating a unique environment ID using my naming convention function. I'm not using the environment name because you could deploy the same template with the same environment name in different Azure subscriptions within the same tenant. If I'd using the environment name, they would alle have the same tag and I wouldn't be able to distinguish between them. So, to make sure we only remove Entra ID resources for a specific environment, a unique environment ID is used.
+I'm generating a unique environment ID using my naming convention function. I'm not using the environment name because you could deploy the same template with the same environment name in different Azure subscriptions within the same tenant. If I used the environment name, they would all have the same tag and I wouldn't be able to distinguish between them. So, to make sure we only remove Entra ID resources for a specific environment, a unique environment ID is used.
 
 Most Azure resources use key-value pairs for tags, whereas Entra ID resources have a string array for their tags. I'm using this Bicep helper function to flatten the tag dictionary to an array:
 
