@@ -8,7 +8,7 @@ summary: "I've created several Azure Developer CLI (azd) templates over the past
 draft: true
 ---
 
-I've been working with the Azure Developer CLI (azd) for the past year, creating several templates to simplify the deployment of Azure solutions. What started as a simple Bicep template for deploying Azure Integration Services has evolved into multiple published azd templates that anyone can use with just three commands.
+I've been working with the Azure Developer CLI (azd) for the past year, creating several templates to simplify the deployment of Azure solutions. What started as a simple Bicep template for deploying Azure Integration Services has evolved into multiple published azd templates that anyone can use with just a few commands.
 
 In this post, I'll share the tips and tricks I've learned while authoring and publishing these templates.
 
@@ -142,7 +142,7 @@ param includeServiceBus bool
 output INCLUDE_SERVICE_BUS bool = includeServiceBus
 ```
 
-When you deploy this template for the first time, it will ask you for each parameter what value should be used (true or false in this case). See the screenshot below for an example:
+When you deploy this template for the first time, it will ask you for each parameter that doesn't have a default value what value should be used (true or false in this case). See the screenshot below for an example:
 
 ![azd up - Select Resources to Include](../../../../../images/tips-and-tricks-for-authoring-azd-templates/azd-up-select-resources-to-include.png)
 
@@ -225,7 +225,7 @@ My workflows usually consist of the following jobs:
 
 - **Build, Verify and Package**: Sets up the build environment, validates the Bicep template and packages the project's code and integration tests
 - **Deploy to Azure**: Provisions the Azure infrastructure and deploys the packaged applications to the created resources
-- **Verify**: Runs automated integration tests to verify the deployed resources and application. In some cases, it also verifies logging (for example, to check that availability tests succeed)
+- **Verify Deployment**: Runs automated integration tests to verify the deployed resources and application. It can also verify monitoring and logging, for example by checking that availability tests succeed.
 - **Clean Up Resources**: Removes all deployed Azure resources
 
 I'll share more details about this setup in my next blog post.
