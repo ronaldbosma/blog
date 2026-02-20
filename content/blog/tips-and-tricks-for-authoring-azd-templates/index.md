@@ -67,7 +67,7 @@ If your template can be used in Microsoft training courses (like AZ-104 or AZ-20
 
 ### Create a Comprehensive README
 
-To make it easy for people to use your template, create a README that explains what your template deploys and how to get started. Include any additional tools users need to install aside from azd, and what permissions they need in Azure to deploy it. I always include the three steps to initialize the template, authenticate to Azure and deploy. For example:
+To make it easy for people to use your template, create a README that explains what your template deploys and how to get started. Include any additional tools users need to install aside from azd and what permissions they need in Azure to deploy it. I always include the three steps to initialize the template, authenticate to Azure and deploy. For example:
 
 ```powershell
 azd init --template ronaldbosma/track-availability-in-app-insights
@@ -184,7 +184,7 @@ The resulting resource names are unique and also follow a consistent naming conv
 
 See [Naming Convention for Azure Developer CLI (azd) templates](https://github.com/ronaldbosma/bicep-samples/tree/main/naming-conventions/naming-convention-azd) for more details.
 
-> If you use this naming convention, you can deploy the template multiple times in the same subscription with the same environment name as long as the region differs. However, `azd down` looks at the `azd-env-name` tag to determine what to remove, and this doesn't contain the region. This means if you execute the `azd down` command, all instances of the deployed template that share the same environment name will be removed.
+> If you use this naming convention, you can deploy the template multiple times in the same subscription with the same environment name as long as the region differs. However, `azd down` looks at the `azd-env-name` tag to determine what to remove and this doesn't contain the region. This means if you execute the `azd down` command, all instances of the deployed template that share the same environment name will be removed.
 
 ### Use Hooks for Customization
 
