@@ -223,7 +223,7 @@ To make changes to my templates with more confidence, I include a GitHub Actions
 
 My workflows usually consist of the following jobs:
 
-- **Build, Verify and Package**: Sets up the build environment, validates the Bicep template and packages the project's code and integration tests
+- **Build, Verify and Package**: Sets up the build environment, validates the Bicep template, executes unit tests and packages the project's code and integration tests
 - **Deploy to Azure**: Provisions the Azure infrastructure and deploys the packaged applications to the created resources
 - **Verify Deployment**: Runs automated integration tests to verify the deployed resources and application. It can also verify monitoring and logging, for example by checking that availability tests succeed.
 - **Clean Up Resources**: Removes all deployed Azure resources
