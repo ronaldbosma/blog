@@ -200,7 +200,7 @@ public class AvailabilityTestFunction(IAvailabilityTestFactory availabilityTestF
 }
 ```
 
-The function receives the factory through dependency injection, creates an availability test with a name and check function and executes it. The timer trigger runs the function every minute, based on the cron schedule defined in the `AVAILABILITY_TESTS_SCHEDULE` application setting.
+The function receives the factory through dependency injection, creates an availability test with a name and check function and executes it. The timer trigger runs the function every minute, based on the cron schedule `0 * * * * *` defined in the `AVAILABILITY_TESTS_SCHEDULE` application setting.
 
 For a complete implementation example, check out [ApimSslCertificateCheckAvailabilityTest.cs](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/src/functionApp/TrackAvailabilityInAppInsights.FunctionApp/ApimSslCertificateCheckAvailabilityTest.cs) in the repository. This test performs SSL certificate validation similar to what I showed in the previous post.
 
