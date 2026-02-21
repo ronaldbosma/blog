@@ -2,7 +2,7 @@
 title: "Track Availability in Application Insights using .NET"
 date: 2026-01-19T09:00:00+01:00
 publishdate: 2026-01-19T09:00:00+01:00
-lastmod: 2026-01-19T09:00:00+01:00
+lastmod: 2026-02-21T13:00:00+01:00
 tags: [ "Azure", "Application Insights", "Azure Monitor", "Azure Functions", "Azure Integration Services", ".NET" ]
 series: [ "track-availability-in-app-insights" ]
 summary: "Standard availability tests in Application Insights have limitations like no multi-step authentication, no mTLS support and no access to private networks. This post shows you how to create custom availability tests using .NET and Azure Functions to overcome these restrictions while gaining full control over your monitoring logic."
@@ -186,7 +186,7 @@ Here's how you'd use these classes in an Azure Function:
 public class AvailabilityTestFunction(IAvailabilityTestFactory availabilityTestFactory)
 {
 	[Function(nameof(AvailabilityTestFunction))]
-	public async Task Run([TimerTrigger("0 * * * * *")] TimerInfo timerInfo)
+	public async Task Run([TimerTrigger("%AVAILABILITY_TESTS_SCHEDULE%")] TimerInfo timerInfo)
 	{
 		var availabilityTest = availabilityTestFactory.CreateAvailabilityTest(
             "Sample Test Name", CheckAvailabilityAsync);
@@ -200,7 +200,7 @@ public class AvailabilityTestFunction(IAvailabilityTestFactory availabilityTestF
 }
 ```
 
-The function receives the factory through dependency injection, creates an availability test with a name and check function and executes it. The timer trigger (`0 * * * * *`) runs the function every minute.
+The function receives the factory through dependency injection, creates an availability test with a name and check function and executes it. The timer trigger runs the function every minute, based on the cron schedule `0 * * * * *` defined in the `AVAILABILITY_TESTS_SCHEDULE` application setting.
 
 For a complete implementation example, check out [ApimSslCertificateCheckAvailabilityTest.cs](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/src/functionApp/TrackAvailabilityInAppInsights.FunctionApp/ApimSslCertificateCheckAvailabilityTest.cs) in the repository. This test performs SSL certificate validation similar to what I showed in the previous post.
 
@@ -280,7 +280,7 @@ While this is more complex than the basic example, it makes creating new availab
 public class BackendStatusAvailabilityTest(IAvailabilityTestFactory availabilityTestFactory)
 {
 	[Function(nameof(BackendStatusAvailabilityTest))]
-	public async Task Run([TimerTrigger("0 * * * * *")] TimerInfo timerInfo)
+	public async Task Run([TimerTrigger("%AVAILABILITY_TESTS_SCHEDULE%")] TimerInfo timerInfo)
 	{
 		var availabilityTest = availabilityTestFactory.CreateAvailabilityTest(
 			name: "Azure Function - Backend API Status",
