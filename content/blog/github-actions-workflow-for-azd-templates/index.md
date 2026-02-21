@@ -42,11 +42,11 @@ Splitting the workflow up in different jobs makes it easier to understand and ma
 These two repositories contain complete workflow examples that match the structure described above:
 
 - [call-apim-with-managed-identity/.github/workflows/azure-dev.yml](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/.github/workflows/azure-dev.yml)
-	- This template contains application code (Function App and Logic App) that is packaged during the build job
-	- It also includes .NET integration tests that are packaged during build and executed in the Verify Deployment job
+  - This template contains application code (Function App and Logic App) that is packaged during the build job
+  - It also includes .NET integration tests that are packaged during build and executed in the Verify Deployment job
 - [track-availability-in-app-insights/.github/workflows/azure-dev.yml](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/.github/workflows/azure-dev.yml)
-	- This template has a Function App and Logic App with unit tests that are executed during build, but no integration tests
-	- Instead of integration tests, the Verify Deployment job runs a PowerShell script that checks availability test execution in Azure Monitor
+  - This template has a Function App and Logic App with unit tests that are executed during build, but no integration tests
+  - Instead of integration tests, the Verify Deployment job runs a PowerShell script that checks availability test execution in Azure Monitor
 
 > I used [Azure Developer CLI: From Dev to Prod with Azure DevOps Pipelines](https://devblogs.microsoft.com/devops/azure-developer-cli-from-dev-to-prod-with-azure-devops-pipelines/) for inspiration while creating my first azd workflow.
 
@@ -72,7 +72,7 @@ env:
 
 I add a pull request suffix to `AZURE_ENV_NAME` so parallel PRs in the same repository don't overwrite each other.
 
-Notice the pattern `${{ secrets.AZURE_SUBSCRIPTION_ID || vars.AZURE_SUBSCRIPTION_ID }}`. When you run [azd pipeline config](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-pipeline-config) and choose OpenID Connect (OIDC) as the authentication mechanism, azd creates `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` and `AZURE_SUBSCRIPTION_ID` as GitHub variables by default. However, [Microsoft recommends using secrets for these values](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect) to reduce the risk of exposing them in logs. Supporting both `secrets` and `vars` makes migration easy. 
+Notice the pattern `${{ secrets.AZURE_SUBSCRIPTION_ID || vars.AZURE_SUBSCRIPTION_ID }}`. When you run [`azd pipeline config`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-pipeline-config) and choose OpenID Connect (OIDC) as the authentication mechanism, azd creates `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` and `AZURE_SUBSCRIPTION_ID` as GitHub variables by default. However, [Microsoft recommends using secrets for these values](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect) to reduce the risk of exposing them in logs. Supporting both `secrets` and `vars` makes migration easy. 
 
 > I usually add a tip in the 'Setting Up the Pipeline' section of the README of a template to replace the variables with secrets for better security.
 
@@ -110,7 +110,7 @@ And lastly, they need to authenticate with Azure. I use Azure CLI authentication
     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID || vars.AZURE_SUBSCRIPTION_ID }}
 ```
 
-> The page [Use the Azure Login action with OpenID Connect](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect) describes how to set up OIDC authentication for GitHub Actions and Azure manually, but I recommend using [azd pipeline config](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-pipeline-config), because it guides you through the process and automatically creates the necessary resources.
+> The page [Use the Azure Login action with OpenID Connect](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure-openid-connect) describes how to set up OIDC authentication for GitHub Actions and Azure manually, but I recommend using [`azd pipeline config`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-pipeline-config), because it guides you through the process and automatically creates the necessary resources.
 
 ### Build, Verify and Package
 
@@ -123,12 +123,12 @@ I also print the tool versions. I once used a new Bicep feature that failed in t
 ```yaml
 - name: Print Tool Versions
   run: |
-	az version
-	az bicep version
-	azd version
-	Write-Host ".NET SDK Version: $(dotnet --version)"
-	Write-Host "Node.js Version: $(node --version)"
-	Write-Host "npm Version: $(npm --version)"
+    az version
+    az bicep version
+    azd version
+    Write-Host ".NET SDK Version: $(dotnet --version)"
+    Write-Host "Node.js Version: $(node --version)"
+    Write-Host "npm Version: $(npm --version)"
 ```
 
 Then I run Bicep lint:
@@ -136,7 +136,7 @@ Then I run Bicep lint:
 ```yaml
 - name: Bicep Lint
   run: |
-	az bicep lint --file ./infra/main.bicep
+    az bicep lint --file ./infra/main.bicep
 ```
 
 My repositories include a `bicepconfig.json` where almost all rules are set to `error`, so the workflow fails quickly when the template doesn't comply. For details, see [Add linter settings in the Bicep config file](https://docs.azure.cn/en-us/azure-resource-manager/bicep/bicep-config-linter).
@@ -146,11 +146,11 @@ Linting is useful, but I also validate the full deployment at subscription scope
 ```yaml
 - name: Validate Template
   run: |
-	az deployment sub validate `
-		--template-file './infra/main.bicep' `
-		--location $env:AZURE_LOCATION `
-		--parameters environmentName=$env:AZURE_ENV_NAME `
-		             location=$env:AZURE_LOCATION
+    az deployment sub validate `
+      --template-file './infra/main.bicep' `
+      --location $env:AZURE_LOCATION `
+      --parameters environmentName=$env:AZURE_ENV_NAME `
+                   location=$env:AZURE_LOCATION
 ```
 
 If the application code has unit tests, I run those too. The test results are stored in the `artifacts` folder and uploaded as workflow artifacts, which can be helpful for later inspection. Here's an example of running .NET tests, but you can adapt it to your test framework and language:
@@ -177,23 +177,23 @@ If the application code has unit tests, I run those too. The test results are st
 
 Note that the `if: always()` condition ensures that test results are uploaded even if some tests fail, which is important for diagnosing issues.
 
-After validation, I package each app with `azd package` and upload artifacts. Here's an example for a Function App:
+After validation, I package each app with [`azd package`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-package) and upload artifacts. Here's an example for a Function App:
 
 ```yaml
 - name: Create artifacts folder
-	run: |
-		mkdir -p ./artifacts
+  run: |
+    mkdir -p ./artifacts
 
 - name: Package Function App
-	run: |
-		azd package functionApp --output-path ./artifacts/functionapp-package.zip --no-prompt
+  run: |
+    azd package functionApp --output-path ./artifacts/functionapp-package.zip --no-prompt
 
 - name: Upload Function App Package
-	uses: actions/upload-artifact@v6
-	with:
-		name: functionapp-package
-		path: ./artifacts/functionapp-package.zip
-		retention-days: 1
+  uses: actions/upload-artifact@v6
+  with:
+    name: functionapp-package
+    path: ./artifacts/functionapp-package.zip
+    retention-days: 1
 ```
 
 A retention period of one day is enough for my PR validation scenario, but you can increase it if you need to debug runs later.
@@ -202,30 +202,62 @@ If the template includes integration tests, I build and publish those artifacts 
 
 ```yaml
 - name: Build Integration Tests
-	run: |
-		dotnet build ./tests/IntegrationTests/IntegrationTests.csproj --configuration Release --output ./artifacts/integration-tests
+  run: |
+    dotnet build ./tests/IntegrationTests/IntegrationTests.csproj --configuration Release --output ./artifacts/integration-tests
 
 - name: Upload Integration Tests Package
-	uses: actions/upload-artifact@v6
-	with:
-		name: integration-tests-package
-		path: ./artifacts/integration-tests/
-		retention-days: 1
+  uses: actions/upload-artifact@v6
+  with:
+    name: integration-tests-package
+    path: ./artifacts/integration-tests/
+    retention-days: 1
 ```
 
 I build the integration tests in this job, because if they don't build, there's no point in deploying to Azure. By building them here, I can fail fast and save time and resources.
 
 ### Deploy to Azure
 
-I keep provisioning and app deployment in separate steps. We already packaged applications in the build job, and separation makes failures easier to diagnose.
+Because the applications are already packaged, the provision of the infrastructure and deployment of the applications are separated into different steps in the deploy job.
 
-Provisioning usually runs with `azd provision`. During provisioning, azd creates `.azure/<environment-name>/.env` and stores values from `main.bicep` outputs. Later jobs often need those values to connect to deployed resources.
+To provision the infrastructure, I run [`azd provision`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-provision):
+```yaml
+- name: Provision Infrastructure
+  run: |
+    azd provision --no-prompt
+```
 
-In my workflows, I use this script to export selected azd environment values into job outputs:
+If the template includes application code, the corresponding artifact is downloaded and deployed with [`azd deploy`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-deploy). For example, to deploy a Function App from the package created in the previous job:
 
-- [export-azd-env-variables.ps1](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/.github/workflows/scripts/export-azd-env-variables.ps1)
+```yaml
+- name: Download Function App Package
+  uses: actions/download-artifact@v7
+  with:
+    name: functionapp-package
+    path: ./artifacts
 
-The script reads values with [`azd env get-value`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-env-get-value), then writes them as [job outputs in GitHub Actions](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/pass-job-outputs). That makes it easy for later jobs to reuse values without recalculating them.
+- name: Deploy Function App
+  run: |
+    azd deploy functionApp --from-package ./artifacts/functionapp-package.zip --no-prompt
+```
+
+During provisioning, azd creates an file with environment variables (`.azure/<environment-name>/.env`) with the outputs of the `main.bicep`. Later jobs often need those values to connect to deployed resources. In my workflows, I use [this little helper script](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/.github/workflows/scripts/export-azd-env-variables.ps1) to export selected azd environment values into job outputs:
+
+```yaml
+- name: Get Output Variables
+  id: get-outputs
+  run: |
+    $variableNames = @(
+      "AZURE_ENV_ID",
+      "AZURE_RESOURCE_GROUP",
+      "AZURE_API_MANAGEMENT_GATEWAY_URL",
+      "AZURE_FUNCTION_APP_ENDPOINT",
+      "AZURE_LOGIC_APP_NAME",
+      "ENTRA_ID_APIM_APP_REGISTRATION_IDENTIFIER_URI"
+    )
+    .\.github\workflows\scripts\export-azd-env-variables.ps1 -VariableNames $variableNames
+```
+
+The script reads values with [`azd env get-value`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-env-get-value), then writes them as [job outputs in GitHub Actions](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/pass-job-outputs) so they can be used in later jobs.
 
 ### Verify Deployment
 
@@ -235,46 +267,62 @@ For templates with end-to-end tests, I download the integration test artifact an
 
 ```yaml
 - name: Download Integration Tests Package
-	uses: actions/download-artifact@v6
-	with:
-		name: integration-tests-package
-		path: ./artifacts/integration-tests
+  uses: actions/download-artifact@v7
+  with:
+    name: integration-tests-package
+    path: ./artifacts/integration-tests
 
 - name: Run Integration Tests
-	run: |
-		dotnet test ./tests/IntegrationTests/IntegrationTests.csproj `
-			--configuration Release `
-			--logger "trx;LogFileName=integration-tests.trx"
-	env:
-		APIM_BASE_URL: ${{ needs.deploy.outputs.apim-base-url }}
-		FUNCTION_BASE_URL: ${{ needs.deploy.outputs.function-base-url }}
+  run: |
+    dotnet ./artifacts/integration-tests/IntegrationTests.dll --report-trx --results-directory ./artifacts/integration-tests/TestResults
+  working-directory: ./
+  env:
+    # Pass the necessary deployed resource properties as environment variables so the integration tests can access them.
+    AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID || vars.AZURE_TENANT_ID }}
+    AZURE_RESOURCE_GROUP: ${{ needs.deploy.outputs.AZURE_RESOURCE_GROUP }}
+    AZURE_API_MANAGEMENT_GATEWAY_URL: ${{ needs.deploy.outputs.AZURE_API_MANAGEMENT_GATEWAY_URL }}
+    AZURE_FUNCTION_APP_ENDPOINT: ${{ needs.deploy.outputs.AZURE_FUNCTION_APP_ENDPOINT }}
+    AZURE_LOGIC_APP_NAME: ${{ needs.deploy.outputs.AZURE_LOGIC_APP_NAME }}
+    ENTRA_ID_APIM_APP_REGISTRATION_IDENTIFIER_URI: ${{ needs.deploy.outputs.ENTRA_ID_APIM_APP_REGISTRATION_IDENTIFIER_URI }}
 
-- name: Upload Integration Test Results
-	if: always()
-	uses: actions/upload-artifact@v6
-	with:
-		name: integration-test-results
-		path: ./tests/IntegrationTests/TestResults/
-		retention-days: 7
+- name: Upload Test Results
+  if: always()
+  uses: actions/upload-artifact@v6
+  with:
+    name: integration-test-results
+    path: ./artifacts/integration-tests/TestResults/
+    retention-days: 1
 ```
+
+Note the environment variables passed to the test job. They are taken from the outputs of the deploy job, which in turn are retrieved from the azd environment file created during provisioning. This way, the tests can connect to the correct deployed resources without hardcoding any values.
 
 Templates can also perform other types of verification. For example, check that Azure Monitor availability tests executed successfully using a custom script:
 
 ```yaml
 - name: Verify Availability Tests in Azure Monitor
-	run: |
-		./scripts/verify-availability-tests.ps1 `
-			-ResourceGroupName ${{ needs.deploy.outputs.resource-group-name }} `
-			-ApplicationInsightsName ${{ needs.deploy.outputs.appinsights-name }}
+  run: |
+    ./scripts/verify-availability-tests.ps1 `
+      -ResourceGroupName ${{ needs.deploy.outputs.resource-group-name }} `
+      -ApplicationInsightsName ${{ needs.deploy.outputs.appinsights-name }}
 ```
 
-> You can find the script [here](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/.github/workflows/scripts/) if you're interested.
+> You can find the script [here](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/.github/workflows/scripts/verify-availability-tests.ps1) if you're interested.
 
 If a script needs environment-specific values, use outputs from the deploy job.
 
 ### Clean Up Resources
 
 The cleanup job runs `azd down` to remove all deployed resources.
+
+```yaml
+- name: Cleanup Resources
+  run: |
+    azd down --purge --force --no-prompt
+  env:
+    # Pass the deployed resource identifiers as environment variables so azd hooks can access them
+    # during cleanup operations (e.g., for custom resource deletion or additional cleanup tasks).
+    AZURE_ENV_ID: ${{ needs.deploy.outputs.AZURE_ENV_ID }}
+```
 
 If your `predown` or `postdown` hooks need values from the deployed environment, pass them from deploy job outputs just like in verification.
 
@@ -288,12 +336,12 @@ By default, I still clean up at the end. But I include a `cleanup-resources` inp
 
 ```yaml
 workflow_dispatch:
-	inputs:
-		cleanup-resources:
-			description: 'Clean up resources after deployment'
-			required: false
-			default: true
-			type: boolean
+  inputs:
+    cleanup-resources:
+      description: 'Clean up resources after deployment'
+      required: false
+      default: true
+      type: boolean
 ```
 
 When the workflow is triggered manually, this input appears in the UI:
@@ -309,6 +357,11 @@ When I uncheck this input in a manual run, the cleanup job is skipped. Later, I 
 - Avoid too many custom tasks so others can adopt the template in their own repositories
 - Print tool versions early to diagnose agent differences quickly
 - Prefer workflow outputs for passing deployment values across jobs
+
+
+**TO DO:**
+- How I handle secrets, access to resources, etc.. Also refer to [Call OAuth-Protected APIs from GitHub Actions Using Federated Credentials](https://ronaldbosma.github.io/blog/2025/11/03/call-oauth-protected-apis-from-github-actions-using-federated-credentials/)
+
 
 ### Conclusion
 
