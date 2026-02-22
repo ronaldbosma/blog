@@ -51,7 +51,7 @@ I tried it out, loved it and never looked back.
 
 ### Use Existing Templates
 
-Before creating your own template, have a look at [Awesome azd](https://azure.github.io/awesome-azd/). It has a great collection of ready-to-use templates and there might be one that fits your needs.
+Before creating your own template, check [Awesome azd](https://azure.github.io/awesome-azd/). It has a great collection of ready-to-use templates and there might be one that fits your needs.
 
 ### Create Your Own Template
 
@@ -75,19 +75,19 @@ azd auth login
 azd up
 ```
 
-Also include a short explanation of how users can test the application once it's deployed. If you want to publish on [Trainer Demo Deploy](https://microsoftlearning.github.io/trainer-demo-deploy/), create a more extensive demo guide that trainers can use.
+Also include a short explanation how users can test the application once it's deployed. If you want to publish on [Trainer Demo Deploy](https://microsoftlearning.github.io/trainer-demo-deploy/), create a more extensive demo guide that trainers can use.
 
 If there are any known deployment issues, include a troubleshooting section that explains how to fix or work around them. For example, many of my templates deploy API Management. If you don't purge the instance during cleanup, you'll run into errors when trying to deploy the template again. Adding this to your README can save users a lot of time and frustration.
 
-When your template has hooks, add a section to the README explaining what they do. If your template includes a GitHub Actions workflow or Azure DevOps pipeline, describe what it does and how to configure it. Include the authentication mechanism your pipeline expects and any additional permissions needed for the pipeline's service principal.
+When your template has hooks, add a section to the README explaining what they do. And if your template includes a GitHub Actions workflow or Azure DevOps pipeline, describe what it does and how to configure it. Include the authentication mechanism your pipeline expects and any additional permissions needed for the pipeline's service principal.
 
-You can find an example of a README in my [Track Availability in Application Insights](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/README.md) template.
+You can find an example of a README in my [Track Availability in Application Insights](https://github.com/ronaldbosma/track-availability-in-app-insights) template.
 
 ### Working with Parameters
 
 #### Default Values
 
-In my [Track Availability in Application Insights](https://github.com/ronaldbosma/track-availability-in-app-insights) template, I have several settings that have sensible defaults but that users should be able to override. These defaults can be specified in the `main.parameters.json` file of your template. Here's an example from the [main.parameters.json](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/infra/main.parameters.json):
+In my [Track Availability in Application Insights](https://github.com/ronaldbosma/track-availability-in-app-insights) template, I have several settings that have sensible defaults but that users should be able to override. These defaults can be specified in the `main.parameters.json` file of your template. Here's an example:
 
 ```json
 {
@@ -113,7 +113,7 @@ In my [Track Availability in Application Insights](https://github.com/ronaldbosm
 }
 ```
 
-The value for the Bicep parameter `approximateFailurePercentage` (and corresponding environment variable `APPROXIMATE_FAILURE_PERCENTAGE`) for example will be 10 by default. Users can override this in several ways, such as using the [azd env set](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-env-set) command:
+The Bicep parameter `approximateFailurePercentage` is set to 10 by default. Once the template is deployed, the value is loaded from the `APPROXIMATE_FAILURE_PERCENTAGE` environment variable when deploying. Users can override it in several ways, for example by using the [`azd env set`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-env-set) command:
 
 ```powershell
 azd env set APPROXIMATE_FAILURE_PERCENTAGE 50
@@ -142,7 +142,7 @@ param includeServiceBus bool
 output INCLUDE_SERVICE_BUS bool = includeServiceBus
 ```
 
-When you deploy this template for the first time, it will ask you for each parameter that doesn't have a default value what value should be used (true or false in this case). See the screenshot below for an example:
+When you deploy this template for the first time, it will ask you to specify a value for each parameter that doesn't have a default. See the screenshot below for an example:
 
 ![azd up - Select Resources to Include](../../../../../images/tips-and-tricks-for-authoring-azd-templates/azd-up-select-resources-to-include.png)
 
@@ -150,9 +150,9 @@ After provisioning succeeds, the values are stored in their corresponding enviro
 
 ### Apply a Naming Convention
 
-Before I started using azd, I had created several Bicep templates. One thing that annoyed me was having to specify the names of different resources before deploying a template. I had these in a script, but if I wanted to deploy multiple instances of a template, I had to change all these names.
+Before I started using azd, I had created several Bicep templates. One thing that annoyed me was having to specify the names of different resources before deploying a template. They were stored in a script, but if I wanted to deploy multiple instances of a template, I had to change all these names.
 
-I created a set of Bicep user-defined functions that apply the naming convention described in the [Cloud Adoption Framework](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming) to combat this. Using the naming convention, I only have to specify a workload and environment, and the rest is taken care of.
+So, I created a set of Bicep user-defined functions that apply the naming convention described in the [Cloud Adoption Framework](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming). Using the naming convention, I only have to specify a workload and environment, and the rest is taken care of.
 
 > See [Apply Azure naming convention using Bicep functions](https://ronaldbosma.github.io/blog/2024/06/05/apply-azure-naming-convention-using-bicep-functions/) if you're interested in how it works.
 
@@ -177,7 +177,7 @@ var apiManagementServiceName string = getResourceName('apiManagement', environme
 var appInsightsName string = getResourceName('applicationInsights', environmentName, location, instanceId)
 ```
 
-The resulting resource names are unique and also follow a consistent naming convention, which makes it easier to identify and manage resources in the Azure portal. See the screenshot below for an example of deployed resources with this naming convention:
+The resulting resource names are unique and follow a consistent naming convention, which makes it easier to identify and manage resources in the Azure portal. See the screenshot below for an example of deployed resources with this naming convention:
 
 ![Deployed Resources](../../../../../images/tips-and-tricks-for-authoring-azd-templates/deployed-resources.png)
 
@@ -192,9 +192,9 @@ See [Naming Convention for Azure Developer CLI (azd) templates](https://github.c
 
 #### Environment Variables in Hooks
 
-When executing a hook, you'll most likely need to pass environment variables to the script, such as the Azure subscription ID and resource group. You can use [azd env get-value](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-env-get-value), but the easiest approach that works for me is to use the native PowerShell way to access environment variables with `$env:VARIABLE_NAME`. Locally, this retrieves values from the `.azure/<environment>/.env` file when the hook is executed by azd, but it also works in a pipeline where you might pass them as environment variables to an action or task.
+When executing a hook, you'll most likely need to pass environment variables to the script, such as the Azure subscription ID and resource group. You can use [`azd env get-value`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-env-get-value), but the easiest approach that works for me is to just use the native PowerShell way to access environment variables with `$env:VARIABLE_NAME`. Locally, this retrieves values from the `.azure/<environment>/.env` file when the hook is executed by azd, but it also works in a pipeline where you might pass them as environment variables to an action or task.
 
-I started out using environment variables directly in my scripts, but now I always use parameters with the environment variables as defaults. This makes it easier to execute and test your script. For example, the following snippet defines two parameters for the Azure subscription ID and resource group, with their default values set to the corresponding environment variables:
+I started out using environment variables directly in my scripts, but now I always use parameters with the environment variables as defaults. This makes it easier to execute and test your script without having to run azd. For example, the following snippet defines two parameters for the Azure subscription ID and resource group, with their default values set to the corresponding environment variables:
 
 ```powershell
 param(
@@ -208,7 +208,7 @@ param(
 
 #### Check Azure CLI Authentication in Hooks
 
-By default, azd uses its own login through `azd auth login`. If you're using the Azure CLI in a hook, make sure it's set to the same subscription where you deployed your template with azd. This is easily done with the following snippet:
+By default, azd uses its own login through [`azd auth login`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-auth-login). If you're using the Azure CLI in a hook, make sure it's set to the same subscription where you deployed your template with azd. This is easily done with the following snippet:
 
 ```powershell
 az account set --subscription $SubscriptionId
@@ -256,11 +256,13 @@ A practice you should apply to all your projects is keeping dependencies up to d
 
 Renovate runs once a month and creates a pull request with updates of all dependencies that have a newer version. This automatically triggers my GitHub Actions workflow to verify the changes. I only have to merge the PR once the workflow successfully completes.
 
+> Having a good pipeline in place is key for this. While creating this blog post, I ran Renovate, which updated several dependencies. In several templates, the pipeline failed because a new major version of `Microsoft.ApplicationInsights.WorkerService` turned out to be incompatible with the Azure Functions worker, causing issues with my Azure Functions.
+
 ### Version Your Template
 
-The `azure.yaml` file contains the version of a template, but in addition, I'm using the [Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository) feature in GitHub to keep track of my template versions. This provides a nice overview of all the changes.
+You can keep track of your template's version in the metadata of the [`azure.yaml`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/azd-schema) file. In addition, I'm using the [Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository) feature in GitHub to keep track of my template versions. This provides a nice overview of all the changes.
 
-By adding a tag for a release, it's also possible for users to retrieve a specific version of your template using the `--branch` or `-b` parameter of [azd init](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-init). Although the name of the parameter might suggest otherwise, it works for both branches and tags. The following example retrieves version `v1.14.0` of my `azure-integration-services-quickstart` template:
+By adding a tag for a release, it's also possible for users to retrieve a specific version of your template using the `--branch` or `-b` parameter of [`azd init`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-init). Although the name of the parameter might suggest otherwise, it works for both branches and tags. The following example retrieves version `v1.14.0` of my `azure-integration-services-quickstart` template:
 
 ```powershell
 azd init --template ronaldbosma/azure-integration-services-quickstart --branch "v1.14.0"
@@ -300,7 +302,7 @@ At the moment, azd doesn't support removing Entra ID resources, as reported in [
 
 I have several templates that deploy one or more app registrations with service principals. I started out with a simple hook that took the IDs of the app registrations that were created and removed them. But when adding or removing app registrations, I also had to update the hook, which I sometimes forgot.
 
-So, I took a different approach. Similar to the `azd-env-name` and `azd-service-name` tags that you need to add to services when deploying application code, I introduced a tag called `azd-env-id` that has a unique identifier for the deployed environment. This tag is added to all resources, including app registrations:
+So, I took a different approach. Similar to the `azd-env-name` and `azd-service-name` tags that you need to add to services when deploying application code, I introduced a tag called `azd-env-id` that has a unique identifier for the deployed environment. This tag is added to all resources, including the app registrations:
 
 ```bicep
 var azdEnvironmentId string = getResourceName('azdEnvironment', environmentName, location, instanceId)
@@ -326,7 +328,9 @@ Then, when cleaning up, in my predown hook, I search for all app registrations t
 
 When removing an app registration and service principal from Entra ID, they're first soft deleted (moved to deleted items). This can be annoying if you want to redeploy the same environment later, as you can't create a new app registration with the same name as a soft-deleted one. It's a good idea to permanently remove these resources from the deleted items as well.
 
-I updated my script to do this and it worked great when run locally, but once I introduced pipelines, I noticed that removal sometimes failed. The success rate was very flaky. I've had a similar issue with generating secrets on an app registration and I think the flakiness is caused by eventual consistency. My Azure tenant is in West Europe, while my GitHub Actions workflow runs in North Central US and seems to interact with Entra ID in North Central US as well. See [this issue](https://github.com/Azure/azure-cli/issues/32467) for more details if you're interested.
+I updated my script to do this and it worked great when run locally, but once I introduced pipelines, I noticed that removal sometimes failed. The success rate was very flaky.
+
+I've had a similar issue with generating secrets on an app registration and I think the flakiness is caused by eventual consistency. My Azure tenant is in West Europe, while my GitHub Actions workflow runs in North Central US and seems to interact with Entra ID in North Central US as well. See [this issue](https://github.com/Azure/azure-cli/issues/32467) for more details if you're interested.
 
 I'm now using a script that takes eventual consistency into account by adding retries. You can find a working version in [predown-remove-app-registrations.ps1](https://github.com/ronaldbosma/protect-apim-with-oauth/blob/main/hooks/predown-remove-app-registrations.ps1).
 
