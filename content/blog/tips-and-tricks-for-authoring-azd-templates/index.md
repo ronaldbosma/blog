@@ -1,11 +1,10 @@
 ---
 title: "Tips and Tricks for Authoring Azure Developer CLI (azd) Templates"
-date: 2026-02-20T14:45:00+01:00
-publishdate: 2026-02-20T14:45:00+01:00
-lastmod: 2026-02-20T14:45:00+01:00
+date: 2026-02-23T07:00:00+01:00
+publishdate: 2026-02-23T07:00:00+01:00
+lastmod: 2026-02-23T07:00:00+01:00
 tags: [ "Azure", "Azure Developer CLI", "azd", "Bicep" ]
 summary: "I've created several Azure Developer CLI (azd) templates over the past year. In this post, I share practical tips and tricks for authoring azd templates, including parameter management, naming conventions, hooks, pipelines and handling Entra ID resources."
-draft: true
 ---
 
 I've been working with the Azure Developer CLI (azd) for the past year, creating several templates to simplify the deployment of Azure solutions. What started as a simple Bicep template for deploying Azure Integration Services has evolved into multiple published azd templates that anyone can use with just a few commands.
