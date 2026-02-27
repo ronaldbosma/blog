@@ -2,7 +2,7 @@
 title: "Tips and Tricks for Authoring Azure Developer CLI (azd) Templates"
 date: 2026-02-23T07:00:00+01:00
 publishdate: 2026-02-23T07:00:00+01:00
-lastmod: 2026-02-23T07:00:00+01:00
+lastmod: 2026-02-27T11:00:00+01:00
 tags: [ "Azure", "Azure Developer CLI", "azd", "Bicep" ]
 summary: "I've created several Azure Developer CLI (azd) templates over the past year. In this post, I share practical tips and tricks for authoring azd templates, including parameter management, naming conventions, hooks, pipelines and handling Entra ID resources."
 ---
@@ -26,6 +26,7 @@ In this post, I'll share the tips and tricks I've learned while authoring and pu
   - [Environment Variables in Hooks](#environment-variables-in-hooks)
   - [Check Azure CLI Authentication in Hooks](#check-azure-cli-authentication-in-hooks)
 - [Add a Pipeline](#add-a-pipeline)
+- [Add a Dev Container](#add-a-dev-container)
 - [Environment Variables and Local Development](#environment-variables-and-local-development)
 - [Keep Dependencies Up to Date](#keep-dependencies-up-to-date)
 - [Version Your Template](#version-your-template)
@@ -228,6 +229,12 @@ My workflows usually consist of the following jobs:
 - **Clean Up Resources**: Removes all deployed Azure resources
 
 I'll share more details about this setup in my next blog post.
+
+### Add a Dev Container
+
+Add a [dev container](https://containers.dev/) to your repository to make it easier for people to get started with your template. A dev container allows you to use a container as a full-featured development environment. It can be used to run an application, to separate tools, libraries or runtimes needed for working with a codebase, and to aid in continuous integration and testing.
+
+I wanted to deploy one of my templates from a laptop where I couldn't install any tools. I created a [GitHub Codespace](https://github.com/features/codespaces) for the repository, but not all tools were installed. Adding a dev container configuration to your template makes it possible to preconfigure a GitHub Codespace with all the tools needed to deploy and work with your template.
 
 ### Environment Variables and Local Development
 
