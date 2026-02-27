@@ -4,11 +4,11 @@ date: 2026-03-02T16:30:00+01:00
 publishdate: 2026-02-21T16:30:00+01:00
 lastmod: 2026-02-21T16:30:00+01:00
 tags: [ "Azure", "Azure Developer CLI", "azd", "GitHub Actions" ]
-summary: "In this post, I'll show how I structure a GitHub Actions workflow for azd templates so I can automate the process of building, deploying, verifying and cleaning up. The workflow makes it easier to validate my own changes and review external contributions. I'll walk through each job with practical snippets and explain why I split build, deployment and verification."
+summary: "In this post, I'll show how I structure a GitHub Actions workflow for Azure Developer CLI (azd) templates so I can automate the process of building, deploying, verifying and cleaning up. The workflow makes it easier to validate my own changes and review external contributions. I'll walk through each job with practical snippets and explain why I split build, deployment and verification."
 draft: true
 ---
 
-I've been working with Azure Developer CLI (azd) templates where each change can affect both infrastructure and application behavior. To make changes with more confidence, I include a GitHub Actions workflow in my repositories that automates build, deployment, verification and cleanup.
+I've been working with the [Azure Developer CLI (azd)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/) for the past year, creating several templates to simplify the deployment of Azure solutions. Each change to a template can affect both infrastructure and application behavior. To make changes with more confidence, I include a GitHub Actions workflow in my repositories that automates build, deployment, verification and cleanup.
 
 This setup also helps when reviewing pull requests from other developers or automated tools. I can open a PR, let the workflow validate everything end to end and automatically remove all resources afterward.
 
@@ -142,7 +142,7 @@ Then I run Bicep lint:
     az bicep lint --file ./infra/main.bicep
 ```
 
-My repositories include a `bicepconfig.json` where almost all rules are set to `error`, so the workflow fails quickly when the template doesn't comply. For details, see [Add linter settings in the Bicep config file](https://docs.azure.cn/en-us/azure-resource-manager/bicep/bicep-config-linter).
+My repositories include a `bicepconfig.json` where almost all rules are set to `error`, so the workflow fails quickly when the template doesn't comply. For details, see [Add linter settings in the Bicep config file](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-config-linter).
 
 If you're using [layered provisioning](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/layered-provisioning) (currently in beta), make sure to lint every layer.
 
