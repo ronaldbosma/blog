@@ -38,7 +38,7 @@ The [Azure Developer CLI](https://learn.microsoft.com/en-us/azure/developer/azur
 
 It's different from the Azure CLI. While the Azure CLI (az) is used to manage Azure resources and focuses on infrastructure, the Azure Developer CLI (azd) can be used to deploy complete applications, including both infrastructure and application code.
 
-I discovered azd while working on a Bicep template for deploying Azure Integration Services. A colleague pointed me to azd because it makes deployment of Bicep and Terraform templates super easy. With just three simple commands, you can download a template, authenticate to Azure and deploy your infrastructure and application:
+I discovered azd while working on a Bicep template for deploying Azure Integration Services. My colleague [Maarten van Diemen](https://www.linkedin.com/in/maarten-van-diemen) pointed me to azd because it makes deployment of Bicep and Terraform templates super easy. With just three simple commands, you can download a template, authenticate to Azure and deploy your infrastructure and application:
 
 ```powershell
 azd init --template ronaldbosma/azure-integration-services-quickstart
