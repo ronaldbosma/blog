@@ -1,11 +1,10 @@
 ---
 title: "GitHub Actions Workflow for Azure Developer CLI (azd) Templates"
-date: 2026-03-02T16:30:00+01:00
-publishdate: 2026-02-21T16:30:00+01:00
-lastmod: 2026-02-21T16:30:00+01:00
+date: 2026-03-02T07:00:00+01:00
+publishdate: 2026-03-02T07:00:00+01:00
+lastmod: 2026-03-02T07:00:00+01:00
 tags: [ "Azure", "Azure Developer CLI", "azd", "GitHub Actions" ]
 summary: "In this post, I'll show how I structure a GitHub Actions workflow for Azure Developer CLI (azd) templates so I can automate the process of building, deploying, verifying and cleaning up. The workflow makes it easier to validate my own changes and review external contributions. I'll walk through each job with practical snippets and explain why I split build, deployment and verification."
-draft: true
 ---
 
 I've been working with the [Azure Developer CLI (azd)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/) for the past year, creating several templates to simplify the deployment of Azure solutions. Each change to a template can affect both infrastructure and application behavior. To make changes with more confidence, I include a GitHub Actions workflow in my repositories that automates build, deployment, verification and cleanup.
