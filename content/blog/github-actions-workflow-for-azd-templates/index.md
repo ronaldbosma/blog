@@ -25,20 +25,20 @@ This setup also helps when reviewing pull requests from other developers or auto
 
 ### Workflow Structure
 
-My azd workflows usually consists of the following four jobs:
+My azd workflows usually consist of the following four jobs:
 
 - **Build, Verify and Package**: Sets up the build environment, validates the Bicep template, executes unit tests and packages the project's code and integration tests
 - **Deploy to Azure**: Provisions the Azure infrastructure and deploys the packaged applications to the created resources
 - **Verify Deployment**: Runs automated integration tests to verify the deployed resources and application. It can also verify monitoring and logging, for example by checking that availability tests succeed.
 - **Clean Up Resources**: Removes all deployed Azure resources
 
-See the follow screenshot for a summary of a workflow run:
+See the following screenshot for a summary of a workflow run:
 
 ![GitHub Actions Workflow Summary](../../../../../images/github-actions-workflow-for-azd-templates/github-actions-workflow-summary.png)
 
-Splitting the workflow up in different jobs makes it easier to understand and maintain. Each job has a clear purpose and a focused set of steps. If we can't build the code or validation of the template fails, we don't need to deploy anything. If deployment fails, we know the issue is in provisioning or deployment steps instead of application code. If verification fails, we know the issue is likely in application code or test code instead of infrastructure.
+Splitting the workflow into different jobs makes it easier to understand and maintain. Each job has a clear purpose and a focused set of steps. If we can't build the code or validation of the template fails, we don't need to deploy anything. If deployment fails, we know the issue is in provisioning or deployment steps instead of application code. If verification fails, we know the issue is likely in application code or test code instead of infrastructure.
 
-Every template has it's own needs when it comes to the workflow. So, I created [a gist](https://gist.github.com/ronaldbosma/c033a33483f67cfe9eb4752d1f52a7fa#file-azure-dev-yml) with a full example of a workflow that has all jobs and steps mentioned above. You can use it as a starting point for your own templates and adjust it to your needs.
+Every template has its own needs when it comes to the workflow. So, I created [a gist](https://gist.github.com/ronaldbosma/c033a33483f67cfe9eb4752d1f52a7fa#file-azure-dev-yml) with a full example of a workflow that has all jobs and steps mentioned above. You can use it as a starting point for your own templates and adjust it to your needs.
 
 If you want to use Azure DevOps Pipelines instead of GitHub Actions, the overall structure and steps are similar. You can check out [this pipeline example](https://github.com/ronaldbosma/call-apim-with-managed-identity/blob/main/.azdo/pipelines/azure-dev.yml). It doesn't have the exact same steps as the GitHub Actions workflow from the gist, but it follows the same general pattern of build, deploy, verify and clean up.
 
@@ -46,7 +46,7 @@ If you want to use Azure DevOps Pipelines instead of GitHub Actions, the overall
 
 ### Common Configuration
 
-If my template has hooks, they are usually written in PowerShell because I'm more proficient in it. So I set PowerShell Core as the default shell at workflow level:
+If my template has hooks, they are usually written in PowerShell because I'm more proficient in it. So I set PowerShell Core as the default shell at the workflow level:
 
 ```yaml
 defaults:
@@ -113,7 +113,7 @@ And lastly, they need to authenticate with Azure. I use Azure CLI authentication
 
 ### Build, Verify and Package
 
-In this job, I set up required tools, validate infrastructure and package everything needed for deployment and verification.
+In this job, I set up the required tools, validate infrastructure and package everything needed for deployment and verification.
 
 See the screenshot below for an example of how this job looks in the workflow run:  
 
@@ -229,7 +229,7 @@ I build the integration tests in this job, because if they don't build, there's 
 
 ### Deploy to Azure
 
-Because the applications are already packaged, the provision of the infrastructure and deployment of the applications are separated into different steps in the deploy job.
+Because the applications are already packaged, infrastructure provisioning and application deployment are separated into different steps in the deploy job.
 
 See the screenshot below for an example of how this job looks in the workflow run:  
 
@@ -257,7 +257,7 @@ If the template includes application code, the corresponding artifact is downloa
     azd deploy functionApp --from-package ./artifacts/functionapp-package.zip --no-prompt
 ```
 
-During provisioning, azd creates a file with environment variables (`.azure/<environment-name>/.env`) with the outputs of the `main.bicep`. Later jobs often need those values to connect to deployed resources. In my workflows, I use [this little helper script](https://gist.github.com/ronaldbosma/c033a33483f67cfe9eb4752d1f52a7fa#file-export-azd-env-variables-ps1) to export selected azd environment values into job outputs:
+During provisioning, azd creates a file with environment variables (`.azure/<environment-name>/.env`) with the outputs from `main.bicep`. Later jobs often need those values to connect to deployed resources. In my workflows, I use [this little helper script](https://gist.github.com/ronaldbosma/c033a33483f67cfe9eb4752d1f52a7fa#file-export-azd-env-variables-ps1) to export selected azd environment values into job outputs:
 
 ```yaml
 - name: Get Output Variables
@@ -296,7 +296,7 @@ The verification strategy depends on the template. See the screenshot below for 
 
 ![Verify Deployment job](../../../../../images/github-actions-workflow-for-azd-templates/verify-deployment-job.png)
 
-For templates with end-to-end tests, I setup .NET, download the integration test artifact and run tests against deployed resources:
+For templates with end-to-end tests, I set up .NET, download the integration test artifact and run tests against deployed resources:
 
 ```yaml
 - name: Setup .NET 10
@@ -374,7 +374,7 @@ For pull request validation, automatic cleanup keeps subscription hygiene under 
 
 ### Add Cleanup Input Parameter
 
-Besides PR verification, the workflow can also be used to spin up a temporary environment from e.g. the `main` branch. That's useful when you don't have azd installed locally or when you want to demo a branch quickly.
+Besides PR verification, the workflow can also be used to spin up a temporary environment. That's useful when you don't have azd installed locally or when you want to demo a branch quickly.
 
 By default, I clean up all resources at the end of the workflow, but I include a `cleanup-resources` input so I can keep resources when manually running the workflow:
 
@@ -405,6 +405,6 @@ cleanup:
 
 ### Conclusion
 
-Using this workflow setup gives me confidence when changing azd templates. It validates infrastructure and application behavior and removes resources automatically after its done. It also makes it easier to verify external contributions from other developers or automated tools like Renovate or Dependabot.
+Using this workflow setup gives me confidence when changing azd templates. It validates infrastructure and application behavior and removes resources automatically after it's done. It also makes it easier to verify external contributions from other developers or automated tools like Renovate or Dependabot.
 
 The key is to keep jobs focused: build and package once, deploy predictably, verify behavior and clean up. With this setup, each pull request gets a repeatable end-to-end check that mirrors real usage.
