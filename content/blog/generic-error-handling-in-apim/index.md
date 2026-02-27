@@ -254,7 +254,7 @@ The solution does not comply with the Azure policy [API Management policies shou
 
 In some scenarios shown above, we've added conditions and set variables before calling `<base />` in the `<outbound>` section. Omitting `<base />` at the beginning can lead to bypassing shared rules such as logging and other critical controls and should not be done lightly.
 
-In my post [Validate API Management policies with PSRule](https://ronaldbosma.github.io/blog/2024/09/02/validate-api-management-policies-with-psrule/), I describe how you can validate your API Management policies with PSRule. You could create custom rules that verify that the `<base />` policy in the `<outbound>` section is only preceded by certain policies (like `set-variable`) to make sure important logic on a higher scope isn't bypassed.
+In my post [Validate API Management policies with PSRule](/blog/2024/09/02/validate-api-management-policies-with-psrule/), I describe how you can validate your API Management policies with PSRule. You could create custom rules that verify that the `<base />` policy in the `<outbound>` section is only preceded by certain policies (like `set-variable`) to make sure important logic on a higher scope isn't bypassed.
 
 **Migrating Existing Environments**
 

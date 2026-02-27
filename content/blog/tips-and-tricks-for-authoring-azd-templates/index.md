@@ -154,7 +154,7 @@ Before I started using azd, I had created several Bicep templates. One thing tha
 
 So, I created a set of Bicep user-defined functions that apply the naming convention described in the [Cloud Adoption Framework](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming). Using the naming convention, I only have to specify a workload and environment, and the rest is taken care of.
 
-> See [Apply Azure naming convention using Bicep functions](https://ronaldbosma.github.io/blog/2024/06/05/apply-azure-naming-convention-using-bicep-functions/) if you're interested in how it works.
+> See [Apply Azure naming convention using Bicep functions](/blog/2024/06/05/apply-azure-naming-convention-using-bicep-functions/) if you're interested in how it works.
 
 When you initialize and deploy an azd template, the minimum you need to specify is the environment name, Azure subscription and region. With that in mind, I made an azd-specific version of this naming convention where the workload and environment are merged into one. See the diagram below for an example of how this looks:
 
