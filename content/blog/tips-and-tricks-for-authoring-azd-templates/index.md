@@ -228,7 +228,7 @@ My workflows usually consist of the following jobs:
 - **Verify Deployment**: Runs automated integration tests to verify the deployed resources and application. It can also verify monitoring and logging, for example by checking that availability tests succeed.
 - **Clean Up Resources**: Removes all deployed Azure resources
 
-I'll share more details about this setup in my next blog post.
+See my blog post [GitHub Actions Workflow for Azure Developer CLI (azd) Templates](/blog/2026/03/02/github-actions-workflow-for-azure-developer-cli-azd-templates/) for more details about this setup.
 
 ### Add a Dev Container
 
@@ -348,4 +348,4 @@ The tips I've shared in this post cover the lessons I've learned from creating m
 
 If you have Bicep or Terraform templates lying around, I encourage you to turn them into azd templates. The initial setup effort is minimal and it makes your work much more accessible to others. Plus, contributing to [Awesome azd](https://azure.github.io/awesome-azd/) is a great way to give back to the community.
 
-In my next blog post, I'll dive deeper into the GitHub Actions workflow setup I use to automatically test my templates.
+In my [next blog post](/blog/2026/03/02/github-actions-workflow-for-azure-developer-cli-azd-templates/), I dive deeper into the GitHub Actions workflow setup I use to automatically test my templates.
