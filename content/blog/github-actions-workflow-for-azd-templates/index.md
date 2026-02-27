@@ -115,6 +115,10 @@ And lastly, they need to authenticate with Azure. I use Azure CLI authentication
 
 In this job, I set up required tools, validate infrastructure and package everything needed for deployment and verification.
 
+See the screenshot below for an example of how this job looks in the workflow run:  
+
+![Build, Verify and Package job](../../../../../images/github-actions-workflow-for-azd-templates/build-job.png)
+
 If the template contains application code, this job usually installs additional tools besides azd such as .NET and Node.js.
 
 I also print the tool versions. I once used a new Bicep feature that failed in the workflow because the runner had an older tool version. This step made the mismatch obvious:
@@ -227,7 +231,12 @@ I build the integration tests in this job, because if they don't build, there's 
 
 Because the applications are already packaged, the provision of the infrastructure and deployment of the applications are separated into different steps in the deploy job.
 
+See the screenshot below for an example of how this job looks in the workflow run:  
+
+![Deploy job](../../../../../images/github-actions-workflow-for-azd-templates/deploy-job.png)
+
 To provision the infrastructure, I run [`azd provision`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-provision):
+
 ```yaml
 - name: Provision Infrastructure
   run: |
@@ -283,7 +292,9 @@ deploy:
 
 ### Verify Deployment
 
-The verification strategy depends on the template.
+The verification strategy depends on the template. See the screenshot below for an example of how this job could look in a workflow run:  
+
+![Verify Deployment job](../../../../../images/github-actions-workflow-for-azd-templates/verify-deployment-job.png)
 
 For templates with end-to-end tests, I setup .NET, download the integration test artifact and run tests against deployed resources:
 
@@ -339,7 +350,11 @@ If a script needs environment-specific values, use outputs from the deploy job.
 
 ### Clean Up Resources
 
-The cleanup job runs [`azd down`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-down) to remove all deployed resources.
+The cleanup job runs after deployment and verification to remove all deployed resources. See the screenshot below for an example of how this job looks in the workflow run:  
+
+![Cleanup job](../../../../../images/github-actions-workflow-for-azd-templates/cleanup-job.png)
+
+It runs the [`azd down`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-down) command:
 
 ```yaml
 - name: Cleanup Resources
@@ -350,6 +365,8 @@ The cleanup job runs [`azd down`](https://learn.microsoft.com/en-us/azure/develo
     # during cleanup operations (e.g., for custom resource deletion or additional cleanup tasks).
     AZURE_ENV_ID: ${{ needs.deploy.outputs.AZURE_ENV_ID }}
 ```
+
+I use the `--purge` flag to make sure no resources are left behind in a soft-deleted state.
 
 If your `predown` or `postdown` hooks need values from the deployed environment, pass them from deploy job outputs just like in verification.
 
