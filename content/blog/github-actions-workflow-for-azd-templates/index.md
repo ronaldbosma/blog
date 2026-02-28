@@ -188,6 +188,8 @@ If the application code has unit tests, I run those too. The test results are st
 
 Note that the `if: always()` condition ensures that test results are uploaded even if some tests fail, which is important for diagnosing issues.
 
+> I'm using [Microsoft.Testing.Platform](https://learn.microsoft.com/en-us/dotnet/core/testing/microsoft-testing-platform-intro?tabs=dotnetcli) in my test projects, so I can use `dotnet run` to execute tests. If you're using VSTest, you can use `dotnet test` instead. Just make sure to specify the correct logger and results directory to store the test results as artifacts.
+
 After validation, I package each app with [`azd package`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-package) and upload artifacts. Here's an example for a Function App:
 
 ```yaml
