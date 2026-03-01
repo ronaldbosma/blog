@@ -179,7 +179,7 @@ If the application code has unit tests, I run those too. The test results are st
 
 - name: Upload Unit Test Results
   if: always()
-  uses: actions/upload-artifact@v6
+  uses: actions/upload-artifact@v7
   with:
     name: unit-test-results
     path: ./artifacts/TestResults/
@@ -202,7 +202,7 @@ After validation, I package each app with [`azd package`](https://learn.microsof
     azd package functionApp --output-path ./artifacts/functionapp-package.zip --no-prompt
 
 - name: Upload Function App Package
-  uses: actions/upload-artifact@v6
+  uses: actions/upload-artifact@v7
   with:
     name: functionapp-package
     path: ./artifacts/functionapp-package.zip
@@ -219,7 +219,7 @@ If the template includes integration tests, I build and publish those artifacts 
     dotnet build ./tests/IntegrationTests/IntegrationTests.csproj --configuration Release --output ./artifacts/integration-tests
 
 - name: Upload Integration Tests Package
-  uses: actions/upload-artifact@v6
+  uses: actions/upload-artifact@v7
   with:
     name: integration-tests-package
     path: ./artifacts/integration-tests/
@@ -248,7 +248,7 @@ If the template includes application code, the corresponding artifact is downloa
 
 ```yaml
 - name: Download Function App Package
-  uses: actions/download-artifact@v7
+  uses: actions/download-artifact@v8
   with:
     name: functionapp-package
     path: ./artifacts
@@ -306,7 +306,7 @@ For templates with end-to-end tests, I set up .NET, download the integration tes
     dotnet-version: '10.0.x'
 
 - name: Download Integration Tests Package
-  uses: actions/download-artifact@v7
+  uses: actions/download-artifact@v8
   with:
     name: integration-tests-package
     path: ./artifacts/integration-tests
@@ -324,7 +324,7 @@ For templates with end-to-end tests, I set up .NET, download the integration tes
 
 - name: Upload Test Results
   if: always()
-  uses: actions/upload-artifact@v6
+  uses: actions/upload-artifact@v7
   with:
     name: integration-test-results
     path: ./artifacts/integration-tests/TestResults/
