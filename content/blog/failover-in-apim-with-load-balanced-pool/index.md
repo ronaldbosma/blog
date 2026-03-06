@@ -64,42 +64,42 @@ Let's start by creating an API Management backend for a Function App, including 
 
 ```bicep
 resource functionAppBackend 'Microsoft.ApiManagement/service/backends@2025-03-01-preview' = {
-	parent: apiManagementService
-	name: functionAppName
-	properties: {
-    	description: 'The backend for Function App ${functionAppName}'
-		url: 'https://${functionApp.properties.defaultHostName}'
-		protocol: 'http'
-		credentials: {
-			header: {
-				'x-functions-key': [
-					listKeys('${functionApp.id}/host/default', functionApp.apiVersion).functionKeys.default
-				]
-			}
-		}
-		circuitBreaker: {
-			rules: [
-				{
-					name: 'rule'
-					tripDuration: 'PT30S'
-					acceptRetryAfter: true
-					failureCondition: {
-						count: 3
-						errorReasons: [
-							'BackendConnectionFailure'
-						]
-						interval: 'PT15S'
-						statusCodeRanges: [
-							{
-								min: 502 // Bad Gateway
-								max: 504 // Gateway Timeout
-							}
-						]
-					}
-				}
-			]
-		}
-	}
+    parent: apiManagementService
+    name: functionAppName
+    properties: {
+        description: 'The backend for Function App ${functionAppName}'
+        url: 'https://${functionApp.properties.defaultHostName}'
+        protocol: 'http'
+        credentials: {
+            header: {
+                'x-functions-key': [
+                    listKeys('${functionApp.id}/host/default', functionApp.apiVersion).functionKeys.default
+                ]
+            }
+        }
+        circuitBreaker: {
+            rules: [
+                {
+                    name: 'rule'
+                    tripDuration: 'PT30S'
+                    acceptRetryAfter: true
+                    failureCondition: {
+                        count: 3
+                        errorReasons: [
+                            'BackendConnectionFailure'
+                        ]
+                        interval: 'PT15S'
+                        statusCodeRanges: [
+                            {
+                                min: 502 // Bad Gateway
+                                max: 504 // Gateway Timeout
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
 }
 ```
 
@@ -121,24 +121,24 @@ Next, create a load-balanced pool that references both regional backends:
 
 ```bicep
 resource loadBalancedPool 'Microsoft.ApiManagement/service/backends@2025-03-01-preview' = {
-	name: 'load-balanced-pool'
-	parent: apiManagementService
-	properties: {
-		description: 'Load balancer for multiple regions'
-		type: 'Pool'
-		pool: {
-			services: [
-				{
-					id: currentRegionBackendId
-					priority: 1
-				}
-				{
-					id: otherRegionBackendId
-					priority: 2
-				}
-			]
-		}
-	}
+    name: 'load-balanced-pool'
+    parent: apiManagementService
+    properties: {
+        description: 'Load balancer for multiple regions'
+        type: 'Pool'
+        pool: {
+            services: [
+                {
+                    id: currentRegionBackendId
+                    priority: 1
+                }
+                {
+                    id: otherRegionBackendId
+                    priority: 2
+                }
+            ]
+        }
+    }
 }
 ```
 
@@ -209,7 +209,7 @@ These files are useful to inspect:
 - [ProcessRequestFunction.cs](https://github.com/ronaldbosma/azure-apim-samples/blob/main/failover-with-load-balanced-pool/src/ProcessRequestFunction.cs): Backend Function that returns status codes based on input
 - [tests.http](https://github.com/ronaldbosma/azure-apim-samples/blob/main/failover-with-load-balanced-pool/tests.http): Ready-to-run HTTP test requests
 
-Use this request against one API Management instance:
+Use this request against one API Management instance (_change the hostname and function app names as needed_):
 
 ```
 POST https://apim-primary-sdc-orfff.azure-api.net/resilient-api/
@@ -232,9 +232,7 @@ This payload tells each Function App how to respond. In this example:
 - The primary Function App returns `503 Service Unavailable`
 - The secondary Function App returns `200 OK`
 
-With retry enabled, API Management will retry, trip the primary backend circuit breaker and then route to the secondary backend.
-
-Example response:
+With retry enabled, API Management will retry, trip the primary backend circuit breaker and then route to the secondary backend. The response would look like this:
 
 ```
 HTTP/1.1 200 OK
@@ -242,12 +240,12 @@ Content-Type: application/json
 X-Attempt-Count: 4
 
 {
-	"functionAppName": "func-secondary-nwe-g5bv4",
-	"region": "Norway East"
+    "functionAppName": "func-secondary-nwe-g5bv4",
+    "region": "Norway East"
 }
 ```
 
-`X-Attempt-Count` shows how many backend attempts were made:
+The body shows that the request was processed by the secondary backend, while the `X-Attempt-Count` header shows that API Management made multiple attempts to get a successful response:
 
 - `1` when the local backend succeeds immediately
 - `4` when the first backend fails three times, then the fourth attempt is sent to the secondary backend
