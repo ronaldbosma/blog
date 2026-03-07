@@ -199,7 +199,7 @@ Here's how this works:
 
 1. `forward-request` sends the request to the pool backend
 2. If the response status code is 500 or higher, API Management retries
-3. After repeated failures, the primary backend circuit breaker opens
+3. After repeated failures, the primary backend circuit breaker opens if the failure conditions are met
 4. A subsequent retry attempt in the same flow is routed to the secondary backend
 
 Set `buffer-request-body="true"` when retrying `forward-request`. Without request buffering, retries of requests with a body can fail with a content length mismatch. See this [Stack Overflow explanation](https://stackoverflow.com/questions/54648853/retry-request-ends-with-content-length-mismatch) for details.
