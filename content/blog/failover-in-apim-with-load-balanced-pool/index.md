@@ -62,6 +62,14 @@ So the core idea is:
 Let's start by creating an API Management backend for a Function App, including a circuit breaker. This uses the [Microsoft.ApiManagement/service/backends](https://learn.microsoft.com/en-us/azure/templates/microsoft.apimanagement/service/backends?pivots=deployment-language-bicep) resource:
 
 ```bicep
+resource apiManagementService 'Microsoft.ApiManagement/service@2025-03-01-preview' existing = {
+  name: apiManagementServiceName
+}
+
+resource functionApp 'Microsoft.Web/sites@2025-03-01' existing = {
+  name: functionAppName
+}
+
 resource functionAppBackend 'Microsoft.ApiManagement/service/backends@2025-03-01-preview' = {
     parent: apiManagementService
     name: functionAppName
