@@ -12,13 +12,17 @@ I've been working with Azure API Management on a project where we have a growing
 
 In this post I'll show you how to assign tags to APIs using Bicep. I'll also explore how to automatically extract operation-level tags from an OpenAPI specification and apply them to the API level, so you don't have to maintain that list manually.
 
-The examples are based on [a sample](https://github.com/ronaldbosma/azure-apim-samples/tree/main/api-tagging) I've created that includes three APIs: Bike Rental API, Transit Status API and Trip Planning API. Each API has a set of tags assigned at the API level, and the OpenAPI specifications can have additional tags defined at the operation level. The table below gives an overview:
+The examples are based on [a sample](https://github.com/ronaldbosma/azure-apim-samples/tree/main/api-tagging) I've created that includes three APIs: Bike Rental API, Transit Status API and Trip Planning API. Each API has a set of tags assigned at the API level, and the OpenAPI specifications can have additional tags defined at the operation level. The list below gives an overview:
 
-| API                | API Tags           | Operation-level Tags      |
-| ------------------ | ------------------ | ------------------------- |
-| Bike Rental API    | mobility           | public                    |
-| Transit Status API | mobility           |                           |
-| Trip Planning API  | mobility, planning | planning, pricing, public |
+- Bike Rental API
+  - API tags: `mobility`
+  - Operation-level tags: `public`
+- Transit Status API
+  - API tags: `mobility`
+  - No operation-level tags
+- Trip Planning API
+  - API tags: `mobility`, `planning`
+  - Operation-level tags: `planning`, `pricing`, `public`
 
 ### Table of Contents
 
@@ -26,7 +30,6 @@ The examples are based on [a sample](https://github.com/ronaldbosma/azure-apim-s
 - [Registering and Assigning Tags in Bicep](#registering-and-assigning-tags-in-bicep)
 - [Bubbling Up Operation Tags Using JSONPath](#bubbling-up-operation-tags-using-jsonpath)
 - [A More Robust Approach Using User-Defined Functions](#a-more-robust-approach-using-user-defined-functions)
-- [Reusing the OpenAPI Content](#reusing-the-openapi-content)
 - [Considerations](#considerations)
 - [Conclusion](#conclusion)
 
@@ -62,17 +65,15 @@ resource bikeRentalApiMobilityTag 'Microsoft.ApiManagement/service/apis/tags@202
 
 The `dependsOn` on the API tag resource ensures that the tag is registered in API Management before it's assigned to the API. Without it, the deployment might fail if both resources are deployed in parallel and the tag doesn't exist yet.
 
-Once you've deployed all API tags for our sample, choosing "Group by tag" in the portal gives you the following view:
+Once all API tags for our sample are deployed, choosing "Group by tag" in the portal gives you the following view:
 
 ![APIs grouped by tag in the Azure Portal](../../../../../images/grouping-apis-in-apim-using-tags/apis-with-api-tags.png)
 
-You can manage the available tags under `APIs > API Tags`.
-
-> If you deploy an API with an OpenAPI spec that contains tags, API Management will automatically register each of those tags under API Tags.
+You can see the created tags in the Azure Portal by navigating to `APIs > API Tags`. You might see more than just the `mobility` and `planning` tags, because API Management automatically registers any tags it finds in the OpenAPI specifications when you deploy an API. In our sample, the Trip Planning API has `pricing` and `public` tags on some of its operations, so those tags are also registered in API Management even though we haven't explicitly defined them at the API level.
 
 ### Bubbling Up Operation Tags Using JSONPath
 
-This is where it gets interesting. Looking at the Trip Planning API, the OpenAPI spec has `pricing` and `public` tags on individual operations, but I want those to automatically appear at the API level without having to list them explicitly.
+Looking at the Trip Planning API, the OpenAPI spec has `pricing` and `public` tags on individual operations, but I want those to automatically appear at the API level as well without having to list them explicitly.
 
 ![Trip Planning API OpenAPI spec with operation tags](../../../../../images/grouping-apis-in-apim-using-tags/trip-planning-openapi-spec.png)
 
@@ -90,7 +91,7 @@ resource addBikeRentalApiTags 'Microsoft.ApiManagement/service/apis/tags@2025-03
 ]
 ```
 
-The `loadYamlContent` call uses the JSONPath expression `$.paths.*.*.tags` to extract the tags arrays from each operation in the spec. Since each operation can have multiple tags and this results in an array of arrays, `flatten` converts it into a single flat array. The `union` call merges those operation tags with the explicitly defined API-level tags (`mobility`) and deduplicates the result. Finally, we loop over the combined tag list to create an API tag resource for each one.
+The `loadYamlContent` call uses the JSONPath expression `$.paths.*.*.tags` to extract the tags arrays from each operation in the spec. Since each operation can have multiple tags and this results in an array of arrays, `flatten` converts it into a single flat array. The `union` call merges those operation tags with the explicitly defined API-level tags (`mobility`) and deduplicates the result, which is needed because `Microsoft.ApiManagement/service/apis/tags` can only be defined once per API and tag combination. Finally, we loop over the combined tag list to create an API tag resource for each one.
 
 But this approach has a downside. If the OpenAPI spec has no tags at all, the JSONPath expression returns nothing and the Bicep compilation fails:
 
@@ -124,17 +125,15 @@ You can use these functions like this:
 
 ```bicep
 var tripPlanningApiOpenApiContent = loadYamlContent('apis/trip-planning-api.openapi.yaml')
-var tripPlanningApiOperationTags = addOperationTagsToApi ? extractOperationTags(tripPlanningApiOpenApiContent) : []
+var tripPlanningApiOperationTags = extractOperationTags(tripPlanningApiOpenApiContent)
 var tripPlanningApiTags = union(['mobility', 'planning'], tripPlanningApiOperationTags)
 ```
 
-The `loadYamlContent` call without a JSONPath expression loads the entire OpenAPI spec as an object, which avoids the compile-time failure we saw earlier. The boolean parameter `addOperationTagsToApi` lets you toggle the behaviour without changing the function calls. Calling `union` on the combination of API-level tags and operation tags ensures we get a deduplicated list, which is needed because `Microsoft.ApiManagement/service/apis/tags` can only be deployed once per API and tag combination.
+The `loadYamlContent` call without a JSONPath expression loads the entire OpenAPI spec as an object, which avoids the compile-time failure we saw earlier Calling `union` on the combination of API-level tags and operation tags ensures we get a deduplicated list.
 
 Once deployed, the "Group by tag" view includes the tags that came from the operations:
 
 ![APIs grouped by tag including operation-level tags](../../../../../images/grouping-apis-in-apim-using-tags/apis-with-api-and-operation-tags.png)
-
-### Reusing the OpenAPI Content
 
 One nice side effect of loading the full OpenAPI content into a variable is that you can reuse it when deploying the API itself:
 
@@ -150,7 +149,9 @@ resource tripPlanningApi 'Microsoft.ApiManagement/service/apis@2025-03-01-previe
 }
 ```
 
-Instead of reading the file twice or using a separate file path string, you can pass the already-loaded content directly by converting it back to a string. This keeps things tidy and avoids any inconsistency between the spec used for deployment and the one used for tag extraction.
+Instead of reading the file twice, you can pass the already-loaded content directly by converting it to a string. This keeps things tidy and avoids any inconsistency between the spec used for deployment and the one used for tag extraction.
+
+> Even if you don't need the tag extraction, using `loadYamlContent` or `loadJsonContent` instead of `loadTextContent` has a practical advantage. The `loadTextContent` function is limited to a file size of 131,072 characters, while `loadYamlContent` and `loadJsonContent` support files up to 1,048,576 characters.
 
 ### Considerations
 
@@ -162,8 +163,8 @@ Be careful when using [deployment stacks](https://learn.microsoft.com/en-us/azur
 
 ### Conclusion
 
-Applying tags to APIs in Azure API Management is a straightforward way to keep a large API list manageable. Registering and assigning tags in Bicep is simple, but maintaining them manually becomes tedious as your API surface grows.
+Applying tags to APIs in Azure API Management is a straightforward way to keep a large API list manageable. Registering and assigning tags in Bicep is simple, but maintaining them manually can become tedious as your API surface grows.
 
 Using user-defined Bicep functions to extract operation-level tags from OpenAPI specs is a clean way to keep tags in sync without adding maintenance overhead. The approach handles missing tags gracefully and avoids the compile-time failures you'd get with the JSONPath-based approach.
 
-The full working sample is available on GitHub: [azure-apim-samples/api-tagging](https://github.com/ronaldbosma/azure-apim-samples/tree/main/api-tagging).
+The full working sample is available [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/api-tagging).
