@@ -64,15 +64,19 @@ resource bikeRentalApiMobilityTag 'Microsoft.ApiManagement/service/apis/tags@202
 
 The `dependsOn` on the API tag resource ensures that the tag is registered in API Management before it's assigned to the API. Without it, the deployment might fail if both resources are deployed in parallel and the tag doesn't exist yet.
 
-Once all API tags for our sample are deployed, choosing "Group by tag" in the portal gives you the following view:
+Once all API tags for our sample are deployed and assigned, choosing "Group by tag" in the portal gives you the following view:
 
 ![APIs grouped by tag in the Azure Portal](../../../../../images/grouping-apis-in-apim-using-tags/apis-with-api-tags.png)
 
-You can see the created tags in the Azure Portal by navigating to `APIs > API Tags`. You might see more than just the `mobility` and `planning` tags, because API Management automatically registers any tags it finds in the OpenAPI specifications when you deploy an API. In our sample, the Trip Planning API has `pricing` and `public` tags on some of its operations, so those tags are also registered in API Management even though we haven't explicitly defined them at the API level.
+If we filter on e.g. the `planning` tag, we see only the Trip Planning API.
+
+You can see the list with available tags in the Azure Portal by navigating to `APIs > API Tags`. You might see more than just the `mobility` and `planning` tags, because API Management automatically registers any tags it finds in the OpenAPI specifications when you deploy an API. 
+
+In our sample, the Trip Planning API has `pricing` and `public` tags on some of its operations, so those tags are also registered in API Management even though we haven't explicitly defined them using the `Microsoft.ApiManagement/service/tags` resource.
 
 ### Bubbling Up Operation Tags Using JSONPath
 
-Looking at the Trip Planning API, the OpenAPI spec has `pricing` and `public` tags on individual operations, but I want those to automatically appear at the API level as well without having to list them explicitly.
+Looking at the Trip Planning API, the OpenAPI spec has `pricing` and `public` tags on individual operations. I wanted those tags to automatically appear at the API level without listing them explicitly.
 
 ![Trip Planning API OpenAPI spec with operation tags](../../../../../images/grouping-apis-in-apim-using-tags/trip-planning-openapi-spec.png)
 
@@ -105,15 +109,15 @@ This means you have to remember to add or remove the additional Bicep code whene
 As an alternative, we can load the entire OpenAPI spec into a variable and write our own logic to extract the tags. The following two user-defined functions handle this:
 
 ```bicep
+@description('Extract tags from an operation object, returning empty array if no tags exist')
+func getOperationTags(operation object) array => operation.?tags ?? []
+
 @description('Extract all operation-level tags from an OpenAPI specification')
 func extractOperationTags(openApiContent object) array =>
   flatten(map(
     items(openApiContent.?paths ?? {}),
     pathItem => flatten(map(items(pathItem.value), operation => getOperationTags(operation.value)))
   ))
-
-@description('Extract tags from an operation object, returning empty array if no tags exist')
-func getOperationTags(operation object) array => operation.?tags ?? []
 ```
 
 The `getOperationTags` function takes an individual operation object and returns its `tags` array. It uses the null-conditional operator (`?tags`) to avoid errors when the `tags` property is absent, falling back to an empty array via `?? []`.
@@ -128,7 +132,7 @@ var tripPlanningApiOperationTags = extractOperationTags(tripPlanningApiOpenApiCo
 var tripPlanningApiTags = union(['mobility', 'planning'], tripPlanningApiOperationTags)
 ```
 
-The `loadYamlContent` call without a JSONPath expression loads the entire OpenAPI spec as an object, which avoids the compile-time failure we saw earlier Calling `union` on the combination of API-level tags and operation tags ensures we get a deduplicated list.
+The `loadYamlContent` call without a JSONPath expression loads the entire OpenAPI spec as an object, which avoids the compile-time failure we saw earlier. Calling `union` on the combination of API-level tags and operation tags ensures we get a deduplicated list.
 
 Once deployed, the "Group by tag" view includes the tags that came from the operations:
 
@@ -158,7 +162,7 @@ There are a couple of things worth keeping in mind when working with API tags in
 
 When an OpenAPI spec contains tags and you deploy it, API Management automatically creates those tags. If you also deploy a Bicep resource for the same tag in parallel and the tag doesn't exist yet, you may run into a conflict because two sources are trying to create the same tag at the same time. The same issue can happen when deploying two APIs whose OpenAPI specs share the same tags. This only occurs the first time (when the tag doesn't yet exist in API Management), but it can be an unexpected failure. You can work around it by adding explicit `dependsOn` references between the resources that would otherwise create the same tag in parallel.
 
-Be careful when using [deployment stacks](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/deployment-stacks). If you create a tag in one deployment stack and assign it to an API in a second stack, removing the tag from the first stack and redeploying it will delete the tag from API Management. A subsequent redeployment of the second stack will then fail because the tag it tries to assign no longer exists.
+Be careful when using [deployment stacks](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/deployment-stacks). If you create a tag in one deployment stack and assign it to an API in a second stack, then remove the tag from the first stack and redeploy with `actionOnUnmanage` set to `deleteAll`, API Management deletes that tag. A subsequent redeployment of the second stack fails because the tag no longer exists.
 
 ### Conclusion
 
