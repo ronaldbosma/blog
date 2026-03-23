@@ -3,7 +3,7 @@ title: "Grouping APIs in Azure API Management Using Tags"
 date: 2026-03-23T7:00:00+01:00
 publishdate: 2026-03-23T7:00:00+01:00
 lastmod: 2026-03-23T7:00:00+01:00
-tags: [ "Azure", "API Management", "Bicep", "Infra as Code" ]
+tags: [ "Azure", "API Management", "Azure Integration Services", "Bicep" ]
 summary: "When you have a lot of APIs in Azure API Management, the view can become unwieldy. By applying tags to your APIs you can group and filter them in both the Azure Portal and the Developer Portal. In this post I'll show you how to assign tags to APIs using Bicep and how to automatically bubble up operation-level tags from an OpenAPI spec to the API level."
 ---
 

@@ -3,7 +3,7 @@ title: "Implement Failover in API Management with a Load-balanced Pool"
 date: 2026-03-09T06:00:00+01:00
 publishdate: 2026-03-09T06:00:00+01:00
 lastmod: 2026-03-09T06:00:00+01:00
-tags: [ "Azure", "API Management", "Azure Functions", "Bicep", "Resilience" ]
+tags: [ "Azure", "API Management", "Azure Functions", "Azure Integration Services", "Bicep", "Resilience" ]
 summary: "In this post, I'll show you how to implement (regional) failover in Azure API Management using priority-based load-balanced pools, backend circuit breakers and retry policies. The setup sends traffic to the local backend by default and automatically fails over to the secondary backend when the primary backend becomes unavailable."
 ---
 
