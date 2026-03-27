@@ -2,7 +2,7 @@
 title: "Track Availability in Application Insights using Logic App Workflow"
 date: 2026-01-26T17:00:00+01:00
 publishdate: 2026-01-26T17:00:00+01:00
-lastmod: 2026-02-20T16:45:00+01:00
+lastmod: 2026-03-27T11:45:00+01:00
 tags: [ "Azure", "Application Insights", "Azure Monitor", "Logic Apps", "Azure Integration Services" ]
 series: [ "track-availability-in-app-insights" ]
 summary: "I've worked with clients following a low-code first strategy where Logic Apps are preferred over .NET solutions. This post shows you how to create custom availability tests using Logic App (Standard) workflows and track the results in Application Insights. This approach gives you access to all Logic App capabilities while requiring minimal code."
@@ -63,6 +63,8 @@ The workflow needs to be stateful because it uses the Recurrence trigger, which 
 This workflow demonstrates an advantage of using Logic Apps: most of the logic is visual and doesn't require coding. You can easily modify the HTTP request, add authentication or include additional steps using the workflow designer.
 
 The logic to track availability in Application Insights is implemented in C# using a [Logic App with custom code project](https://learn.microsoft.com/en-us/azure/logic-apps/create-run-custom-code-functions), which lets you deploy .NET code directly to the Logic App without additional resources like a Function App. I've created functions similar to what I showed in the previous post, but packaged as Logic App custom functions.
+
+**IMPORTANT:** You need to add a package reference to `Microsoft.ApplicationInsights` in your custom code project to use the `TelemetryClient` for tracking availability. Use the latest 2.x version of this package. Do not use version 3.x of the Application Insights SDK because it depends on `Microsoft.Extensions.Logging(.Abstractions)` version 8.0.0, which is currently not supported in a Logic App custom code project.
 
 > I started on a [custom connector](https://github.com/ronaldbosma/LogicApps.ServiceProviders.ApplicationInsights.TrackAvailability), but the deploy size went from several KBs to hundreds of MBs. So I decided to use a custom code project instead because the size then increases to only ~600KB.
 
