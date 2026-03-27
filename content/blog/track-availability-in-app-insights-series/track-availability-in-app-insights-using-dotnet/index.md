@@ -2,7 +2,7 @@
 title: "Track Availability in Application Insights using .NET"
 date: 2026-01-19T09:00:00+01:00
 publishdate: 2026-01-19T09:00:00+01:00
-lastmod: 2026-02-21T13:00:00+01:00
+lastmod: 2026-03-27T15:30:00+01:00
 tags: [ "Azure", "Application Insights", "Azure Monitor", "Azure Functions", "Azure Integration Services", ".NET" ]
 series: [ "track-availability-in-app-insights" ]
 summary: "Standard availability tests in Application Insights have limitations like no multi-step authentication, no mTLS support and no access to private networks. This post shows you how to create custom availability tests using .NET and Azure Functions to overcome these restrictions while gaining full control over your monitoring logic."
@@ -23,6 +23,7 @@ This is the second post in a series about tracking availability in Application I
 ### Table of Contents
 
 - [Solution Overview](#solution-overview)
+  - [Update (March 2026)](#update-march-2026)
 - [Basic Test](#basic-test)
 - [Generic Availability Test Implementation](#generic-availability-test-implementation)
 - [HTTP GET Request Test](#http-get-request-test)
@@ -47,44 +48,59 @@ To make deployment easier, I've created an Azure Developer CLI (`azd`) template:
 
 As mentioned in the introduction, you can host these tests on other platforms besides Azure Functions. The core tracking logic remains the same regardless of the hosting environment.
 
+### Update (March 2026)
+
+The sample solution and this blog post have been updated. The Function App now uses OpenTelemetry-based monitoring instead of `Microsoft.ApplicationInsights.WorkerService`. Version 3.0.0 of that package is not compatible with the Azure Functions Worker and a fix is not planned, so migrating to OpenTelemetry is the recommended path. In addition, the `Microsoft.ApplicationInsights` package used for `TelemetryClient` was updated to version 3.x.
+
+Both changes are described in the following pull requests:
+
+- [Migrate Function App to OpenTelemetry-based monitoring](https://github.com/ronaldbosma/track-availability-in-app-insights/pull/39)
+- [Migrate to Application Insights .NET SDK version 3.0.0 in Function App](https://github.com/ronaldbosma/track-availability-in-app-insights/pull/40)
+
+If you're working on a similar migration for your own Azure Functions project, I've also written [instructions for migrating from Application Insights to OpenTelemetry](https://gist.github.com/ronaldbosma/ac21e32e2d7f8ad1512760bca8b0609b).
+
+If you prefer to use the version of the sample solution that still uses the 2.x Application Insights .NET SDK, you can initialize it using tag `v1.3.0`:
+
+```
+azd init --template ronaldbosma/track-availability-in-app-insights --branch v1.3.0
+```
+
 ## Basic Test
 
 Let's start with a basic example of how to track availability in Application Insights using .NET:
 
 ```csharp
-TelemetryConfiguration telemetryConfiguration = new()
-{
-    ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING"),
-    TelemetryChannel = new InMemoryChannel()
-};
-TelemetryClient telemetryClient = new TelemetryClient(telemetryConfiguration);
+var telemetryConfiguration = TelemetryConfiguration.CreateDefault();
+telemetryConfiguration.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
+
+TelemetryClient telemetryClient = new(telemetryConfiguration);
 
 AvailabilityTelemetry availability = new()
 {
-    Name = "Sample Test",
-    RunLocation = Environment.GetEnvironmentVariable("REGION_NAME"),
-    Success = false
+	Name = "Sample Test",
+	RunLocation = Environment.GetEnvironmentVariable("REGION_NAME"),
+	Success = false
 };
 
 try
 {
-    // Check availability
+	// Check availability
 
-    availability.Success = true;
+	availability.Success = true;
 }
 catch (Exception ex)
 {
-    availability.Message = ex.Message;
-    throw;
+	availability.Message = ex.Message;
+	throw;
 }
 finally
 {
-    telemetryClient.TrackAvailability(availability);
-    telemetryClient.Flush();
+	telemetryClient.TrackAvailability(availability);
+	telemetryClient.Flush();
 }
 ```
 
-This example shows the core concept: initialize the `TelemetryClient`, create an `AvailabilityTelemetry` object, perform your check in a try-catch block and track the result with `TrackAvailability()`. However, looking at the sample in the [Application Insights availability tests documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=track#add-and-edit-code-in-the-app-service-editor), this basic example is missing some important pieces. It doesn't set the start time and duration of the test. It also doesn't configure anything for end-to-end tracing where the availability test results and HTTP requests are correlated in Application Insights.
+This example shows the core concept: initialize the `TelemetryClient`, create an `AvailabilityTelemetry` object, perform your check in a try-catch block and track the result with `TrackAvailability()`. However, this basic example is missing some important pieces. It doesn't set the start time and duration of the test. It also doesn't configure anything for end-to-end tracing where the availability test results and HTTP requests are correlated in Application Insights. Additionally, the Cloud.RoleName and Cloud.RoleInstance are not configured on the availability telemetry, which makes it harder to identify the source of the test in Application Insights when you have multiple tests running.
 
 Let's improve this implementation and make it reusable.
 
@@ -106,10 +122,10 @@ The [AvailabilityTest](https://github.com/ronaldbosma/track-availability-in-app-
 /// <param name="checkAvailability">The function that checks the availability.</param>
 /// <param name="telemetryClient">The telemetry client to publish the result to.</param>
 internal class AvailabilityTest(
-    string name, 
-    Func<Task> checkAvailabilityAsync, 
-    TelemetryClient telemetryClient
-) : IAvailabilityTest
+		string name,
+		Func<Task> checkAvailabilityAsync,
+		TelemetryClient telemetryClient
+	) : IAvailabilityTest
 {
 	public async Task ExecuteAsync()
 	{
@@ -122,8 +138,7 @@ internal class AvailabilityTest(
 			Timestamp = DateTimeOffset.UtcNow
 		};
 
-		Stopwatch stopwatch = new();
-		stopwatch.Start();
+		var stopwatch = Stopwatch.StartNew();
 
 		try
 		{
@@ -135,8 +150,6 @@ internal class AvailabilityTest(
 
 				// Connect the availability telemetry to the logging activity
 				availability.Id = activity.SpanId.ToString();
-				availability.Context.Operation.ParentId = activity.ParentSpanId.ToString();
-				availability.Context.Operation.Id = activity.RootId;
 
 				await checkAvailabilityAsync();
 			}
@@ -161,18 +174,44 @@ internal class AvailabilityTest(
 }
 ```
 
-This implementation addresses the shortcomings of the basic example. It uses a `Stopwatch` to measure the test duration and sets the timestamp to capture when the test started. It also uses an `Activity` to enable distributed tracing. By creating an activity and linking it to the availability telemetry through the operation context properties, Application Insights can correlate the availability test results with any HTTP requests or other telemetry generated during the test execution. This gives you the end-to-end transaction view that's essential for troubleshooting failures.
+This implementation addresses the shortcomings of the basic example. It uses a `Stopwatch` to measure the test duration and sets the timestamp to capture when the test started. It also uses an `Activity` to enable distributed tracing. By creating an activity and linking it to the availability telemetry through the span id, Application Insights can correlate the availability test results with any HTTP requests or other telemetry generated during the test execution. This gives you the end-to-end transaction view that's essential for troubleshooting failures.
 
-> In the [official documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=track#add-and-edit-code-in-the-app-service-editor) the `availability.Timestamp` is set in the finally block, after the check has completed. However, this records the end time of the test rather than the start time, which messes up the timeline in the end-to-end transaction details in App Insights. By setting it at the beginning of the `ExecuteAsync` method, we accurately capture when the test started.
+> In the [official documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=track#add-and-edit-code-in-the-app-service-editor) the `availability.Timestamp` is set in the finally block, after the check has completed. However, this records the end time of the test rather than the start time, which messes up the timeline in the end-to-end transaction details in App Insights. By setting it at the beginning of the `ExecuteAsync` method, we accurately capture when the test started.  
+>  
+> Unfortunately, when using the new version 3.x of the Application Insights .NET SDK, the timestamp is ignored and the end-to-end transaction details are affected. See the issue [Timestamp on AvailabilityTelemetry ignored by TelemetryClient.TrackAvailability](https://github.com/microsoft/ApplicationInsights-dotnet/issues/3152) for more information.
 
 The [AvailabilityTestFactory](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/src/functionApp/TrackAvailabilityInAppInsights.FunctionApp/AvailabilityTests/AvailabilityTestFactory.cs) creates instances of `AvailabilityTest`. I introduced this factory because `AvailabilityTest` has dependencies like `TelemetryClient` that aren't relevant for the client code to know about. The factory handles these dependencies and provides a clean interface for creating tests.
 
-Note that the `TelemetryClient` is also injected into the factory class. By configuring the following in your application's startup, the `TelemetryClient` is automatically registered with the correct connection string taken from the `APPLICATIONINSIGHTS_CONNECTION_STRING` environment variable:
+Note that the `TelemetryClient` is also injected into the factory class. Use the following code in your application startup to register the factory and its dependencies in the DI container:
 
 ```csharp
-services.AddApplicationInsightsTelemetryWorkerService()
-        .ConfigureFunctionsApplicationInsights();
+var telemetryConfiguration = TelemetryConfiguration.CreateDefault();
+telemetryConfiguration.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
+
+// Configure the Cloud.RoleName, Cloud.RoleInstance and Component.Version so their set on the Availability Test telemetry
+telemetryConfiguration.ConfigureOpenTelemetryBuilder(builder => builder
+	.ConfigureResource(r => r
+		.AddService(
+			serviceName: Environment.GetEnvironmentVariable("WEBSITE_SITE_NAME") ?? Environment.MachineName,
+			serviceInstanceId: Environment.MachineName,
+			serviceVersion: "1.0.0.0"
+		)
+	));
+
+// Use the system-assigned managed identity to authenticate to Azure Monitor.
+// See https://learn.microsoft.com/en-us/azure/azure-monitor/app/azure-ad-authentication for more details.
+telemetryConfiguration.SetAzureTokenCredential(new ManagedIdentityCredential(new ManagedIdentityCredentialOptions()));
+
+TelemetryClient telemetryClient = new(telemetryConfiguration);
+
+services.AddSingleton(telemetryClient);
 ```
+
+The `APPLICATIONINSIGHTS_CONNECTION_STRING` holds the connection string for your Application Insights resource. Set it in `local.settings.json` locally or as an application setting when deployed to Azure.
+
+The `ConfigureOpenTelemetryBuilder` call sets the `Cloud.RoleName`, `Cloud.RoleInstance` and `Component.Version` on the telemetry. Without it, the role name shows up as `unknown_service:dotnet` in Application Insights. `WEBSITE_SITE_NAME` is set automatically by Azure Functions and App Service, providing a recognizable label. It falls back to the machine name when not set, e.g. when running locally.
+
+The `SetAzureTokenCredential` call is optional and configures the `TelemetryClient` to use a managed identity for authentication instead of relying on the connection string alone. See the [Azure AD authentication for Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/azure-ad-authentication) documentation for more details.
 
 The following sequence diagram shows how these classes work together:
 
@@ -312,6 +351,8 @@ The end-to-end transaction details show how the availability test result is corr
 ![End-to-End Transaction Details](../../../../../images/track-availability-in-app-insights-series/track-availability-in-app-insights-using-dotnet/azure-function-end-to-end-transaction-details.png)
 
 This correlation is enabled by the `Activity` we created in the `AvailabilityTest` class. It allows you to see the complete flow of the test execution, including any HTTP requests, dependencies or exceptions that occurred during the test.
+
+> As mentioned before, currently the timestamp on the availability telemetry is ignored when using version 3.x of the Application Insights .NET SDK, which affects the timeline in the end-to-end transaction details.
 
 ## Setting Up Alerts
 
