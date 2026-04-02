@@ -20,15 +20,17 @@ pygmentsCodeFences = true
 [params.author]
   name = "Ronald Bosma"
   thumbnail = "/images/author.webp"
-  description = "Software Architect"
+  description = "Software Architect | Microsoft MVP"
 
 [params.index]
   picture = "/images/author.webp"
   title = "Ronald Bosma"
-  subtitle = "Software Engineer & Architect"
-  mdtext = '''I'm a software engineer & architect working for Info Support in the Netherlands. I have 15+ years of experience in building distributed systems with Microsoft technology.  
+  subtitle = "Software Architect | Microsoft MVP"
+  mdtext = '''I'm a software architect and Microsoft MVP at Info Support in the Netherlands, with over 15 years of experience designing and building distributed systems using Microsoft technologies.
 
-Since the start of my career I've had a deep interest in test automation. I'm a TDD enthusiast and in recent years I've come to appreciate Specification by Example and tools like Reqnroll. My interests also include Azure, Bicep, CI/CD and architecture.
+In recent years, I've focused heavily on Azure and Bicep, with a particular interest in Azure Integration Services. My broader interests include test automation, CI/CD and software architecture.
+
+I enjoy exploring practical solutions to real-world problems and sharing what I learn through open source projects and blogging.
 
 So true: _&#34;The bitterness of poor quality remains long after the sweet taste of low price is forgotten.&#34;_'''
   alertbar = true
