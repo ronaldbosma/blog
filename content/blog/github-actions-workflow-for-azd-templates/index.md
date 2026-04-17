@@ -2,7 +2,7 @@
 title: "GitHub Actions Workflow for Azure Developer CLI (azd) Templates"
 date: 2026-03-02T06:00:00+01:00
 publishdate: 2026-03-02T06:00:00+01:00
-lastmod: 2026-03-02T06:00:00+01:00
+lastmod: 2026-04-17T12:00:00+02:00
 tags: [ "Azure", "Azure Developer CLI", "azd", "GitHub Actions" ]
 summary: "In this post, I'll show how I structure a GitHub Actions workflow for Azure Developer CLI (azd) templates so I can automate the process of building, deploying, verifying and cleaning up. The workflow makes it easier to validate my own changes and review external contributions. I'll walk through each job with practical snippets and explain why I split build, deployment and verification."
 ---
@@ -52,6 +52,21 @@ defaults:
   run:
     shell: pwsh # Use PowerShell Core for all scripts (the azd hooks are written in PowerShell)
 ```
+
+I configure the `pull_request` trigger to include the `ready_for_review` type:
+
+```yaml
+pull_request:
+  types: [opened, synchronize, reopened, ready_for_review]
+```
+
+In my workflow, I don't want draft pull requests to deploy to Azure until the PR is ready for review. This gives me time to process feedback from code review, including Copilot review, and prevents unnecessary deployments to Azure.
+
+Including `ready_for_review` is necessary because changing a PR from draft to ready is a separate pull request event. Without this trigger type, that transition would not start a new workflow run and deployment would not start automatically after the PR is marked ready.
+
+> Tip: If you use GitHub Copilot for pull request reviews, you can configure it to also review draft pull requests by enabling **Review draft pull requests** in your repository settings. Follow the instructions in [Configure automatic review](https://docs.github.com/en/copilot/how-tos/copilot-on-github/set-up-copilot/configure-automatic-review).
+> 
+> ![Configure Copilot to review draft pull requests](../../../../../images/github-actions-workflow-for-azd-templates/github-copilot-review-draft-pull-requests.png)
 
 I also define these `env` variables which are mandatory for azd:
 
@@ -235,6 +250,16 @@ Because the applications are already packaged, infrastructure provisioning and a
 See the screenshot below for an example of how this job looks in the workflow run:  
 
 ![Deploy job](../../../../../images/github-actions-workflow-for-azd-templates/deploy-job.png)
+
+For this job, I add a condition to skip deployment for draft pull requests:
+
+```yaml
+deploy:
+  name: Deploy to Azure
+  if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+```
+
+With this condition, draft pull requests still execute Build, Verify and Package, but the Deploy to Azure job starts only after the PR is ready for review.
 
 To provision the infrastructure, I run [`azd provision`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-provision):
 
