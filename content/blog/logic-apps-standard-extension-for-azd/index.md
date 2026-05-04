@@ -12,6 +12,8 @@ I've been working with the [Azure Developer CLI (azd)](https://learn.microsoft.c
 
 To address this, I created the `azure.logicappsstandard` azd extension. The extension introduces the `logicappsstandard` language, which handles packaging Logic Apps Standard projects correctly, including support for custom code projects.
 
+> **Note**: azd extensions are currently in beta. Features and APIs may change which impact the extension. See the [Azure Developer CLI extensions overview](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/extensions/overview) for the latest information.
+
 In this post, I'll explain the problem in more detail, introduce azd extensions and walk through how to install and use the `azure.logicappsstandard` extension.
 
 ### Table of Contents
@@ -21,7 +23,6 @@ In this post, I'll explain the problem in more detail, introduce azd extensions 
 - [Installing the Extension](#installing-the-extension)
 - [Packaging a Logic App Without Custom Code](#packaging-a-logic-app-without-custom-code)
 - [Packaging a Logic App with Custom Code](#packaging-a-logic-app-with-custom-code)
-- [Troubleshooting](#troubleshooting)
 - [Conclusion](#conclusion)
 
 ### The Problem with Deploying Logic Apps Using azd
@@ -36,9 +37,11 @@ services:
     language: js
 ```
 
-This works, but it introduces a dependency on Node.js that isn't needed if your project doesn't contain any JavaScript. Every developer and CI/CD agent that uses the template needs Node.js installed for no real reason.
+This works, but it has a few downsides. It introduces a dependency on Node.js that isn't needed if your project doesn't contain any JavaScript. Every developer and CI/CD agent that uses the template needs Node.js installed for no real reason. It also means the `.funcignore` file isn't respected when packaging, so files that should be excluded can end up in the deployment package.
 
-The situation gets more complicated when your Logic App includes a [custom code project](https://learn.microsoft.com/en-us/azure/logic-apps/create-run-custom-code-functions). Custom code projects let you add .NET functions that your workflows can call. Before packaging the Logic App, you need to build the .NET project so the compiled output gets included in the deployment zip. You can do this by adding a `prepackage` hook to trigger the build manually:
+> Note that Logic Apps Standard is built on top of the Azure Functions runtime, so using `host: function` makes sense.
+
+The situation gets more complicated when your Logic App includes a [custom code project](https://learn.microsoft.com/en-us/azure/logic-apps/create-run-custom-code-functions). Custom code projects let you add .NET functions that your workflows can call. Before packaging the Logic App, you need to build the .NET project so the compiled output gets included in the deployment zip. You can do this by adding a `prepackage` [hook](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/azd-extensibility) that runs the build:
 
 ```yaml
 services:
@@ -54,11 +57,15 @@ services:
         interactive: true
 ```
 
-This works, but it means writing and maintaining extra hook scripts. I opened [a discussion in the azd repository](https://github.com/Azure/azure-dev/discussions/6956) proposing native support for Logic Apps Standard, where azd maintainer [wbreza](https://github.com/wbreza) suggested using the azd extension framework instead. That turned out to be exactly the right tool for the job.
+The hook script itself calls something like:
+
+```cmd
+dotnet build ./Functions/Functions.csproj --configuration Release
+```
+
+This works, but it means writing and maintaining extra hook scripts just to get a build working.
 
 ### Azure Developer CLI Extensions
-
-> **Note**: azd extensions are currently in beta. Features and APIs may change. See the [Azure Developer CLI extensions overview](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/extensions/overview) for the latest information.
 
 [Azure Developer CLI extensions](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/extensions/overview) are modular components that extend the functionality of azd. They allow you to add new capabilities, automate workflows and integrate with other services directly from the CLI without modifying azd itself.
 
@@ -153,29 +160,8 @@ When azd runs the package phase, the extension first builds the custom code proj
 
 The `customCodeProject` property is the path to the `.csproj` file, relative to the `project` folder. Make sure the required build toolchain is installed on the machine running the deployment. For .NET 8 projects that means the .NET 8 SDK. For .NET Framework projects you need .NET Framework or MSBuild tools.
 
-### Troubleshooting
-
-If you see the following error while packaging your Logic App, azd couldn't find an installed extension that provides the `logicappsstandard` language:
-
-```
-ERROR: initializing service '...', getting framework service: language 'logicappsstandard' is not supported by
-built-in framework services and no extensions are currently providing it
-```
-
-Make sure you've installed the `azure.logicappsstandard` extension by running:
-
-```shell
-azd ext install azure.logicappsstandard
-```
-
-If the extension is already installed, verify that the default extension source is configured by running `azd ext source list`. If the default source is missing, add it with:
-
-```shell
-azd extension source add -n azd -t url -l "https://aka.ms/azd/extensions/registry"
-```
-
 ### Conclusion
 
 The `azure.logicappsstandard` extension removes the Node.js dependency from Logic Apps Standard deployments and adds first-class support for custom code projects, without needing prepackage hooks or custom scripts. If you're deploying Logic Apps Standard with azd, give it a try.
 
-Since azd extensions are still in beta, there may be rough edges. If you run into issues or have suggestions, feel free to open an issue or discussion in the [azure-dev repository](https://github.com/Azure/azure-dev).
+Since azd extensions are still in beta, I'd recommend not using this in production scenarios just yet.
