@@ -8,7 +8,7 @@ summary: "Deploying a Logic Apps Standard project with azd currently requires co
 draft: true
 ---
 
-I've been working with the [Azure Developer CLI (azd)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/) to deploy Logic Apps Standard projects. Azd doesn't have native support for Logic Apps Standard, so you have to work around it by configuring `language: js` and `host: function` in your `azure.yaml`. That works, but it creates an unnecessary dependency on Node.js, even when your project has nothing to do with Node. It also doesn't handle the case where your Logic App includes a .NET custom code project.
+I've been working with the [Azure Developer CLI (azd)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/) to deploy Logic Apps Standard projects. Azd doesn't have native support for Logic Apps Standard, so you have to work around it by configuring `language: js` and `host: function` in your `azure.yaml`. That works, but it creates an unnecessary dependency on Node.js, even when your project has nothing to do with Node. It also doesn't handle the case where your Logic App includes a [.NET custom code project](https://learn.microsoft.com/en-us/azure/logic-apps/create-run-custom-code-functions).
 
 To address this, I created the `azure.logicappsstandard` azd extension. The extension introduces the `logicappsstandard` language, which handles packaging Logic Apps Standard projects correctly, including support for custom code projects.
 
@@ -17,7 +17,7 @@ In this post, I'll explain the problem in more detail, introduce azd extensions 
 ### Table of Contents
 
 - [The Problem with Deploying Logic Apps Using azd](#the-problem-with-deploying-logic-apps-using-azd)
-- [azd Extensions](#azd-extensions)
+- [Azure Developer CLI Extensions](#azure-developer-cli-extensions)
 - [Installing the Extension](#installing-the-extension)
 - [Packaging a Logic App Without Custom Code](#packaging-a-logic-app-without-custom-code)
 - [Packaging a Logic App with Custom Code](#packaging-a-logic-app-with-custom-code)
@@ -26,24 +26,24 @@ In this post, I'll explain the problem in more detail, introduce azd extensions 
 
 ### The Problem with Deploying Logic Apps Using azd
 
-When you want to deploy a Logic Apps Standard project using azd, there's no built-in language option for it. The standard workaround is to configure the service with `language: js` and `host: function` in your `azure.yaml`:
+When you want to deploy a Logic Apps Standard project using azd, there's no built-in language option for it. The standard workaround is to configure the service with `language: js` in your `azure.yaml`:
 
 ```yaml
 services:
-  logicapp:
-    project: ./src/logicapp
+  logicApp:
+    project: ./src/logicApp
     host: function
     language: js
 ```
 
-This works because Logic Apps Standard uses the Azure Functions runtime under the hood. But it introduces a dependency on Node.js that isn't needed if your project doesn't contain any JavaScript. Every developer and CI/CD agent that deploys the template needs Node.js installed for no real reason.
+This works, but it introduces a dependency on Node.js that isn't needed if your project doesn't contain any JavaScript. Every developer and CI/CD agent that uses the template needs Node.js installed for no real reason.
 
-The situation gets more complicated when your Logic App includes a [custom code project](https://learn.microsoft.com/en-us/azure/logic-apps/create-run-custom-code-functions). Custom code projects let you add .NET functions that your workflows can call. Before packaging the Logic App, you need to build the .NET project so the compiled output gets included in the deployment zip. With the `js` language workaround, you have to add a `prepackage` hook to trigger the build manually:
+The situation gets more complicated when your Logic App includes a [custom code project](https://learn.microsoft.com/en-us/azure/logic-apps/create-run-custom-code-functions). Custom code projects let you add .NET functions that your workflows can call. Before packaging the Logic App, you need to build the .NET project so the compiled output gets included in the deployment zip. You can do this by adding a `prepackage` hook to trigger the build manually:
 
 ```yaml
 services:
-  logicapp:
-    project: ./src/logicapp
+  logicApp:
+    project: ./src/logicApp
     dist: Workflows
     host: function
     language: js
@@ -56,7 +56,7 @@ services:
 
 This works, but it means writing and maintaining extra hook scripts. I opened [a discussion in the azd repository](https://github.com/Azure/azure-dev/discussions/6956) proposing native support for Logic Apps Standard, where azd maintainer [wbreza](https://github.com/wbreza) suggested using the azd extension framework instead. That turned out to be exactly the right tool for the job.
 
-### azd Extensions
+### Azure Developer CLI Extensions
 
 > **Note**: azd extensions are currently in beta. Features and APIs may change. See the [Azure Developer CLI extensions overview](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/extensions/overview) for the latest information.
 
@@ -64,7 +64,7 @@ This works, but it means writing and maintaining extra hook scripts. I opened [a
 
 Extensions are distributed through extension sources, which are file or URL based manifests that list available extensions. Think of them as NuGet feeds or npm registries for azd. By default, azd is configured with the official extension source registry, so you can install extensions without any additional setup.
 
-The extension framework also supports a concept called a Framework Service Provider, which is what I used for the `azure.logicappsstandard` extension. It lets an extension register itself as the handler for a custom language value in `azure.yaml`. When azd encounters `language: logicappsstandard`, it hands off the build and package phases to the extension instead of using the built-in handling.
+The extension framework also supports a concept called a Framework Service Provider, which is what I used for the `azure.logicappsstandard` extension. It lets an extension register itself as the handler for a custom language value in `azure.yaml`. When azd encounters `language: logicappsstandard`, it hands off the restore, build and package phases to the extension.
 
 ### Installing the Extension
 
@@ -88,13 +88,13 @@ If your Logic App doesn't include a custom code project, the setup is straightfo
 
 ```
 └── src
-    └── logicapp
+    └── logicApp
         ├── .vscode
-        ├── artifacts
+        ├── Artifacts
         ├── lib
-        ├── workflow1
+        ├── Workflow1
         │   └── workflow.json
-        ├── workflow2
+        ├── Workflow2
         │   └── workflow.json
         ├── workflow-designtime
         ├── .funcignore
@@ -107,13 +107,13 @@ Configure your service in `azure.yaml` like this:
 
 ```yaml
 services:
-  logicapp:
-    project: ./src/logicapp
+  logicApp:
+    project: ./src/logicApp
     host: function
     language: logicappsstandard
 ```
 
-The extension packages everything under `./src/logicapp` into a zip file. Because `host: function` is used, the exclusions in `.funcignore` are respected and only the relevant files are included in the package. No Node.js required.
+The extension packages everything under `./src/logicApp` into a zip file. Because `host: function` is used, the exclusions in `.funcignore` are respected and only the relevant files are included in the package. No Node.js required.
 
 ### Packaging a Logic App with Custom Code
 
@@ -121,15 +121,15 @@ If your Logic App includes a custom code project, the project structure typicall
 
 ```
 └── src
-    └── logicapp
+    └── logicApp
         ├── Functions
         │   ├── MyFunctions.cs
         │   ├── Functions.csproj
         │   └── ...
         └── Workflows
-            ├── workflow1
+            ├── Workflow1
             │   └── workflow.json
-            ├── workflow2
+            ├── Workflow2
             │   └── workflow.json
             ├── host.json
             └── ...
@@ -141,8 +141,8 @@ Configure your service in `azure.yaml` like this:
 
 ```yaml
 services:
-  logicapp:
-    project: ./src/logicapp
+  logicApp:
+    project: ./src/logicApp
     dist: Workflows
     host: function
     language: logicappsstandard
