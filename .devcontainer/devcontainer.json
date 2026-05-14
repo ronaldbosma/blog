@@ -68,6 +68,10 @@
           "https://learn.microsoft.com/*": {
               "approveRequest": true,
               "approveResponse": false
+          },
+          "https://docs.github.com/*": {
+              "approveRequest": true,
+              "approveResponse": false
           }
         }
       }
