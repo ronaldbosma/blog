@@ -64,6 +64,7 @@
         // Configure auto-approvals for specific URLs to allow Copilot to reference content from these sources.
         "chat.tools.urls.autoApprove": {
           "https://github.com/ronaldbosma/*": true,
+          "https://raw.githubusercontent.com/ronaldbosma/*": true,
           "https://learn.microsoft.com/*": {
               "approveRequest": true,
               "approveResponse": false
