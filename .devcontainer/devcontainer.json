@@ -1,0 +1,77 @@
+{
+  "name": "Blog Dev Container",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/copilot-cli:1": {},
+    "ghcr.io/devcontainers/features/hugo:1": {}
+  },
+
+  // Expose Hugo server
+  "forwardPorts": [1313],
+  "portsAttributes": {
+    "1313": {
+      "label": "Hugo server",
+      "onAutoForward": "openPreview"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      // VS Code extensions to install in the container
+      "extensions": [
+        "ms-azuretools.vscode-azure-mcp-server",
+        "ms-azuretools.vscode-bicep",
+        "GitHub.copilot-chat",
+        "GitHub.vscode-github-actions"
+      ],
+
+      // MCP servers to configure for Copilot
+      "mcp":{
+        "servers": {
+          "github": {
+            "type": "http",
+            "url": "https://api.githubcopilot.com/mcp/"
+          }
+        }
+      },
+
+      // VS Code settings to configure for the container
+      "settings": {
+        "chat.tools.edits.autoApprove": {
+          // Don't allow auto-approving edits to prevent unintended changes
+          "**/*": false,
+          // Allow edits to blog and series content files
+          "content/**/*.md": true
+        },
+
+        // Auto-approve specific safe (read-only) terminal commands
+        "chat.tools.terminal.autoApprove": {
+          "ls": true,
+          "stat": true,
+          "lsattr": true,
+          "cat": true,
+          "find": true,
+          "grep": true,
+          "head": true,
+          "git status": true,
+          "git diff": true,
+          "git log": true
+        },
+
+        // Configure auto-approvals for specific URLs to allow Copilot to reference content from these sources.
+        "chat.tools.urls.autoApprove": {
+          "https://github.com/ronaldbosma/*": true,
+          "https://learn.microsoft.com/*": {
+              "approveRequest": true,
+              "approveResponse": false
+          }
+        }
+      }
+    }
+  },
+
+  "postStartCommand": "sh .devcontainer/start-hugo.sh"
+}
