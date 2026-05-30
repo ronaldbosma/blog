@@ -8,7 +8,7 @@ summary: "Deploying a Logic Apps Standard project with azd currently requires co
 draft: true
 ---
 
-I've been working with the [Azure Developer CLI (azd)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/) to deploy Logic Apps Standard projects. Azd doesn't have native support for Logic Apps Standard, so you have to work around it by configuring `language: js` and `host: function` in your `azure.yaml`. That works, but it creates an unnecessary dependency on Node.js, even when your project has nothing to do with Node. It also doesn't handle the case where your Logic App includes a [.NET custom code project](https://learn.microsoft.com/en-us/azure/logic-apps/create-run-custom-code-functions).
+I've been working with the [Azure Developer CLI (azd)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/) to deploy Logic Apps Standard projects for a while, and the one thing that I was missing is native support for Logic Apps Standard projects in azd. To package a Logic Apps Standard project, you can use Node.js as a work around by configuring `language: js` in your `azure.yaml`. It works, but it creates an unnecessary dependency on Node.js, even when your project has nothing to do with Node. It also doesn't handle the scenario where your Logic App includes a [.NET custom code project](https://learn.microsoft.com/en-us/azure/logic-apps/create-run-custom-code-functions).
 
 To address this, I created the `azure.logicappsstandard` azd extension. The extension introduces the `logicappsstandard` language, which handles packaging Logic Apps Standard projects correctly, including support for custom code projects.
 
@@ -37,7 +37,7 @@ services:
     language: js
 ```
 
-This works, but it has a few downsides. It introduces a dependency on Node.js that isn't needed if your project doesn't contain any JavaScript. Every developer and CI/CD agent that uses the template needs Node.js installed for no real reason. It also means the `.funcignore` file isn't respected when packaging, so files that should be excluded can end up in the deployment package.
+This works, but it has a few downsides. It introduces a dependency on Node.js that isn't needed if your project doesn't contain any JavaScript. Every developer and CI/CD agent that uses the template needs Node.js installed. It also means the `.funcignore` file isn't respected when packaging, so files that should be excluded can end up in the deployment package.
 
 > Note that Logic Apps Standard is built on top of the Azure Functions runtime, so using `host: function` makes sense.
 
@@ -57,13 +57,13 @@ services:
         interactive: true
 ```
 
-The hook script itself calls something like:
+The hook script itself executes something like:
 
 ```cmd
 dotnet build ./Functions/Functions.csproj --configuration Release
 ```
 
-This works, but it means writing and maintaining extra hook scripts just to get a build working.
+This works, but it means writing and maintaining extra hook scripts to get a build working.
 
 ### Azure Developer CLI Extensions
 
@@ -71,7 +71,9 @@ This works, but it means writing and maintaining extra hook scripts just to get 
 
 Extensions are distributed through extension sources, which are file or URL based manifests that list available extensions. Think of them as NuGet feeds or npm registries for azd. By default, azd is configured with the official extension source registry, so you can install extensions without any additional setup.
 
-The extension framework also supports a concept called a Framework Service Provider, which is what I used for the `azure.logicappsstandard` extension. It lets an extension register itself as the handler for a custom language value in `azure.yaml`. When azd encounters `language: logicappsstandard`, it hands off the restore, build and package phases to the extension.
+The extension framework also supports a concept called a Framework Service Provider, which is what I used for the `azure.logicappsstandard` extension. It lets an extension register itself as the handler for a custom language value in `azure.yaml`. 
+
+In the case of the `azure.logicappsstandard` extension, when azd encounters `language: logicappsstandard`, it hands off the restore, build and package phases to the extension.
 
 ### Installing the Extension
 
