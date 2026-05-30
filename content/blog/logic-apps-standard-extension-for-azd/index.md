@@ -4,15 +4,15 @@ date: 2026-05-04T17:30:00+02:00
 publishdate: 2026-05-04T17:30:00+02:00
 lastmod: 2026-05-04T17:30:00+02:00
 tags: [ "azd", "Azure", "Azure Developer CLI", "Azure Integration Services", "Logic Apps" ]
-summary: "Deploying a Logic Apps Standard project with azd currently requires configuring Node.js as the language, even when your project has nothing to do with Node. In this post, I'll introduce the azure.logicappsstandard extension I created to fix this, and walk through how to use it for both a basic Logic App and one that includes a .NET custom code project."
+summary: "Deploying a Logic Apps Standard project with azd currently requires configuring Node.js as the language, even when your project has nothing to do with Node. In this post, I'll introduce the azure.logicappsstandard extension I created to fix this and walk through how to use it for both a basic Logic App and one that includes a .NET custom code project."
 draft: true
 ---
 
-I've been working with the [Azure Developer CLI (azd)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/) to deploy Logic Apps Standard projects for a while, and the one thing that I was missing is native support for Logic Apps Standard projects in azd. To package a Logic Apps Standard project, you can use Node.js as a work around by configuring `language: js` in your `azure.yaml`. It works, but it creates an unnecessary dependency on Node.js, even when your project has nothing to do with Node. It also doesn't handle the scenario where your Logic App includes a [.NET custom code project](https://learn.microsoft.com/en-us/azure/logic-apps/create-run-custom-code-functions).
+I've been working with the [Azure Developer CLI (azd)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/) to deploy Logic Apps Standard projects for a while, and one thing I was missing was native support for Logic Apps Standard projects in azd. To package a Logic Apps Standard project, you can use Node.js as a workaround by configuring `language: js` in your `azure.yaml`. It works, but it creates an unnecessary dependency on Node.js, even when your project has nothing to do with Node. It also doesn't handle the scenario where your Logic App includes a [.NET custom code project](https://learn.microsoft.com/en-us/azure/logic-apps/create-run-custom-code-functions).
 
 To address this, I created the `azure.logicappsstandard` azd extension. The extension introduces the `logicappsstandard` language, which handles packaging Logic Apps Standard projects correctly, including support for custom code projects.
 
-> **Note**: azd extensions are currently in beta. Features and APIs may change which impact the extension. See the [Azure Developer CLI extensions overview](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/extensions/overview) for the latest information.
+> **Note**: azd extensions are currently in beta. Features and APIs may change, which can impact the extension. See the [Azure Developer CLI extensions overview](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/extensions/overview) for the latest information.
 
 In this post, I'll explain the problem in more detail, introduce azd extensions and walk through how to install and use the `azure.logicappsstandard` extension.
 
@@ -69,9 +69,9 @@ This works, but it means writing and maintaining extra hook scripts to get a bui
 
 [Azure Developer CLI extensions](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/extensions/overview) are modular components that extend the functionality of azd. They allow you to add new capabilities, automate workflows and integrate with other services directly from the CLI without modifying azd itself.
 
-Extensions are distributed through extension sources, which are file or URL based manifests that list available extensions. Think of them as NuGet feeds or npm registries for azd. By default, azd is configured with the official extension source registry, so you can install extensions without any additional setup.
+Extensions are distributed through extension sources, which are file-based or URL-based manifests that list available extensions. Think of them as NuGet feeds or npm registries for azd. By default, azd is configured with the official extension source registry, so you can install extensions without any additional setup.
 
-The extension framework also supports a concept called a Framework Service Provider, which is what I used for the `azure.logicappsstandard` extension. It lets an extension register itself as the handler for a custom language value in `azure.yaml`. 
+The extension framework also supports a concept called a Framework Service Provider, which is what I used for the `azure.logicappsstandard` extension. It lets an extension register itself as the handler for a custom language value in `azure.yaml`.
 
 In the case of the `azure.logicappsstandard` extension, when azd encounters `language: logicappsstandard`, it hands off the restore, build and package phases to the extension.
 
@@ -160,7 +160,7 @@ services:
 
 When azd runs the package phase, the extension first builds the custom code project specified in `customCodeProject` and then packages the Logic App artifacts from the `dist` folder. No prepackage hook needed.
 
-The `customCodeProject` property is the path to the `.csproj` file, relative to the `project` folder. Make sure the required build toolchain is installed on the machine running the deployment. For .NET 8 projects that means the .NET 8 SDK. For .NET Framework projects you need .NET Framework or MSBuild tools.
+The `customCodeProject` property is the path to the `.csproj` file, relative to the `project` folder. Make sure the required build toolchain is installed on the machine running the deployment. For .NET 8 projects, that means the .NET 8 SDK. For .NET Framework projects, you need .NET Framework or MSBuild tools.
 
 ### Conclusion
 
