@@ -12,7 +12,7 @@ I've used [FluentAssertions](https://fluentassertions.com/) in many test project
 
 When FluentAssertions changed its license, I looked at alternatives. [AwesomeAssertions](https://awesomeassertions.org/) is a fork of FluentAssertions before the license change and has the same interface. [Shouldly](https://docs.shouldly.org/) is a popular alternative that has gained traction as well.
 
-I also noticed that [xUnit introduced its own implementation](https://xunit.net/releases/v2/2.4.2.html) back in August 2022. I thought it would be a nice addition to MSTest too, so I [registered an issue](https://github.com/microsoft/testfx/issues/4776) at the start of 2025. A couple of weeks ago the issue was closed by a [PR](https://github.com/microsoft/testfx/pull/8266) adding a first implementation of `Assert.AreEquivalent<T>`.
+I also noticed that [xUnit introduced its own implementation](https://xunit.net/releases/v2/2.4.2.html) back in August 2022. I thought it would be a nice addition to MSTest too, so I [registered an issue](https://github.com/microsoft/testfx/issues/4776) at the start of 2025. A couple of weeks ago the issue was closed by a [PR](https://github.com/microsoft/testfx/pull/8266) adding a first implementation.
 
 MSTest v4.3.0 was released on June 2, 2026 and introduces the `Assert.AreEquivalent<T>` method. In this post I'll walk you through what it can do and how it compares to AwesomeAssertions and Shouldly. I've created a small [sample solution](https://github.com/ronaldbosma/blog-code-examples/tree/master/MSTest.AreEquivalent) that shows the three frameworks side by side.
 
@@ -47,11 +47,11 @@ internal class AddressInternal
 }
 ```
 
-I've also created an `AddressExternal` class that has exactly the same properties. This is common in projects where you map an external schema to an internal one, and it lets us check whether a method can handle comparing different types.
+I've also created an `AddressExternal` class that has exactly the same properties. This is a common scenario in projects where you map an external schema to an internal one, and it lets us check whether a method can handle comparing different types.
 
 ### Assert.AreEqual vs Assert.AreEquivalent<T>
 
-Before MSTest v4.3.0, the only built-in option was `Assert.AreEqual`. It relies on the `Equals` method of the objects being compared. For most custom classes this means comparing object references rather than property values.
+Before MSTest v4.3.0, `Assert.AreEqual` was the method you could use for comparison. It relies on the `Equals` method of the objects being compared. This works great for structs and records, but for other classes this means comparing object references rather than property values.
 
 Here are three tests that demonstrate the behaviour:
 
@@ -77,7 +77,7 @@ public void AreEqual_ExpectedAndActualAreDifferentObjectsWithSameValues_Assertio
 }
 
 [TestMethod]
-public void AreEqual_ExpectedAndActualAreDifferentTypesWithSameValues_AlthoughObjectsAreEquivalent()
+public void AreEqual_ExpectedAndActualAreDifferentTypesWithSameValues_FailsAlthoughObjectsAreEquivalent()
 {
     var expected = new AddressInternal("123 Main St", "Anytown", "CA", "12345");
     var actual = new AddressExternal("123 Main St", "Anytown", "CA", "12345");
@@ -97,7 +97,7 @@ public void AreEquivalent_ExpectedAndActualAreSameObject_Success()
     var expected = new AddressInternal("123 Main St", "Anytown", "CA", "12345");
     var actual = expected;
 
-    Assert.AreEquivalent<T>(expected, actual);
+    Assert.AreEquivalent(expected, actual);
 }
 
 [TestMethod]
@@ -106,7 +106,7 @@ public void AreEquivalent_ExpectedAndActualAreDifferentObjectsWithDifferentValue
     var expected = new AddressInternal("123 Main St", "Anytown", "CA", "12345");
     var actual = new AddressInternal("456 Elm St", "Othertown", "NY", "67890");
 
-    var act = () => Assert.AreEquivalent<T>(expected, actual);
+    var act = () => Assert.AreEquivalent(expected, actual);
 
     Assert.ThrowsExactly<AssertFailedException>(act);
 }
@@ -117,7 +117,7 @@ public void AreEquivalent_ExpectedAndActualAreDifferentTypesWithSameValues_Succe
     var expected = new AddressInternal("123 Main St", "Anytown", "CA", "12345");
     var actual = new AddressExternal("123 Main St", "Anytown", "CA", "12345");
 
-    Assert.AreEquivalent<T>(expected, actual);
+    Assert.AreEquivalent(expected, actual);
 }
 ```
 
@@ -146,7 +146,7 @@ public void AreEquivalent_CollectionsWithSameObjects_Success()
         new AddressInternal("456 Elm St", "Othertown", "NY", "67890")
     };
 
-    Assert.AreEquivalent<T>(expected, actual);
+    Assert.AreEquivalent(expected, actual);
 }
 ```
 
@@ -171,8 +171,8 @@ This test passes with AwesomeAssertions even though `Street` differs between the
 
 ### Conclusion
 
-The new `Assert.AreEquivalent<T>` method in MSTest v4.3.0 fills a gap that previously required a third-party library. It handles deep property comparison, works across different types with the same shape and supports collections. If you're already using MSTest and want to reduce dependencies, or you're looking for an alternative to FluentAssertions after the license change, this is a welcome addition.
+The new `Assert.AreEquivalent<T>` method in MSTest v4.3.0 fills a gap that previously required a third-party library. It handles deep property comparison, works across different types with the same shape and supports collections. If you're already using MSTest and want to reduce dependencies, this is a welcome addition.
 
-The implementation isn't complete yet. Ignoring properties during comparison is a common need that isn't supported at the time of writing. But given that this feature was driven by community feedback and is actively being developed, I expect more capabilities to follow. You can track progress in the [original issue on GitHub](https://github.com/microsoft/testfx/issues/4776).
+The implementation isn't complete yet. Ignoring properties during comparison is a common need that isn't supported at the time of writing. 
 
 If you want to try it yourself, the [sample solution](https://github.com/ronaldbosma/blog-code-examples/tree/master/MSTest.AreEquivalent) on GitHub contains all the examples from this post for AwesomeAssertions, Shouldly and MSTest side by side.
