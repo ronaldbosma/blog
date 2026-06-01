@@ -21,6 +21,7 @@ MSTest v4.3.0 was released on June 2, 2026 and introduces the `Assert.AreEquival
 - [Test Setup](#test-setup)
 - [Assert.AreEqual vs Assert.AreEquivalent<T>](#assertareequal-vs-assertareequivalent)
 - [Cross-Type Comparison](#cross-type-comparison)
+- [Nested Objects](#nested-objects)
 - [Collection Comparison](#collection-comparison)
 - [Limitations](#limitations)
 - [Conclusion](#conclusion)
@@ -126,6 +127,23 @@ The first two tests behave the same as with `AreEqual`. The third test now passe
 ### Cross-Type Comparison
 
 As shown in the previous section, `Assert.AreEquivalent<T>` can compare objects of different types as long as they share the same property names and values. AwesomeAssertions handles this the same way. Shouldly, however, doesn't support comparing different types, so that's something to keep in mind if you're considering it as an alternative.
+
+### Nested Objects
+
+Complex child objects are also supported. For example, a `PersonInternal` object with an `AddressInternal` property is compared correctly:
+
+```csharp
+[TestMethod]
+public void AreEquivalent_EquivalentNestedObjectsOfDifferentTypes_Success()
+{
+    var expected = new PersonInternal("John", "Doe", 30,
+        new AddressInternal("123 Main St", "Anytown", "CA", "12345"));
+    var actual = new PersonExternal("John", "Doe", 30,
+        new AddressExternal("123 Main St", "Anytown", "CA", "12345"));
+    
+    Assert.AreEqual(expected, actual);
+}
+```
 
 ### Collection Comparison
 
