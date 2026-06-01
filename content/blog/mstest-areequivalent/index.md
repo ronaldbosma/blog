@@ -170,6 +170,12 @@ public void AreEquivalent_CollectionsWithSameObjects_Success()
 
 This works well for straightforward cases where you want to verify that two collections contain objects with the same property values.
 
+
+> TODO: HOW ARE SIMILAR TYPES WITH AN EXTRA/MISSING PROPERTY HANDLED?
+
+
+
+
 ### Limitations
 
 The current implementation is a solid first step, but it's not feature-complete yet. One noticeable gap is the lack of support for ignoring specific properties during comparison. AwesomeAssertions supports this through its options parameter:
