@@ -8,6 +8,10 @@ summary: "MSTest v4.3.0 introduces the Assert.AreEquivalent<T> method that perfo
 draft: true
 ---
 
+
+> TODO: will it be v4.3.0 or v4.2.4?
+
+
 I've used [FluentAssertions](https://fluentassertions.com/) in many test projects over the years. The fluent API is great, but the feature I relied on most was the `Should().BeEquivalentTo` extension method. It performs a deep equality comparison of two objects by checking that all properties have the same value. That keeps tests clean and easy to write.
 
 When FluentAssertions changed its license, I looked at alternatives. [AwesomeAssertions](https://awesomeassertions.org/) is a fork of FluentAssertions before the license change and has the same interface. [Shouldly](https://docs.shouldly.org/) is a popular alternative that has gained traction as well.
