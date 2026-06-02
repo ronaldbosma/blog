@@ -18,18 +18,11 @@ Topics covered in this series:
 1. [Validate client certificates in API Management when its behind an Application Gateway](/blog/2024/02/19/validate-client-certificates-in-api-management-when-its-behind-an-application-gateway/)
 1. [Securing backend connections with mTLS in API Management](/blog/2024/05/24/securing-backend-connections-with-mtls-in-api-management/)
 
-### Intro
-
 In this first post, we'll cover the basics of how to validate client certificates in API Management. We'll deploy both API Management and an API using Bicep. We'll also have a look at how to upload both CA and client certificates in API Management.
-
-This post provides a step by step guide. If you're interested in the end result, you can find it [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/apim-client-certificate-series/01-validate-client-certificate-in-apim). If you want to know how to configure all of this through the Azure Portal, have a look at [How to secure APIs using client certificate authentication in API Management](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-mutual-certificates-for-clients).
 
 ### Table of Contents
 
-- [Prerequisites](#prerequisites)
-  - [Self-signed certificates](#self-signed-certificates)
-  - [Deploy API Management](#deploy-api-management)
-  - [Deploy API](#deploy-api)
+- [Solution Overview](#solution-overview)
 - [Test API](#test-api)
 - [Validate client certificate using policy](#validate-client-certificate-using-policy)
   - [Validate certificate chain](#validate-certificate-chain)
@@ -39,138 +32,37 @@ This post provides a step by step guide. If you're interested in the end result,
   - [Upload client certificate](#upload-client-certificate)
 - [Conclusion](#conclusion)
 
-### Prerequisites
+### Solution Overview
 
-This first section will cover the prerequisites required before we can start validating client certificates in API Management.
+I've created an Azure Developer CLI (`azd`) template called [mTLS with Azure API Management and Application Gateway](https://github.com/ronaldbosma/mtls-with-apim-and-agw) that demonstrates three scenarios: validate client certificates when calling API Management directly, when API Management is behind an Application Gateway and how to secure connections from API Management to backend systems using mTLS. If you want to deploy and try the solution, check out the getting started section for the prerequisites and deployment instructions. 
 
-#### Self-signed certificates
+![Solution Overview](../../../../../images/apim-client-certificate-series/solution-overview.png)
 
-First things first. We need some certificates. In this demo we'll be using self-signed certificates, but you can also use client certificates from a public CA.
+This blog post focusses on the validate client certificates in API Management scenario where a client calls the Protected API directly over mTLS. API Management validates the presented client certificate. This scenario covers multiple validation approaches implemented via APIM policies. See the following diagram for the flow.
 
+![Flow](../../../../../images/apim-client-certificate-series/01-validate-client-certificate-in-apim/flow.png)
+
+The template includes the self-signed certificates, but you can also use client certificates from a public CA.
 Using [Generate and export certificates for point-to-site using PowerShell](https://learn.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-certificates-point-to-site) as a guide, I've created the following tree of certificates.
 
 ![Self-signed certificates](../../../../../images/apim-client-certificate-series/self-signed-certificates.png)
 
-As you can see, we have one root CA certificate. Underneath it are two intermediate CA certificates that represent a development and test environment. Finally, we have two client certificates for each environment.
+- **APIM Sample Root CA**: is the root CA for this sample
+  - **APIM Sample DEV Intermediate CA**: is intermediate CA for a 'dev' environment
+    - **Valid Client**: is registered in API Management as a valid client
+    - **Unregistered Client**: is NOT registered in API Management and should be blocked when explicitly checking client certificates
+    - **Unprotected API**: is used when the Unprotected API calls the Protected API using mTLS _(used in [Securing backend connections with mTLS in API Management](/blog/2024/05/24/securing-backend-connections-with-mtls-in-api-management/))_
+    - **Expired Client**: is an expired certificate for testing purposes
+    - **Not Yet Valid Client**: is a certificate that is valid in the future and used for testing purposes
+  - **APIM Sample TST Intermediate CA**: is intermediate CA for a 'test' environment
+    - **Untrusted Client**: can be used to test what happens when certificates from an untrusted intermediate CA are used
 
-I've created the script [generate-client-certificates.ps1](https://github.com/ronaldbosma/azure-apim-samples/blob/main/apim-client-certificate-series/00-self-signed-certificates/generate-client-certificates.ps1) to generate this certificate tree using PowerShell. It also exports all certificates in base64 encoded X.509 (.cer) files and additionally exports the client certificates with their private keys in PFX (.pfx) files. The results can be found [here](https://github.com/ronaldbosma/azure-apim-samples/tree/main/apim-client-certificate-series/00-self-signed-certificates/certificates).
-
-#### Deploy API Management
-
-Next, we need an API Management instance. We'll be deploying everything using Bicep and the Azure CLI. The following script contains the bare minimum to create an API Management instance using Bicep.
-
-```bicep
-//=============================================================================
-// Parameters
-//=============================================================================
-
-@description('The name of the API Management Service that will be created')
-param apiManagementServiceName string
-
-@description('Location to use for all resources')
-param location string = resourceGroup().location
-
-@description('The email address of the owner of the API Management service')
-param publisherEmail string
-
-@description('The name of the owner of the API Management service')
-param publisherName string
-
-//=============================================================================
-// Resources
-//=============================================================================
-
-// API Management
-resource apiManagementService 'Microsoft.ApiManagement/service@2022-08-01' = {
-  name: apiManagementServiceName
-  location: location
-  sku: {
-    name: 'Developer'
-    capacity: 1
-  }
-  properties: {
-    publisherEmail: publisherEmail
-    publisherName: publisherName
-  }
-}
-```
-
-As you can see, we're creating a Developer tier API Management instance. Normally for demos, I'd use the Consumption tier because it's cost-effective and can be rolled out quickly. However, the Consumption tier does not support CA certificates, which we'll need later on.
-
-Save the above Bicep snippet in a file called `main.bicep` and use the following command to deploy the API Management instance. Replace the `<placeholders>` with your values. The deployment will take a while to complete (about ~30 minutes).
-
-```powershell
-az deployment group create `
-    --name "deploy-$(Get-Date -Format "yyyyMMdd-HHmmss")" `
-    --resource-group '<your-resource-group>' `
-    --template-file './main.bicep' `
-    --parameters apiManagementServiceName='<your-api-management-instance-name>' `
-                 publisherEmail='<your-email>' `
-                 publisherName='<your-name>' `
-    --verbose
-```
-
-#### Deploy API
-
-After deploying the API Management instance, we can proceed to create an API. The following Bicep code creates an API named `client-cert-api` with two operations. Add this code to the end of the `main.bicep` file.
-
-```bicep
-// Client Cert API
-resource clientCertApi 'Microsoft.ApiManagement/service/apis@2022-08-01' = {
-  name: 'client-cert-api'
-  parent: apiManagementService
-  properties: {
-    displayName: 'Client Cert API'
-    path: 'client-cert'
-    protocols: [ 
-      'https' 
-    ]
-    subscriptionRequired: false
-  }
-}
+You can find more details about the certificates and how to use generate them [here](https://github.com/ronaldbosma/mtls-with-apim-and-agw/blob/main/self-signed-certificates/README.md).
 
 
-// Operation to validate client certificate using validate-client-certificate policy
-resource validateUsingPolicy 'Microsoft.ApiManagement/service/apis/operations@2022-08-01' = {
-  name: 'validate-using-policy'
-  parent: clientCertApi
-  properties: {
-    displayName: 'Validate (using policy)'
-    description: 'Validates client certificate using validate-client-certificate policy'
-    method: 'GET'
-    urlTemplate: '/validate-using-policy'
-  }
 
-  resource policies 'policies' = {
-    name: 'policy'
-    properties: {
-      format: 'rawxml'
-      value: loadTextContent('./validate-using-policy.operation.cshtml') 
-    }
-  }
-}
+> TODO: Start explanation of Protected API and relevant operations.
 
-
-// Operation to validate client certificate using context.Request.Certificate property
-resource validateUsingContext 'Microsoft.ApiManagement/service/apis/operations@2022-08-01' = {
-  name: 'validate-using-context'
-  parent: clientCertApi
-  properties: {
-    displayName: 'Validate (using context)'
-    description: 'Validates client certificate using the context.Request.Certificate property'
-    method: 'GET'
-    urlTemplate: '/validate-using-context'
-  }
-
-  resource policies 'policies' = {
-    name: 'policy'
-    properties: {
-      format: 'rawxml'
-      value: loadTextContent('./validate-using-context.operation.cshtml') 
-    }
-  }
-}
-```
 
 There are a few important points to note. Firstly, I did not make the subscription key required to simplify testing the API as much as possible. Please be aware that this is not recommended for production scenarios.
 
