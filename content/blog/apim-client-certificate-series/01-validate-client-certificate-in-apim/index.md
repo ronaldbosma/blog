@@ -204,7 +204,7 @@ See the following snippet for a sample implementation:
 </choose>
 ```
 
-This snippet uses a `set-variable` policy to evaluate the certificate and store a validation result. It first checks whether a certificate was provided at all. Then it checks whether the certificate's validity period covers the current date and time. `DateTime.Now` is used rather than `DateTime.UtcNow` because the `NotBefore` and `NotAfter` properties are in local time. If any check fails, a descriptive string is returned. The `choose` block that follows traces the validation result and rejects the request with a `401` if the variable contains a value.
+This snippet uses a `set-variable` policy to evaluate the certificate and store a validation result. It first checks whether a certificate was provided at all. Then it checks whether the certificate's validity period covers the current date and time. `DateTime.Now` is used rather than `DateTime.UtcNow` because the `NotBefore` and `NotAfter` properties are in local time. If any check fails, a descriptive string is returned. The `choose` block that follows traces the validation result for troubleshooting purposes and rejects the request with a `401` if the variable contains a value.
 
 This only checks that a client certificate was provided with a valid date range. It doesn't verify whether the certificate is trusted. There are two ways to make this more secure: either check the certificate chain or verify the thumbprint. You can also combine both.
 
@@ -256,7 +256,7 @@ Both the `Verify` and `VerifyNoRevocation` methods also check if a certificate i
 }" />
 ```
 
-The downside is that you lose some detail about why a certificate was not valid.
+The downside is that you lose some detail about why a certificate was invalid.
 
 #### Validate Against Uploaded Client Certificates
 
