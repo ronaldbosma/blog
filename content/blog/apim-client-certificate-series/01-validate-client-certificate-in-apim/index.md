@@ -72,7 +72,7 @@ To try out the implementation, follow the instructions in [this demo](https://gi
 
 ### Enable Client Certificate on API Management
 
-For v2 tiers like BasicV2, the first thing you need to do to enable mTLS is set the `enableClientCertificate` property to `true` on the API Management service resource:
+For the Consumption tier and v2 tiers like BasicV2, to enable mTLS, set the `enableClientCertificate` property to `true` on the API Management service resource:
 
 ```bicep
 resource apiManagementService 'Microsoft.ApiManagement/service@2025-03-01-preview' = {
@@ -84,11 +84,11 @@ resource apiManagementService 'Microsoft.ApiManagement/service@2025-03-01-previe
 }
 ```
 
-If you don't set this property to `true`, establishing an mTLS connection fails with the error the the client certificate is missing. For non-v2 tiers, you don't have to set it to `true`, but I haven't seen issues if you do.
+If you don't set this property to `true`, validating the client certificate fails with the reason that the client certificate is missing.
+For the Consumption tier, setting `enableClientCertificate` to `true` requires clients to present a certificate on every API call, even for APIs without any certificate validation logic. For non-Consumption tiers, this is not the case.
+For the Developer, Basic, Standard and Premium tiers, you don't have to set it to `true`, but I haven't seen issues if you do.
 
 > [The documentation](https://learn.microsoft.com/en-us/azure/templates/microsoft.apimanagement/service?pivots=deployment-language-bicep#apimanagementserviceproperties) suggests that this is only meant to be used for Consumption SKU Service, but it is also necessary for v2 tier SKUs.
-
-Note that for the Consumption tier, setting `enableClientCertificate` to `true` requires clients to present a certificate on every API call, even for APIs without any certificate validation logic. For other tiers, this is not the case.
 
 ### Validate Client Certificate Using Policy
 
