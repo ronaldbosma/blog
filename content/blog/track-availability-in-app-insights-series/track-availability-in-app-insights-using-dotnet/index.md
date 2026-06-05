@@ -2,7 +2,7 @@
 title: "Track Availability in Application Insights using .NET"
 date: 2026-01-19T09:00:00+01:00
 publishdate: 2026-01-19T09:00:00+01:00
-lastmod: 2026-03-27T15:30:00+01:00
+lastmod: 2026-05-08T11:15:00+02:00
 tags: [ "Azure", "Application Insights", "Azure Monitor", "Azure Functions", "Azure Integration Services", ".NET" ]
 series: [ "track-availability-in-app-insights" ]
 summary: "Standard availability tests in Application Insights have limitations like no multi-step authentication, no mTLS support and no access to private networks. This post shows you how to create custom availability tests using .NET and Azure Functions to overcome these restrictions while gaining full control over your monitoring logic."
@@ -176,9 +176,7 @@ internal class AvailabilityTest(
 
 This implementation addresses the shortcomings of the basic example. It uses a `Stopwatch` to measure the test duration and sets the timestamp to capture when the test started. It also uses an `Activity` to enable distributed tracing. By creating an activity and linking it to the availability telemetry through the span id, Application Insights can correlate the availability test results with any HTTP requests or other telemetry generated during the test execution. This gives you the end-to-end transaction view that's essential for troubleshooting failures.
 
-> In the [official documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=track#add-and-edit-code-in-the-app-service-editor) the `availability.Timestamp` is set in the finally block, after the check has completed. However, this records the end time of the test rather than the start time, which messes up the timeline in the end-to-end transaction details in App Insights. By setting it at the beginning of the `ExecuteAsync` method, we accurately capture when the test started.  
->  
-> Unfortunately, when using the new version 3.x of the Application Insights .NET SDK, the timestamp is ignored and the end-to-end transaction details are affected. See the issue [Timestamp on AvailabilityTelemetry ignored by TelemetryClient.TrackAvailability](https://github.com/microsoft/ApplicationInsights-dotnet/issues/3152) for more information.
+> In the [official documentation](https://learn.microsoft.com/en-us/previous-versions/azure/azure-monitor/app/classic-api?tabs=dotnet%2Cnet#custom-availability-tests-with-trackavailability) the `availability.Timestamp` is set in the finally block, after the check has completed. However, this records the end time of the test rather than the start time, which messes up the timeline in the end-to-end transaction details in App Insights. By setting it at the beginning of the `ExecuteAsync` method, we accurately capture when the test started.  
 
 The [AvailabilityTestFactory](https://github.com/ronaldbosma/track-availability-in-app-insights/blob/main/src/functionApp/TrackAvailabilityInAppInsights.FunctionApp/AvailabilityTests/AvailabilityTestFactory.cs) creates instances of `AvailabilityTest`. I introduced this factory because `AvailabilityTest` has dependencies like `TelemetryClient` that aren't relevant for the client code to know about. The factory handles these dependencies and provides a clean interface for creating tests.
 
@@ -211,7 +209,7 @@ The `APPLICATIONINSIGHTS_CONNECTION_STRING` holds the connection string for your
 
 The `ConfigureOpenTelemetryBuilder` call sets the `Cloud.RoleName`, `Cloud.RoleInstance` and `Component.Version` on the telemetry. Without it, the role name shows up as `unknown_service:dotnet` in Application Insights. `WEBSITE_SITE_NAME` is set automatically by Azure Functions and App Service, providing a recognizable label. It falls back to the machine name when not set, e.g. when running locally.
 
-The `SetAzureTokenCredential` call is optional and configures the `TelemetryClient` to use a managed identity for authentication instead of relying on the connection string alone. See the [Azure AD authentication for Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/azure-ad-authentication) documentation for more details.
+The `SetAzureTokenCredential` call is optional and configures the `TelemetryClient` to use a managed identity for authentication instead of relying on the connection string alone. See the [Microsoft Entra authentication for Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/azure-ad-authentication) documentation for more details.
 
 The following sequence diagram shows how these classes work together:
 
@@ -352,8 +350,6 @@ The end-to-end transaction details show how the availability test result is corr
 
 This correlation is enabled by the `Activity` we created in the `AvailabilityTest` class. It allows you to see the complete flow of the test execution, including any HTTP requests, dependencies or exceptions that occurred during the test.
 
-> As mentioned before, currently the timestamp on the availability telemetry is ignored when using version 3.x of the Application Insights .NET SDK, which affects the timeline in the end-to-end transaction details.
-
 ## Setting Up Alerts
 
 The [enable alerts](https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=track#enable-alerts) sample in the documentation shows how to enable an alert on a standard test, similar to what I showed in the previous post (through Bicep). However, with custom availability tests we don't have an actual web test resource in Azure to bind the alert to. Instead, we need to create an alert based on the availability metrics.
@@ -447,7 +443,7 @@ dimensions: [
 
 This configuration will only trigger alerts for the specified test, allowing you to take different actions or handle different tests with different severity levels.
 
-> Instead of creating multiple similar alert rules for different tests, you can also use [alert processing rules](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-processing-rules/) to add or remove action groups based on the test name. This way, you can have a single alert rule for all tests and use processing rules to customize the notification behavior per test. I cover this in more detail in [this post](/blog/2026/02/02/alert-processing-rules-in-bicep-suppress-and-route-azure-monitor-alerts/).
+> Instead of creating multiple similar alert rules for different tests, you can also use [alert processing rules](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-processing-rules/) to add or remove action groups based on the test name. This way, you can have a single alert rule for all tests and use processing rules to customize the notification behavior per test. I cover this in more detail in [this post](/blog/2026/02/02/alert-processing-rules-in-bicep-add-action-groups-or-suppress-notifications/).
 
 ## Considerations
 
