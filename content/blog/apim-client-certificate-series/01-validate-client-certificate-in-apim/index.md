@@ -5,17 +5,17 @@ publishdate: 2024-02-02T11:00:00+01:00
 lastmod: 2026-06-05T12:00:00+02:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Bicep", "Client Certificates", "Infra as Code", "mTLS", "Security" ]
 series: [ "client-certificates-and-mtls-in-api-management" ]
-summary: "This blog post is the start of a series on how to work with client certificates in Azure API Management to setup a mutual TLS (mTLS) connection. While Azure's official documentation provides excellent guidance on setting up client certificates via the Azure Portal, we'll dive into using Bicep to automate the process. In this first post, we'll cover the basics of how to validate client certificates in API Management."
+summary: "This blog post is the start of a series on how to work with client certificates in Azure API Management to set up a mutual TLS (mTLS) connection. While Azure's official documentation provides excellent guidance on setting up client certificates via the Azure Portal, we'll dive into using Bicep to automate the process. In this first post, we'll cover the basics of how to validate client certificates in API Management."
 ---
 
-This blog post is the start of a series on how to work with client certificates in Azure API Management to setup a mutual TLS (mTLS) connection. In the series, I'll cover both the validation of client certificates in API Management and how to connect to backends with mTLS using client certificates. 
+This blog post is the start of a series on how to work with client certificates in Azure API Management to set up a mutual TLS (mTLS) connection. In the series, I'll cover both the validation of client certificates in API Management and how to connect to backends with mTLS using client certificates. 
 
 While Azure's official documentation provides excellent guidance on setting up client certificates via the Azure Portal, this series takes it a step further. We'll dive into using Bicep to automate the process.
 
 Topics covered in this series:
 
 1. Validate client certificates in API Management _**(current)**_
-1. [Validate client certificates in API Management when its behind an Application Gateway](/blog/2024/02/19/validate-client-certificates-in-api-management-when-its-behind-an-application-gateway/)
+1. [Validate client certificates in API Management when it's behind an Application Gateway](/blog/2024/02/19/validate-client-certificates-in-api-management-when-its-behind-an-application-gateway/)
 1. [Securing backend connections with mTLS in API Management](/blog/2024/05/24/securing-backend-connections-with-mtls-in-api-management/)
 
 In this first post, we'll cover the basics of how to validate client certificates in API Management. We'll deploy both API Management and an API using Bicep. We'll also have a look at how to upload both CA and client certificates in API Management.
@@ -207,7 +207,7 @@ This only checks that a client certificate was provided with a valid date range.
 #### Check Client Certificate Chain
 
 If you're using the Developer, Basic, Standard or Premium tier, you can add an additional check to verify the certificate chain.
-First you need to upload the relevant CA certificates as described in [this section](#upload-ca-certificates).
+First, you need to upload the relevant CA certificates as described in [this section](#upload-ca-certificates).
 Then, add the extra check using `context.Request.Certificate.VerifyNoRevocation()` if you don't have a revocation list configured and `context.Request.Certificate.Verify()` if you do:
 
 ```csharp
