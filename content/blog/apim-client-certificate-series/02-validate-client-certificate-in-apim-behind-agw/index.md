@@ -23,10 +23,10 @@ In this second post, we expand on the solution introduced in [the previous post]
 ### Table of Contents
 
 - [Solution Overview](#solution-overview)
-- [Add HTTPS Listener to Application Gateway](#add-https-listener-to-application-gateway)
-- [Add mTLS Listener to Application Gateway](#add-mtls-listener-to-application-gateway)
-- [Forward Client Certificate to API Management](#forward-client-certificate-to-api-management)
-- [Validate Client Certificate in API Management](#validate-client-certificate-in-api-management)
+- [HTTPS Listener](#https-listener)
+- [mTLS Listener](#mtls-listener)
+- [Forwarding the Client Certificate to API Management](#forwarding-the-client-certificate-to-api-management)
+- [Validating the Client Certificate in API Management](#validating-the-client-certificate-in-api-management)
 - [Plugging the Security Hole](#plugging-the-security-hole)
 - [Strict vs Passthrough](#strict-vs-passthrough)
 - [Considerations](#considerations)
@@ -67,9 +67,9 @@ If you want to deploy and try the solution, check out the [getting started secti
 
 To try out the implementation, follow the instructions in [this demo](https://github.com/ronaldbosma/mtls-with-apim-and-agw/blob/main/demos/demo-scenario2.md).
 
-### Add HTTPS Listener to Application Gateway
+### HTTPS Listener
 
-Before explaining how to configure mTLS on the Application Gateway, I'll start by explaining how to configure a standard HTTPS listener with TLS support.
+The solution uses both an HTTPS listener and an mTLS listener on the Application Gateway. The HTTPS listener is covered first as it forms the base that the mTLS listener builds on.
 
 > The Application Gateway needs to be deployed in a Virtual Network and have a public IP address in order to accept traffic from the internet. Configuration of these is beyond the scope of this post. You can find the configuration in [virtual-network.bicep](https://github.com/ronaldbosma/mtls-with-apim-and-agw/blob/main/infra/02-platform/modules/virtual-network.bicep) and [public-ip-address.bicep](https://github.com/ronaldbosma/mtls-with-apim-and-agw/blob/main/infra/01-core/modules/public-ip-address.bicep).
 
@@ -289,7 +289,7 @@ requestRoutingRules: [
 
 With this routing rule in place, any request to port `443` on the Application Gateway will be routed to API Management. The frontend, backend and routing rule together form a complete HTTPS listener configuration.
 
-### Add mTLS Listener to Application Gateway
+### mTLS Listener
 
 Before looking at the mTLS configuration, it's helpful to understand how the Application Gateway performs client certificate validation. The Application Gateway doesn't have the capability to whitelist individual client certificates as we did in the [previous post](/blog/2024/02/02/validate-client-certificates-in-api-management/). Instead, it verifies whether a client certificate was issued by a trusted certificate authority (CA).
 
@@ -378,7 +378,7 @@ The `verifyClientCertIssuerDN` setting is set to `true`. By default, only the ro
 
 #### mTLS Port
 
-Since port `443` is already used by the HTTPS listener, a second port is configured for the mTLS listener. The following entry is added to the `frontendPorts` array:
+Since port `443` is already used by the HTTPS listener, a second port is configured for the mTLS listener. The following entry in the `frontendPorts` array configures the mTLS port:
 
 ```bicep
 {
@@ -444,7 +444,7 @@ The following entry is configured in the `requestRoutingRules` array to route tr
 
 This is all that's needed to enable mTLS on the Application Gateway and is enough if you only want to verify that the client certificate was issued by a trusted CA.
 
-### Forward Client Certificate to API Management
+### Forwarding the Client Certificate to API Management
 
 In order for API Management to perform further validation of the client certificate, the Application Gateway needs to forward it. This is done by placing the client certificate in a request header using a rewrite rule. The `client_certificate` server variable provides access to the certificate, which is then written to the `X-Client-Certificate` header. For more information on the available server variables, see [Rewrite HTTP headers and URL with Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers-url#mutual-authentication-server-variables).
 
@@ -480,7 +480,7 @@ rewriteRuleSets: [
 ]
 ```
 
-To link the rewrite rule to the mTLS routing rule, the following property is added to the `properties` section of `apim-mtls-routing-rule`:
+The rewrite rule is linked to the mTLS routing rule via the following property in `apim-mtls-routing-rule`:
 
 ```bicep
 rewriteRuleSet: {
@@ -488,7 +488,7 @@ rewriteRuleSet: {
 }
 ```
 
-### Validate Client Certificate in API Management
+### Validating the Client Certificate in API Management
 
 When the Application Gateway passes the client certificate to API Management in the `X-Client-Certificate` header, it contains the public part of the certificate in base64 format and is URL encoded. Here's an example:
 
@@ -619,7 +619,7 @@ The following entry is configured in the `rewriteRuleSets` array:
 }
 ```
 
-To link the rewrite rule to the HTTPS routing rule, the following property is added to the `properties` section of `apim-https-routing-rule`:
+The rewrite rule is linked to the HTTPS routing rule via the following property in `apim-https-routing-rule`:
 
 ```bicep
 rewriteRuleSet: {
