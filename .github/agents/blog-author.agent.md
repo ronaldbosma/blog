@@ -80,6 +80,15 @@ When that happens, do the following before drafting:
 4. Mark each factual claim as either "verify from Source URL" or "state as unverified note".
 5. Preserve user-supplied code snippets unless they are clearly broken, then fix and explain changes.
 
+## Follow-up Rewrite Requirements
+
+When the user provides focused rewrite instructions after an initial draft:
+
+1. Treat the new prompt as a revision pass and rerun the workflow with the new constraints.
+2. Preserve all unchanged sections unless the user explicitly asks for broader edits.
+3. Do not change front matter fields (slug, date, tags, categories) unless explicitly requested.
+4. In the final output, include a short "What changed" summary for the revised sections.
+
 ## Recommended Input Format
 
 If the user gives no format, suggest:
