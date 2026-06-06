@@ -18,7 +18,7 @@ Topics covered in this series:
 1. Validate client certificates in API Management when it's behind an Application Gateway _**(current)**_
 1. [Securing backend connections with mTLS in API Management](/blog/2024/05/24/securing-backend-connections-with-mtls-in-api-management/)
 
-In this second post, we expand on the solution introduced in [the previous post](/blog/2024/02/02/validate-client-certificates-in-api-management/), but this time an Application Gateway is positioned in front of API Management instead of calling it directly. Using an Application Gateway (or similar resource) this ways is a common approach because it can provide load balancing capabilities and enhanced control over inbound and outbound traffic. Additionally, the Web Application Firewall (WAF) feature provides improved security by protecting against common web-based attacks and vulnerabilities, such as SQL injection and cross-site scripting (XSS).
+In this second post, we expand on the solution introduced in [the previous post](/blog/2024/02/02/validate-client-certificates-in-api-management/), but this time an Application Gateway is positioned in front of API Management instead of calling it directly. Using an Application Gateway (or similar resource) this way is a common approach because it can provide load balancing capabilities and enhanced control over inbound and outbound traffic. Additionally, the Web Application Firewall (WAF) feature provides improved security by protecting against common web-based attacks and vulnerabilities, such as SQL injection and cross-site scripting (XSS).
 
 ### Table of Contents
 
@@ -112,11 +112,11 @@ resource applicationGateway 'Microsoft.Network/applicationGateways@2025-05-01' =
 }
 ```
 
-A user-assigned managed identity is created alongside the application gateway. The managed identity is used to access the SSL server certificate, required for TLS, stored in Key Vault. The `gatewayIPConfigurations` property connects the application gateway to the subnet it's deployed in.
+A user-assigned managed identity is created alongside the application gateway. The managed identity is used to access an SSL server certificate, required for TLS, stored in Key Vault. The `gatewayIPConfigurations` property connects the application gateway to the Virtual Network's subnet it's deployed in.
 
 The managed identity needs to be assigned the "Key Vault Secrets User" role before deploying the Application Gateway. See [key-vault.bicep](https://github.com/ronaldbosma/mtls-with-apim-and-agw/blob/main/infra/01-core/modules/key-vault.bicep) for the Key Vault configuration and [assign-roles-to-principal.bicep](https://github.com/ronaldbosma/mtls-with-apim-and-agw/blob/main/infra/99-shared/assign-roles-to-principal.bicep) for how roles are assigned to a principal.
 
-The full configuration adds several more components to allow HTTPS traffic and route it to API Management. The image below shows a visual representation of those components:
+Several more Application Gateway components are necessary to allow HTTPS traffic and route it to API Management. The image below shows a visual representation of those components:
 
 ![HTTPS Listener Components](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-listener.png)
 
@@ -181,9 +181,9 @@ httpListeners: [
 ]
 ```
 
-As you can see, the frontend IP configuration is linked to the public IP address. The application gateway accepts traffic on the standard HTTPS port `443`, so an SSL certificate is configured as well. The HTTP listener ties these components together. A second listener is added later for mTLS support, so this one is referred to as the HTTPS listener for the remainder of this post.
+As you can see, the frontend IP configuration is linked to the public IP address. The application gateway accepts traffic on the standard HTTPS port `443`, so an SSL certificate is configured as well. The HTTP listener ties these components together. We'll refer to this listener as the HTTPS listener for the remainder of this post.
 
-Note that the hostname `agw.mtls-sample.dev` is used in the listener configuration. In the sample template, no public DNS record or domain is configured. Instead, a self-signed server certificate is used for this hostname and the Application Gateway is accessed through its public IP address by passing `agw.mtls-sample.dev` in the `Host` request header.
+Note that the hostname `agw.mtls-sample.dev` is used in the listener configuration. In the sample template, no public DNS record or domain is configured. Instead, a self-signed server certificate is used for this hostname and the Application Gateway is accessed through its public IP address, passing `agw.mtls-sample.dev` in the `Host` request header.
 
 #### SSL Certificate
 
@@ -287,11 +287,11 @@ requestRoutingRules: [
 ]
 ```
 
-With this routing rule in place, any HTTPS request to port `443` on the Application Gateway will be routed to API Management. The frontend, backend and routing rule together form a complete HTTPS listener configuration.
+With this routing rule in place, any request to port `443` on the Application Gateway will be routed to API Management. The frontend, backend and routing rule together form a complete HTTPS listener configuration.
 
 ### Add mTLS Listener to Application Gateway
 
-Before looking at the mTLS configuration, it's helpful to understand how the Application Gateway performs client certificate validation. The Application Gateway doesn't have the capability to whitelist individual client certificates. Instead, it verifies whether a client certificate was issued by a trusted certificate authority (CA).
+Before looking at the mTLS configuration, it's helpful to understand how the Application Gateway performs client certificate validation. The Application Gateway doesn't have the capability to whitelist individual client certificates as we did in the [previous post](/blog/2024/02/02/validate-client-certificates-in-api-management/). Instead, it verifies whether a client certificate was issued by a trusted certificate authority (CA).
 
 In our sample, only client certificates issued by `APIM Sample DEV Intermediate CA` are allowed to call the Application Gateway. The figure below highlights the certificates that need to be uploaded for this to work.
 
@@ -313,13 +313,13 @@ Note that this setup allows both TLS and mTLS traffic to the Application Gateway
 
 This can be useful when you support multiple authentication methods. Some clients may use a client certificate for authentication via mTLS, while others may authenticate with a bearer token over standard TLS.
 
-> Having multiple listeners for different authentication methods is less relevant with the introduction of [mTLS passthrough mode](#strict-vs-passthrough), which is covered later in this post. I've kept this setup because the sample template supports both strict and passthrough modes, and because it introduces a potential security issue that is discussed in the [Plugging the Security Hole](#plugging-the-security-hole) section.
+> Having multiple listeners for different authentication methods is less relevant with the introduction of mTLS passthrough mode, which is covered [later in this post](#strict-vs-passthrough). I've kept this setup because the sample template supports both strict and passthrough modes, and because it introduces a potential security issue that is discussed in the [Plugging the Security Hole](#plugging-the-security-hole) section.
 
 #### Prepare Certificate Chain
 
 Because only client certificates issued by a specific self-signed intermediate CA are allowed, the complete certificate chain needs to be uploaded. The chain must be in a single `.cer` file and include all intermediate CAs and the root CA.
 
-The [dev-intermediate-ca-with-root-ca.cer](https://github.com/ronaldbosma/mtls-with-apim-and-agw/blob/main/self-signed-certificates/certificates/dev-intermediate-ca-with-root-ca.cer) file is used in the sample. When creating your own, take the public part of all certificates in the chain and combine them in a single `.cer` file. The result should look similar to the example below:
+The [dev-intermediate-ca-with-root-ca.cer](https://github.com/ronaldbosma/mtls-with-apim-and-agw/blob/main/self-signed-certificates/certificates/dev-intermediate-ca-with-root-ca.cer) file is used in the template. When creating your own, take the public part of all certificates in the chain and combine them in a single `.cer` file. The result should look similar to the example below:
 
 ```
 -----BEGIN CERTIFICATE-----
@@ -374,7 +374,7 @@ sslProfiles: [
 
 The `verifyClientAuthMode` is set to `Strict`, which is the default, so the Application Gateway will require a client certificate to be provided during the TLS handshake.
 
-The `verifyClientCertIssuerDN` setting is set to `true`. By default, only the root CA certificate is checked. In this example, that would mean a client certificate issued by `APIM Sample TST Intermediate CA` for the test environment would be accepted, even though only the `APIM Sample DEV Intermediate CA` certificate was uploaded for the development environment. Setting `verifyClientCertIssuerDN` to `true` ensures the intermediate certificate is also checked, so only certificates issued by `APIM Sample DEV Intermediate CA` are accepted. You can find more details [here](https://learn.microsoft.com/en-us/azure/application-gateway/mutual-authentication-overview#verify-client-certificate-dn).
+The `verifyClientCertIssuerDN` setting is set to `true`. By default, only the root CA certificate is checked. In this example, that would mean a client certificate issued by `APIM Sample TST Intermediate CA` for the test environment would be accepted, even though only the `APIM Sample DEV Intermediate CA` certificate was uploaded for the development environment. Setting `verifyClientCertIssuerDN` to `true` ensures the intermediate certificate is also checked, so only certificates issued by `APIM Sample DEV Intermediate CA` are accepted. You can find more details about this setting [here](https://learn.microsoft.com/en-us/azure/application-gateway/mutual-authentication-overview#verify-client-certificate-dn).
 
 #### mTLS Port
 
@@ -389,11 +389,11 @@ Since port `443` is already used by the HTTPS listener, a second port is configu
 }
 ```
 
-If you have NSG rules configured for the Application Gateway subnet, you may also need to allow inbound traffic on port `53029`.
+The template doesn't have any NSG rules configured for the Application Gateway subnet. If your own setup does, you may also need to allow inbound traffic on port `53029`.
 
 #### mTLS Listener
 
-The mTLS listener is added to the `httpListeners` array:
+The mTLS listener is configured in the `httpListeners` array:
 
 ```bicep
 {
@@ -421,7 +421,7 @@ The listener reuses the frontend IP configuration and SSL certificate from the H
 
 #### Routing Rule
 
-The following entry is added to the `requestRoutingRules` array to route traffic from the mTLS listener to the existing API Management backend:
+The following entry is configured in the `requestRoutingRules` array to route traffic from the mTLS listener to the existing API Management backend:
 
 ```bicep
 {
@@ -520,7 +520,7 @@ To validate the client certificate in API Management, the following policy snipp
             return Convert.FromBase64String(pem);
         }" />
 
-        <!-- Determine if the client certificate is valid and store the reason in a variable -->
+        <!-- Determine if the client certificate is (in)valid and store the reason in a variable -->
         <set-variable name="certificateValidationResult" value="@{
             var certificate = new X509Certificate2(context.Variables.GetValueOrDefault<byte[]>("clientCertificate"));
 
@@ -577,13 +577,13 @@ The full policy implementation can be found in [validate-from-agw.operation.xml]
 
 ### Plugging the Security Hole
 
-The policy implementation relies on the presence of the `X-Client-Certificate` header to verify whether a valid client certificate was provided. But since this is just a string in a request header, an attacker could potentially bypass the check by calling the HTTPS listener (or APIM directly) and including a crafted value for the `X-Client-Certificate` header. You can test this yourself by following the instructions in the [Demonstrate the security concern](https://github.com/ronaldbosma/mtls-with-apim-and-agw/blob/main/demos/demo-scenario2.md#demonstrate-the-security-concern) section of the demo.
+The policy implementation relies on the presence of the `X-Client-Certificate` header to verify whether a valid client certificate was provided. But since this is just a string in a request header, an attacker could potentially bypass the check by calling the HTTPS listener (or APIM directly) and include a crafted value for the `X-Client-Certificate` header. You can test this yourself by following the instructions in the [Demonstrate the security concern](https://github.com/ronaldbosma/mtls-with-apim-and-agw/blob/main/demos/demo-scenario2.md#demonstrate-the-security-concern) section of the demo.
 
 There are several ways to address this:
 1. If mTLS is required for all communication, configuring only an mTLS listener on the Application Gateway is the simplest option.
 2. Another approach is removing the `X-Client-Certificate` header from requests sent to the HTTPS listener, ensuring that only the mTLS listener will add the header to requests forwarded to API Management. This is the solution implemented in the template.
 
-For both approaches, it's also necessary to ensure that API Management is exclusively accessible through the Application Gateway, with direct access restricted. If direct access needs to be supported as well, the ideal approach would involve the Application Gateway authenticating itself to API Management using its own client certificate, and only relying on the `X-Client-Certificate` header in that scenario. As mentioned earlier, this is currently [not possible](https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-faq#is-mutual-authentication-available-between-application-gateway-and-its-backend-pools).
+For both approaches, it's also necessary to ensure that API Management is exclusively accessible through the Application Gateway, with direct access restricted. If direct access needs to be supported as well, the ideal approach would involve the Application Gateway authenticating itself to API Management using its own client certificate and only relying on the `X-Client-Certificate` header in that scenario. As mentioned earlier, this is currently [not possible](https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-faq#is-mutual-authentication-available-between-application-gateway-and-its-backend-pools).
 
 As an alternative, consider adding multiple hostnames to API Management. One hostname can be used exclusively by the Application Gateway, while another can be used for other types of communication. The authentication mechanism can then be determined based on the hostname on which the request was received. Implementing this is beyond the scope of this post.
 
@@ -591,7 +591,7 @@ To remove the `X-Client-Certificate` header from requests sent to the HTTPS list
 
 ![Removing the client certificate header for the HTTPS listener](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-app-gateway-https-and-mtls-listener-3.png)
 
-The following entry is added to the `rewriteRuleSets` array:
+The following entry is configured in the `rewriteRuleSets` array:
 
 ```bicep
 {
@@ -633,11 +633,11 @@ With this, clients won't be able to pass the `X-Client-Certificate` header to AP
 
 The samples above rely on [mTLS strict mode](https://learn.microsoft.com/en-us/azure/application-gateway/mutual-authentication-overview?tabs=portal-passthrough%2Cpowershell#mutual-tls-strict-mode), where the Application Gateway enforces client certificate authentication during the TLS handshake by requiring a valid client certificate. This is the default behavior.
 
-The following sequence diagram shows the behavior for the different client certificates described in the solution overview:
+The following sequence diagram shows what happens for the different client certificates described in the solution overview:
 
 ![Sequence diagram for mTLS strict mode](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/sequence-diagram-agw-strict.png)
 
-As you can see, only certificates issued by a trusted CA are forwarded to API Management. Note that the unregistered certificate passes the Application Gateway's check because it's issued by a trusted CA, but results in a `401 Unauthorized` from API Management because it's not [registered as a valid client certificate](/blog/2024/02/02/validate-client-certificates-in-api-management/#validate-against-uploaded-client-certificates).
+As you can see, only certificates issued by a trusted CA are forwarded to API Management. Note that the unregistered certificate passes the Application Gateway's check because it's issued by a trusted CA, but results in a `401 Unauthorized` from API Management because it's not registered as a valid client certificate (see [previous post](/blog/2024/02/02/validate-client-certificates-in-api-management/#validate-against-uploaded-client-certificates) for details).
 
 In recent years, [mTLS passthrough mode](https://learn.microsoft.com/en-us/azure/application-gateway/mutual-authentication-overview?tabs=portal-passthrough%2Cpowershell#mutual-tls-passthrough-mode) has been added as a second option. In passthrough mode, the Application Gateway requests a client certificate during the TLS handshake but doesn't terminate the connection if the certificate is missing or invalid. The connection to the backend proceeds regardless of the certificate's presence or validity. If a certificate is provided, the Application Gateway can forward it to the backend. The backend service is then responsible for validating the client certificate.
 
@@ -667,9 +667,7 @@ As you can see, all requests are forwarded to API Management in passthrough mode
 
 ### Considerations
 
-The header name `X-ARR-ClientCert` is commonly used to pass a client certificate in similar scenarios. Azure App Service uses this header to pass a client certificate to an application like an ASP.NET Web API. See [Configure TLS mutual authentication for Azure App Service](https://learn.microsoft.com/en-us/azure/app-service/app-service-web-configure-tls-mutual-auth?tabs=azurecli%2Cflask#access-client-certificate) for more details.
-
-Using `X-ARR-ClientCert` as the header name in the Application Gateway when forwarding the certificate to API Management works for tiers like Developer, but it doesn't work in v2 tier API Management instances such as BasicV2. The request header will be empty in those tiers. That's why `X-Client-Certificate` is used as the header name in this template.
+The header `X-ARR-ClientCert` is commonly used to pass a client certificate in similar scenarios. Azure App Service uses it to pass a client certificate to an application like an ASP.NET Web API (see [Configure TLS mutual authentication for Azure App Service](https://learn.microsoft.com/en-us/azure/app-service/app-service-web-configure-tls-mutual-auth?tabs=azurecli%2Cflask#access-client-certificate). However, using it in the Application Gateway when forwarding the certificate to API Management doesn't work in v2 tiers such as BasicV2. In those tiers the header will be empty when it reaches your policies. That's why `X-Client-Certificate` is used as the header name in this template.
 
 ### Conclusion
 
