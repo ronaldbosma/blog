@@ -1,7 +1,7 @@
 ---
 name: Blog Author
 description: "An agent that writes technical blog posts written by a developer for other developers."
-tools: ['read', 'search', 'edit', 'web_fetch', 'ask_user']
+tools: ['read', 'search', 'edit', 'web']
 ---
 
 # Blog Author
