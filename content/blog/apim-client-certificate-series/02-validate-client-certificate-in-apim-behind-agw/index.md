@@ -673,3 +673,10 @@ The header `X-ARR-ClientCert` is commonly used to pass a client certificate in s
 
 In this post, we've explored how to validate a client certificate in API Management when it's behind an Application Gateway. There's quite a bit more involved than simply establishing an mTLS connection with API Management directly. The Application Gateway configuration in particular can be complex at first, so I hope this post gives you a solid start.
 
+The demo solution uses an HTTPS listener alongside an mTLS listener on the Application Gateway. The mTLS listener forwards the client certificate to API Management via the `X-Client-Certificate` header. On the API Management side, a policy reads the forwarded certificate from the header, decodes it and applies the same validation checks as when calling API Management directly.
+
+The solution also addresses the security hole that arises when relying on a header for certificate validation. By stripping the `X-Client-Certificate` header from requests coming through the regular HTTPS listener, clients can't bypass the check. Restricting direct access to API Management so all traffic flows through the Application Gateway is equally important.
+
+The demo supports both strict and passthrough modes on the Application Gateway. Strict mode offloads some of the validation burden to the Application Gateway, while passthrough mode offers more flexibility at the cost of requiring more thorough validation in API Management.
+
+The [next post](/blog/2024/05/24/securing-backend-connections-with-mtls-in-api-management/) in this series covers the other direction: how API Management connects to backend services using mTLS with client certificates.
