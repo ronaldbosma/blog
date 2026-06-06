@@ -38,7 +38,7 @@ I've created an Azure Developer CLI (`azd`) template called [mTLS with Azure API
 
 ![Solution Overview](../../../../../images/apim-client-certificate-series/solution-overview.png)
 
-This blog post focusses on scenario 1: validating client certificates when calling API Management directly. In this scenario, a client calls a Protected API using mTLS. API Management validates the client certificate. See the following diagram for the flow.
+This blog post focuses on scenario 1: validating client certificates when calling API Management directly. In this scenario, a client calls a Protected API using mTLS. API Management validates the client certificate. See the following diagram for the flow.
 
 ![Flow](../../../../../images/apim-client-certificate-series/01-validate-client-certificate-in-apim/flow.png)
 
