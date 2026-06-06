@@ -23,6 +23,12 @@ These quality checks should be performed when writing and reviewing blog posts t
 - [ ] Tool and framework names are spelled and capitalized correctly
 - [ ] Time-sensitive claims (versions, release dates and current limitations) are verified or clearly qualified
 
+## Enforcement
+- The final output MUST explicitly include a completed checklist section confirming each quality check item.
+- Use this exact section heading in the final output: `## QUALITY CHECK RESULT`.
+- The section MUST contain all checklist items from `## Quality Checklist`, each marked as either `- [x]` (completed) or `- [ ]` (not completed).
+- Do not omit checklist items. If an item cannot be completed, leave it unchecked and briefly explain why.
+
 ## Quality Standards
 - Technical accuracy is paramount - verify all code examples and links
 - Ensure all examples are practical and runnable
