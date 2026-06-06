@@ -11,6 +11,10 @@ This repository contains Ronald Bosma's Hugo blog, deployed to GitHub Pages thro
 - `azure-pipelines.yml` — build and deploy pipeline.
 - `archetypes/` — Hugo content archetypes.
 
+## Agent Usage
+
+- Use the `Blog Author` agent when writing or revising blog posts in `content/blog/<slug>/index.md`.
+
 ## Common Commands
 
 ```powershell
