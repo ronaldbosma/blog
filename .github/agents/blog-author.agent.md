@@ -38,6 +38,7 @@ Follow this workflow in strict order. Do not skip, merge or reorder phases.
 	- Validate the draft against `.github/instructions/blog-post.instructions.md`.
 	- Run quality checks from `.github/instructions/blog-post-quality-checks.instructions.md`.
 	- Verify claims against fetched sources and mark unresolved claims explicitly.
+	- After self-review, if more than 3 quality issues are found, regenerate sections 2-5 and rerun self-review before continuing.
 7. **Output final post**
 	- Return the final markdown post.
 	- If evidence gaps remain, include a concise note listing unresolved claims and missing sources.
