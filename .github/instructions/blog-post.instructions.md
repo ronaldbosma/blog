@@ -4,7 +4,7 @@ applyTo: "content/blog/**/index.md"
 
 # Blog Post Instructions
 
-These instructions apply to blog posts. They define the writing style, tone, and structure for technical content, ensuring consistency across posts.
+Use these rules for blog posts.
 
 ### Writing Style & Tone
 - **Professional yet approachable**: Technical content written for experienced developers
@@ -15,13 +15,11 @@ These instructions apply to blog posts. They define the writing style, tone, and
 ### Language & Style Preferences
 - **Word choice**: Use "uses" instead of "utilizes" or "leverages"
 - **Contractions**: Use contractions naturally (it's, you're, we'll, doesn't, can't)
-- **Punctuation**: 
-  - No Oxford comma 
-    - use "A, B and C" not "A, B, and C"
-    - use "A, B or C" not "A, B or C"
-  - Do not use em dashes (`—`) or en dashes (`–`)
-  - Prefer splitting complex sentences into two if necessary
-  - Use commas or parentheses for clarity where needed
+- **Punctuation**:
+   - No Oxford comma (use "A, B and C")
+   - Do not use em dashes (`—`) or en dashes (`–`)
+   - Split overly complex sentences
+   - Use commas or parentheses for clarity
 - **Sentence starters**: Start sentences with "But" when appropriate for flow
 - **Transitions**: Use "however" and "but" naturally in mid-sentence without excessive formality
 - **Descriptive words**: Avoid overuse of "important" and "critical" - use neutral language like "This function does the following:" instead of "This function does several important things:"
@@ -44,10 +42,10 @@ draft: true
 
 #### Introduction
 
-**Opening Pattern**:
+Opening pattern:
 - Start with concise personal context: "I've been working with [technology] on [specific scenario]..."
 - State the problem/challenge clearly and directly
-- Avoid lengthy explanations of why the problem is common - focus on the specific use case
+- Avoid long setup about how common the problem is
 - Mention the solution approach briefly
 - Reference related posts when applicable
 
@@ -60,7 +58,7 @@ In this post, I'll show you how to use API Management policies to transform the 
 
 #### Content Sections
 
-**Content Structure**:
+Content structure:
 1. **Table of Contents** (using `### Table of Contents` heading)
    - Always include for posts with multiple sections
    - Use lowercase anchors with hyphens: `#section-name`
@@ -78,7 +76,7 @@ In this post, I'll show you how to use API Management policies to transform the 
 4. **Code Examples**:
    - Use proper language tags in fenced code blocks
    - Include practical, runnable examples
-   - Show both "before" and "after" code when refactoring
+   - Show "before" and "after" when refactoring
    - Explain non-obvious parts after code blocks
 
 5. **Conclusion**:
@@ -93,13 +91,13 @@ For all section headers (###), use standard title casing (e.g., ### Prerequisite
 
 #### Code Examples
 
-**Code Block Guidelines**:
+Code block guidelines:
 - Always specify language: `csharp`, `bicep`, `powershell`, `gherkin`, `yaml`, `xml`
 - Include context comments when helpful
 - Show complete, working examples rather than fragments
 - Use descriptive variable/method names
 
-**Technical Explanations**:
+Technical explanations:
 - Explain the "why" before the "how"
 - Use neutral descriptive language: "This function does the following:" instead of "This function does several important things:"
 - Avoid overuse of emphasis words like "important," "critical," "essential"
@@ -108,25 +106,25 @@ For all section headers (###), use standard title casing (e.g., ### Prerequisite
 - Mention limitations and alternative approaches
 - When explaining code or processes, use natural paragraph flow instead of bold-highlighted concepts
 
-**Image References**:
+Image references:
 - Reference images relative to post folder: `../../../../../images/[post-name]/image.png`
 - Use descriptive alt text
 - Include diagrams for architectural concepts
 
 ### Common Elements
 
-**Technology References**:
+Technology references:
 - Link to official documentation on first mention
 - Use proper capitalization: "SpecFlow", "Reqnroll", "API Management", "Azure Pipelines"
 - Include version numbers when relevant: "PSRule version 2.9.0"
 
-**Step Patterns**:
+Step patterns:
 - "Let's start with..." for first examples
 - "Next, we'll..." for progression
 - "Here's how..." for explanations
 - "As you can see..." for code analysis
 
-**Transition Phrases**:
+Transition phrases:
 - "Based on [reference]..." when citing sources
 - "In this section, we'll explore..." for new topics
 - "While [approach A] works, [approach B]..." for comparisons

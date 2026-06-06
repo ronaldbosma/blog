@@ -4,7 +4,7 @@ applyTo: "content/blog/**/index.md"
 
 # Blog Post Quality Checks
 
-These quality checks should be performed when writing and reviewing blog posts to ensure consistency, accuracy, and adherence to the established writing style and standards.
+Use these checks when writing and reviewing blog posts.
 
 ## Quality Checklist
 - [ ] Front matter complete with appropriate tags
@@ -24,13 +24,13 @@ These quality checks should be performed when writing and reviewing blog posts t
 - [ ] Time-sensitive claims (versions, release dates and current limitations) are verified or clearly qualified
 
 ## Enforcement
-- The final output MUST explicitly include a completed checklist section confirming each quality check item.
+- The final output must include a completed checklist section for every item.
 - Use this exact section heading in the final output: `## QUALITY CHECK RESULT`.
-- The section MUST contain all checklist items from `## Quality Checklist`, each marked as either `- [x]` (completed) or `- [ ]` (not completed).
+- The section must contain all items from `## Quality Checklist`, each marked `- [x]` or `- [ ]`.
 - Do not omit checklist items. If an item cannot be completed, leave it unchecked and briefly explain why.
 
 ## Quality Standards
-- Technical accuracy is paramount - verify all code examples and links
+- Verify all code examples and links
 - Ensure all examples are practical and runnable
 - Double-check Microsoft technology references and version numbers
 - Distinguish verified facts from assumptions when source material is incomplete
