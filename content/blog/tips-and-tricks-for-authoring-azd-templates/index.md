@@ -51,7 +51,7 @@ I tried it out, loved it and never looked back.
 
 ### Use Existing Templates
 
-Before creating your own template, check [Awesome azd](https://azure.github.io/awesome-azd/). It has a great collection of ready-to-use templates and there might be one that fits your needs.
+Before creating your own template, check [Awesome azd](https://azure.github.io/awesome-azd/templates/). It has a great collection of ready-to-use templates and there might be one that fits your needs.
 
 ### Create Your Own Template
 
@@ -61,7 +61,7 @@ The guide on [Create Azure Developer CLI templates overview](https://learn.micro
 
 ### Publish Your Template
 
-Once you've created your template, you can publish it on [Awesome azd](https://azure.github.io/awesome-azd/) so other users can find it. The [contribution guide](https://azure.github.io/awesome-azd/docs/contribute/) explains the process.
+Once you've created your template, you can publish it on [Awesome azd](https://azure.github.io/awesome-azd/templates/) so other users can find it. The [contribution guide](https://azure.github.io/awesome-azd/docs/contribute/) explains the process.
 
 If your template can be used in Microsoft training courses (like AZ-104 or AZ-204), check if you can also publish it on [Trainer Demo Deploy](https://microsoftlearning.github.io/trainer-demo-deploy/). This site contains a subset of templates specifically created for trainers. The [contribution guide](https://microsoftlearning.github.io/trainer-demo-deploy/docs/contribute) provides details on how to submit your template.
 
@@ -346,6 +346,6 @@ Creating azd templates has made it significantly easier for me to share and depl
 
 The tips I've shared in this post cover the lessons I've learned from creating multiple azd templates. From basic parameter management to more advanced topics like handling Entra ID resources and eventual consistency, these practices have helped me create more robust and user-friendly templates.
 
-If you have Bicep or Terraform templates lying around, I encourage you to turn them into azd templates. The initial setup effort is minimal and it makes your work much more accessible to others. Plus, contributing to [Awesome azd](https://azure.github.io/awesome-azd/) is a great way to give back to the community.
+If you have Bicep or Terraform templates lying around, I encourage you to turn them into azd templates. The initial setup effort is minimal and it makes your work much more accessible to others. Plus, contributing to [Awesome azd](https://azure.github.io/awesome-azd/templates/) is a great way to give back to the community.
 
 In my [next blog post](/blog/2026/03/02/github-actions-workflow-for-azure-developer-cli-azd-templates/), I dive deeper into the GitHub Actions workflow setup I use to automatically test my templates.
