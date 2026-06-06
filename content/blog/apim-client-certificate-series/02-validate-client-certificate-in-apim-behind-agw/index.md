@@ -2,7 +2,7 @@
 title: "Validate client certificates in API Management when it's behind an Application Gateway"
 date: 2024-02-19T19:00:00+01:00
 publishdate: 2024-02-19T19:00:00+01:00
-lastmod: 2026-06-05T18:00:00+02:00
+lastmod: 2026-06-06T11:00:00+02:00
 tags: [ "Azure", "API Management", "Application Gateway", "Azure Integration Services", "Bicep", "Client Certificates", "Infra as Code", "mTLS", "Security" ]
 series: [ "client-certificates-and-mtls-in-api-management" ]
 summary: "It's not uncommon for Azure API Management to be deployed in a Virtual Network, only allowing external access via an Azure Application Gateway. In this second post on working with client certificates in API Management, we'll explore how to configure an Application Gateway for mTLS and forward the client certificate to API Management for further validation. We'll also look at the difference between strict and passthrough modes."
@@ -40,7 +40,7 @@ I've created an Azure Developer CLI (`azd`) template called [mTLS with Azure API
 
 > Note that API Management is deployed in External mode in this template to support scenario 1 where direct access from the internet is necessary. When fronting API Management by an Application Gateway, you would normally deploy it inside the Virtual Network in internal mode.
 
-This blog post focusses on scenario 2: validating client certificates when API Management is behind an Application Gateway. In this scenario, a client calls API Management via an Application Gateway using mTLS. The Application Gateway terminates the mTLS session, validates the client certificate (when in strict mode) and forwards the client certificate to API Management in a request header. API Management then validates the forwarded certificate.
+This blog post focuses on scenario 2: validating client certificates when API Management is behind an Application Gateway. In this scenario, a client calls API Management via an Application Gateway using mTLS. The Application Gateway terminates the mTLS session, validates the client certificate (when in strict mode) and forwards the client certificate to API Management in a request header. API Management then validates the forwarded certificate.
 
 ![Flow](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/flow.png)
 
@@ -307,7 +307,7 @@ The components configured for the HTTPS listener, such as the SSL certificate an
 
 A second listener accepts traffic on port `53029`. An SSL profile with trusted certificates is configured to validate the client certificate and a new routing rule routes traffic to the existing API Management backend.
 
-Note that this setup allows both TLS and mTLS traffic to the Application Gateway as show in the following diagram.
+Note that this setup allows both TLS and mTLS traffic to the Application Gateway as shown in the following diagram.
 
 ![Listeners on Application Gateway](../../../../../images/apim-client-certificate-series/02-validate-client-certificate-in-apim-behind-agw/diagrams-listeners-on-agw.png)
 
@@ -667,7 +667,7 @@ As you can see, all requests are forwarded to API Management in passthrough mode
 
 ### Considerations
 
-The header `X-ARR-ClientCert` is commonly used to pass a client certificate in similar scenarios. Azure App Service uses it to pass a client certificate to an application like an ASP.NET Web API (see [Configure TLS mutual authentication for Azure App Service](https://learn.microsoft.com/en-us/azure/app-service/app-service-web-configure-tls-mutual-auth?tabs=azurecli%2Cflask#access-client-certificate). However, using it in the Application Gateway when forwarding the certificate to API Management doesn't work in v2 tiers such as BasicV2. In those tiers the header will be empty when it reaches your policies. That's why `X-Client-Certificate` is used as the header name in this template.
+The header `X-ARR-ClientCert` is commonly used to pass a client certificate in similar scenarios. Azure App Service uses it to pass a client certificate to an application like an ASP.NET Web API (see [Configure TLS mutual authentication for Azure App Service](https://learn.microsoft.com/en-us/azure/app-service/app-service-web-configure-tls-mutual-auth?tabs=azurecli%2Cflask#access-client-certificate)). However, using it in the Application Gateway when forwarding the certificate to API Management doesn't work in v2 tiers such as BasicV2. In those tiers the header will be empty when it reaches your policies. That's why `X-Client-Certificate` is used as the header name in this template.
 
 ### Conclusion
 
