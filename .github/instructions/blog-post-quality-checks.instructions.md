@@ -24,7 +24,7 @@ Use these checks when writing and reviewing blog posts.
 - [ ] Time-sensitive claims (versions, release dates and current limitations) are verified or clearly qualified
 
 ## Enforcement
-- The final output must include a completed checklist section for every item.
+- Final output must include a completed checklist section for every item.
 - Use this exact section heading in the final output: `## QUALITY CHECK RESULT`.
 - The section must contain all items from `## Quality Checklist`, each marked `- [x]` or `- [ ]`.
 - Do not omit checklist items. If an item cannot be completed, leave it unchecked and briefly explain why.

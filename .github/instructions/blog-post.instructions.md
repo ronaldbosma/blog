@@ -7,7 +7,7 @@ applyTo: "content/blog/**/index.md"
 Use these rules for blog posts.
 
 ### Writing Style & Tone
-- **Professional yet approachable**: Technical content written for experienced developers
+- **Professional yet approachable**: Write for experienced developers
 - **First-person perspective**: Use "I" when sharing personal experiences and opinions
 - **Problem-solution structure**: Start with a real-world challenge, then provide practical solutions
 - **Microsoft technology focus**: Azure, .NET, SpecFlow/Reqnroll, API Management, testing frameworks
@@ -16,7 +16,7 @@ Use these rules for blog posts.
 - **Word choice**: Use "uses" instead of "utilizes" or "leverages"
 - **Contractions**: Use contractions naturally (it's, you're, we'll, doesn't, can't)
 - **Punctuation**:
-   - No Oxford comma (use "A, B and C")
+   - No Oxford comma ("A, B and C")
    - Do not use em dashes (`—`) or en dashes (`–`)
    - Split overly complex sentences
    - Use commas or parentheses for clarity
@@ -64,7 +64,7 @@ Content structure:
    - Use lowercase anchors with hyphens: `#section-name`
 
 2. **Introduction/Prerequisites** sections when needed
-   - Installation commands in PowerShell format
+   - Installation commands in PowerShell
    - Prerequisites clearly listed
    - Links to official documentation
 
@@ -81,12 +81,12 @@ Content structure:
 
 5. **Conclusion**:
    - Summarize key benefits
-   - Mention areas for improvement or future exploration
+   - Mention improvement or future exploration
    - Link to related resources or next steps
 
 #### Table of Contents and Headings Formatting
 
-In the Table of Contents, use standard title casing for the link text and lower case and kebab-case for the actual anchor links (e.g., [Prerequisites](#prerequisites)).
+In the Table of Contents, use title case for link text and lowercase kebab-case for anchors (e.g., [Prerequisites](#prerequisites)).
 For all section headers (###), use standard title casing (e.g., ### Prerequisites, ### Testing with an HTML Form). Do not use lower case for section headers.
 
 #### Code Examples
@@ -94,7 +94,7 @@ For all section headers (###), use standard title casing (e.g., ### Prerequisite
 Code block guidelines:
 - Always specify language: `csharp`, `bicep`, `powershell`, `gherkin`, `yaml`, `xml`
 - Include context comments when helpful
-- Show complete, working examples rather than fragments
+- Prefer complete, working examples over fragments
 - Use descriptive variable/method names
 
 Technical explanations:
