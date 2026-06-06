@@ -19,8 +19,12 @@ These quality checks should be performed when writing and reviewing blog posts t
 - [ ] No Oxford commas used (A, B and C format)
 - [ ] Minimal use of bold text in paragraphs
 - [ ] Neutral descriptive language instead of emphasis words like "important" or "critical"
+- [ ] Raw prompt typos and shorthand normalized without changing technical intent
+- [ ] Tool and framework names are spelled and capitalized correctly
+- [ ] Time-sensitive claims (versions, release dates and current limitations) are verified or clearly qualified
 
 ## Quality Standards
 - Technical accuracy is paramount - verify all code examples and links
 - Ensure all examples are practical and runnable
 - Double-check Microsoft technology references and version numbers
+- Distinguish verified facts from assumptions when source material is incomplete
