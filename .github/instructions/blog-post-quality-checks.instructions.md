@@ -1,10 +1,10 @@
 ---
-applyTo: "content/blog/**/index.md,content/series/**/index.md"
+applyTo: "content/blog/**/index.md"
 ---
 
 # Blog Post Quality Checks
 
-These quality checks should be performed when writing and reviewing blog posts and series landing pages to ensure consistency, accuracy, and adherence to the established writing style and standards.
+These quality checks should be performed when writing and reviewing blog posts to ensure consistency, accuracy, and adherence to the established writing style and standards.
 
 ## Quality Checklist
 - [ ] Front matter complete with appropriate tags

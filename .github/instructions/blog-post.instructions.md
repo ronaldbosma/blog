@@ -1,10 +1,10 @@
 ---
-applyTo: "content/blog/**/index.md,content/series/**/index.md"
+applyTo: "content/blog/**/index.md"
 ---
 
 # Blog Post Instructions
 
-These instructions apply to blog posts and series landing pages. They define the writing style, tone, and structure for technical content, ensuring consistency across posts.
+These instructions apply to blog posts. They define the writing style, tone, and structure for technical content, ensuring consistency across posts.
 
 ### Writing Style & Tone
 - **Professional yet approachable**: Technical content written for experienced developers
