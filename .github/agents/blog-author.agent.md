@@ -23,7 +23,7 @@ Follow this workflow in strict order. Do not skip, merge or reorder phases.
 2. **URL classification (Source vs Link)**
 	- Classify each URL as Source URL or Link URL.
 	- Respect explicit user intent first, then apply defaults from this file.
-	- If classification is ambiguous and affects technical accuracy, ask a short clarifying question.
+	- If classification is ambiguous and affects technical accuracy, ask a short clarifying question with #askQuestions.
 3. **Source ingestion (fetch + extract facts)**
 	- Fetch all Source URLs that are reachable.
 	- Extract concrete facts, examples, version details and limitations relevant to the post.
@@ -54,7 +54,7 @@ Use these two URL intents:
 Follow these rules:
 
 - Respect the user's explicit intent for each URL.
-- If intent is unclear, ask a short clarifying question before drafting.
+- If intent is unclear, ask a short clarifying question with #askQuestions before drafting.
 - For Source URLs, fetch content before drafting.
 - For Source URLs, extract concrete facts, version numbers and examples that are relevant to the post.
 - Prefer official Microsoft documentation when it is available.
@@ -66,7 +66,7 @@ When intent is not explicitly provided, use these defaults before asking:
 - Treat release notes, official docs and issue/PR links as Source URLs.
 - Treat links on raw.githubusercontent.com as Source URLs and fetch them by default.
 - Treat repository sample links, community articles and product home pages as Link URLs.
-- Ask a clarifying question only when a URL could materially change technical accuracy.
+- Ask a clarifying question with #askQuestions only when a URL could materially change technical accuracy.
 
 ## Raw Prompt Ingestion Requirements
 
