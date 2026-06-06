@@ -31,7 +31,7 @@ In the previous posts, we covered how to validate client certificates in Azure A
 
 ### Solution Overview
 
-I've created an Azure Developer CLI (`azd`) template called [mTLS with Azure API Management and Application Gateway](https://github.com/ronaldbosma/mtls-with-apim-and-agw) that demonstrates three scenarios: validate client certificates when calling API Management directly, when API Management is behind an Application Gateway and how to secure connections from API Management to backend systems using mTLS. See the following diagram for an overview of the solution.
+I've created an Azure Developer CLI (`azd`) template called [mTLS with Azure API Management and Application Gateway](https://github.com/ronaldbosma/mtls-with-apim-and-agw) that demonstrates three scenarios: validating client certificates when calling API Management directly, validating them when API Management is behind an Application Gateway and securing connections from API Management to backend systems using mTLS. See the following diagram for an overview of the solution.
 
 ![Solution Overview](../../../../../images/apim-client-certificate-series/solution-overview.png)
 
@@ -141,7 +141,7 @@ With the backend configured, wiring it up to an API operation is straightforward
 <set-backend-service backend-id="protected-backend" />
 ```
 
-The Unprotected API hass been set up to accept all `GET` requests on `/{*path}` and forwards them to the `protected-backend` using this policy. This means a call to `GET /unprotected/validate-using-policy` is forwarded as `GET /protected/validate-using-policy`.
+The Unprotected API has been set up to accept all `GET` requests on `/{*path}` and forwards them to the `protected-backend` using this policy. This means a call to `GET /unprotected/validate-using-policy` is forwarded as `GET /protected/validate-using-policy`.
 
 See [unprotected-api.xml](https://github.com/ronaldbosma/mtls-with-apim-and-agw/blob/main/infra/03-application/unprotected-api/unprotected-api.xml) for the full policy.
 
