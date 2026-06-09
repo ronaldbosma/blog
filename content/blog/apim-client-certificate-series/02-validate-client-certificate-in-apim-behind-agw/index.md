@@ -675,8 +675,8 @@ In this post, we've explored how to validate a client certificate in API Managem
 
 The demo solution uses an HTTPS listener alongside an mTLS listener on the Application Gateway. The mTLS listener forwards the client certificate to API Management via the `X-Client-Certificate` header. On the API Management side, a policy reads the forwarded certificate from the header, decodes it and applies the same validation checks as when calling API Management directly.
 
-The solution also addresses the security hole that arises when relying on a header for certificate validation. By stripping the `X-Client-Certificate` header from requests coming through the regular HTTPS listener, clients can't bypass the check. Restricting direct access to API Management so all traffic flows through the Application Gateway is equally important.
+The solution also addresses the security hole that can appear when relying on a header for certificate validation. By stripping the `X-Client-Certificate` header from requests coming through the regular HTTPS listener, clients can't bypass the check. Restricting direct access to API Management so all traffic flows through the Application Gateway is equally important.
 
-The demo supports both strict and passthrough modes on the Application Gateway. Strict mode offloads some of the validation burden to the Application Gateway, while passthrough mode offers more flexibility at the cost of requiring more thorough validation in API Management.
+[The demo](https://github.com/ronaldbosma/mtls-with-apim-and-agw/blob/main/demos/demo-scenario2.md) supports both strict and passthrough modes on the Application Gateway. Strict mode offloads some of the validation burden to the Application Gateway, while passthrough mode offers more flexibility at the cost of requiring more thorough validation in API Management.
 
 The [next post](/blog/2024/05/24/securing-backend-connections-with-mtls-in-api-management/) in this series covers the other direction: how API Management connects to backend services using mTLS with client certificates.
