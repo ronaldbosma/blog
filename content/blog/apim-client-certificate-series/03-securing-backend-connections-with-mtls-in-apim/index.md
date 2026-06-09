@@ -66,7 +66,7 @@ If you want to deploy and try the solution, check out the [getting started secti
 
 The Unprotected API needs a client certificate with a private key to authenticate to the Protected API backend. In Azure, Key Vault is the place to store these. For the sample template, all client certificates are imported into Key Vault in [postprovision-import-client-certificates.ps1](https://github.com/ronaldbosma/mtls-with-apim-and-agw/blob/main/infra/01-core/hooks/postprovision-import-client-certificates.ps1), including the one for the Unprotected API.
 
-Once the certificate is available in Key Vault, it can be references from API Management through the [Microsoft.ApiManagement/service/certificates](https://learn.microsoft.com/en-us/azure/templates/microsoft.apimanagement/service/certificates?pivots=deployment-language-bicep) resource:
+Once the certificate is available in Key Vault, it can be referenced from API Management through the [Microsoft.ApiManagement/service/certificates](https://learn.microsoft.com/en-us/azure/templates/microsoft.apimanagement/service/certificates?pivots=deployment-language-bicep) resource:
 
 ```bicep
 resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' existing = {
