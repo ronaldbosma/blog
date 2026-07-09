@@ -6,7 +6,7 @@ lastmod: 2025-02-21T11:00:00+01:00
 tags: [ "API Management", "Azure", "Azure Functions", "Azure Integration Services", "azd", "Bicep", "Event Hub", "Infra as Code", "Logic Apps", "Service Bus" ]
 ---
 
-I've recently published a Bicep template for quickly deploying Azure Integration Services, including Azure API Management, Function App, Logic App, Service Bus and Event Hubs namespace, along with supporting resources such as Application Insights, Key Vault and Storage Account. This template is ideal for demos, testing or getting started with Azure Integration Services. It can be deployed using the Azure Developer CLI (azd) and is available on [awesome-azd](https://azure.github.io/awesome-azd/?name=Azure+Integration+Services+Quickstart) and [GitHub](https://github.com/ronaldbosma/azure-integration-services-quickstart).
+I've recently published a Bicep template for quickly deploying Azure Integration Services, including Azure API Management, Function App, Logic App, Service Bus and Event Hubs namespace, along with supporting resources such as Application Insights, Key Vault and Storage Account. This template is ideal for demos, testing or getting started with Azure Integration Services. It can be deployed using the Azure Developer CLI (azd) and is available on [awesome-azd](https://azure.github.io/awesome-azd/templates?name=Azure+Integration+Services+Quickstart) and [GitHub](https://github.com/ronaldbosma/azure-integration-services-quickstart).
 
 The template is designed to simplify and accelerate the deployment of Azure Integration Services for:
 
