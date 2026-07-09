@@ -1,8 +1,8 @@
 ---
 title: "Deep Object Comparison in MSTest with Assert.AreEquivalent"
-date: 2026-06-01T20:00:00+02:00
-publishdate: 2026-06-01T20:00:00+02:00
-lastmod: 2026-06-01T20:00:00+02:00
+date: 2026-07-09T20:00:00+02:00
+publishdate: 2026-07-09T20:00:00+02:00
+lastmod: 2026-07-09T20:00:00+02:00
 tags: [ "MSTest", "Test Automation", ".NET", "Testing" ]
 summary: "MSTest v4.3.0 introduces the Assert.AreEquivalent<T> method that performs a deep equality comparison of two objects, checking that all properties have the same value. In this post, I'll show you what it can do and how it compares to AwesomeAssertions and Shouldly."
 draft: true
@@ -12,14 +12,14 @@ I've used [FluentAssertions](https://fluentassertions.com/) in many test project
 
 When FluentAssertions changed its license, I looked at alternatives. [AwesomeAssertions](https://awesomeassertions.org/) is a fork of FluentAssertions before the license change and has the same interface. [Shouldly](https://docs.shouldly.org/) is a popular alternative that has gained traction as well.
 
-I also noticed that [xUnit introduced its own implementation](https://xunit.net/releases/v2/2.4.2.html) back in August 2022. Because I regularly use MSTest, I thought it would be a nice addition to MSTest too. So, I registered [this issue](https://github.com/microsoft/testfx/issues/4776) a while back. 
+I also noticed that [xUnit introduced its own implementation](https://xunit.net/releases/v2/2.4.2.html) back in August 2022. Because I regularly use MSTest, I thought it would be a nice addition as well. So, I registered [this issue](https://github.com/microsoft/testfx/issues/4776) a while back. 
 
-Fast forward July 2026 and MSTest v4.3.0 is released which introduces the `Assert.AreEquivalent<T>` method. In this post I'll walk you through what it can do and how it compares to AwesomeAssertions and Shouldly. I've created a small [sample solution](https://github.com/ronaldbosma/blog-code-examples/tree/master/MSTest.AreEquivalent) that shows the three frameworks side by side.
+Fast forward to July 2026 and MSTest v4.3.0 is released, which introduces the `Assert.AreEquivalent<T>` method. In this post, I'll walk you through what it can do and how it compares to AwesomeAssertions and Shouldly. I've created a small [sample solution](https://github.com/ronaldbosma/blog-code-examples/tree/master/MSTest.AreEquivalent) that shows the three frameworks side by side.
 
 ### Table of Contents
 
 - [Test Setup](#test-setup)
-- [Assert.AreEqual vs Assert.AreEquivalent<T>](#assertareequal-vs-assertareequivalent)
+- [Assert.AreEqual vs Assert.AreEquivalent](#assertareequal-vs-assertareequivalent)
 - [Cross-Type Comparison](#cross-type-comparison)
 - [Nested Objects](#nested-objects)
 - [Collection Comparison](#collection-comparison)
@@ -49,10 +49,9 @@ internal class AddressInternal
 }
 ```
 
+### Assert.AreEqual vs Assert.AreEquivalent
 
-### Assert.AreEqual vs Assert.AreEquivalent<T>
-
-Before MSTest v4.3.0, `Assert.AreEqual` was the method you could use for comparison. It relies on the `Equals` method of the objects being compared. This works great for structs and records, but for other classes this means comparing object references rather than property values.
+Before MSTest v4.3.0, `Assert.AreEqual` was the method you could use for comparison. It relies on the `Equals` method of the objects being compared. This works great for structs and records, but for other classes it compares object references rather than property values.
 
 Here are three tests that demonstrate the behaviour:
 
@@ -235,8 +234,6 @@ public void AreEquivalent_CollectionsOfObjectsWithDifferentValues_AssertionFails
 }
 ```
 
-This works well for straightforward cases where you want to verify that two collections contain objects with the same property values.
-
 ### Types with Extra Properties
 
 Sometimes you might need to compare two similar types where one of them has additional properties. Consider an `AddressWithExtraProperty` type that has an extra `Country` property. Here's an example:
@@ -287,6 +284,6 @@ This test passes with AwesomeAssertions even though `Street` differs between the
 
 The new `Assert.AreEquivalent<T>` method in MSTest v4.3.0 fills a gap that previously required a third-party library. It handles deep property comparison, works across different types with the same shape and supports collections. If you're already using MSTest and want to reduce dependencies, this is a welcome addition.
 
-The implementation isn't complete though. Ignoring properties during comparison is a common need that isn't supported at the time of writing. 
+The implementation isn't complete yet. Ignoring properties during comparison is a common need that isn't supported at the time of writing. 
 
 If you want to try it yourself, the [sample solution](https://github.com/ronaldbosma/blog-code-examples/tree/master/MSTest.AreEquivalent) on GitHub contains all the examples from this post for AwesomeAssertions, Shouldly and MSTest side by side, along with additional scenarios.
