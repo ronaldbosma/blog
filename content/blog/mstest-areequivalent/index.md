@@ -14,7 +14,7 @@ When FluentAssertions changed its license, I looked at alternatives. [AwesomeAss
 
 I also noticed that [xUnit introduced its own implementation](https://xunit.net/releases/v2/2.4.2.html) back in August 2022. Because I regularly use MSTest, I thought it would be a nice addition to MSTest too. So, I registered [this issue](https://github.com/microsoft/testfx/issues/4776) a while back. 
 
-In July 2026, MSTest v4.3.0 was released which introduced the `Assert.AreEquivalent<T>` method. In this post I'll walk you through what it can do and how it compares to AwesomeAssertions and Shouldly. I've created a small [sample solution](https://github.com/ronaldbosma/blog-code-examples/tree/master/MSTest.AreEquivalent) that shows the three frameworks side by side.
+Fast forward July 2026 and MSTest v4.3.0 is released which introduces the `Assert.AreEquivalent<T>` method. In this post I'll walk you through what it can do and how it compares to AwesomeAssertions and Shouldly. I've created a small [sample solution](https://github.com/ronaldbosma/blog-code-examples/tree/master/MSTest.AreEquivalent) that shows the three frameworks side by side.
 
 ### Table of Contents
 
@@ -24,7 +24,7 @@ In July 2026, MSTest v4.3.0 was released which introduced the `Assert.AreEquival
 - [Nested Objects](#nested-objects)
 - [Collection Comparison](#collection-comparison)
 - [Types with Extra Properties](#types-with-extra-properties)
-- [Limitations](#limitations)
+- [No Support for Ignoring Properties](#no-support-for-ignoring-properties)
 - [Conclusion](#conclusion)
 
 ### Test Setup
@@ -49,7 +49,6 @@ internal class AddressInternal
 }
 ```
 
-I've also created an `AddressExternal` class that has the exact same properties. Having external and internal versions of a model is a common scenario in projects. This will let us check whether a library can handle comparing different types.
 
 ### Assert.AreEqual vs Assert.AreEquivalent<T>
 
@@ -68,7 +67,7 @@ public void AreEqual_ExpectedAndActualAreSameObject_Success()
 }
 
 [TestMethod]
-public void AreEqual_ExpectedAndActualAreDifferentObjectsWithSameValues_AssertionFails()
+public void AreEqual_ExpectedAndActualAreDifferentObjectsWithDifferentValues_AssertionFails()
 {
     var expected = new AddressInternal("123 Main St", "Anytown", "CA", "12345");
     var actual = new AddressInternal("456 Elm St", "Othertown", "NY", "67890");
@@ -79,12 +78,12 @@ public void AreEqual_ExpectedAndActualAreDifferentObjectsWithSameValues_Assertio
 }
 
 [TestMethod]
-public void AreEqual_ExpectedAndActualAreDifferentTypesWithSameValues_TestFailsAlthoughObjectsAreEquivalent()
+public void AreEqual_ExpectedAndActualAreDifferentObjectsWithSameValues_TestFailsAlthoughObjectsAreEquivalent()
 {
     var expected = new AddressInternal("123 Main St", "Anytown", "CA", "12345");
-    var actual = new AddressExternal("123 Main St", "Anytown", "CA", "12345");
+    var actual = new AddressInternal("123 Main St", "Anytown", "CA", "12345");
 
-    Assert.AreEqual<object>(expected, actual);
+    Assert.AreEqual(expected, actual);
 }
 ```
 
@@ -114,6 +113,24 @@ public void AreEquivalent_ExpectedAndActualAreDifferentObjectsWithDifferentValue
 }
 
 [TestMethod]
+public void AreEquivalent_ExpectedAndActualAreDifferentObjectsWithSameValues_Success()
+{
+    var expected = new AddressInternal("123 Main St", "Anytown", "CA", "12345");
+    var actual = new AddressInternal("123 Main St", "Anytown", "CA", "12345");
+
+    Assert.AreEquivalent(expected, actual);
+}
+```
+
+The third test now passes as well because `AreEquivalent` checks the properties of both objects and compares their values rather than relying on `Equals`. 
+
+
+### Cross-Type Comparison
+
+The `AreEquivalent` method can also compare objects of different types as long as they share the same properties. For example, comparing an `AddressInternal` object with an `AddressExternal` object that has the exact same properties works:
+
+```csharp
+[TestMethod]
 public void AreEquivalent_ExpectedAndActualAreDifferentTypesWithSameValues_Success()
 {
     var expected = new AddressInternal("123 Main St", "Anytown", "CA", "12345");
@@ -121,13 +138,7 @@ public void AreEquivalent_ExpectedAndActualAreDifferentTypesWithSameValues_Succe
 
     Assert.AreEquivalent<object>(expected, actual);
 }
-```
 
-The third test now passes as well because `AreEquivalent` checks the properties of both objects and compares their values rather than relying on `Equals`. 
-
-Note that there is only a generic implementation of `Assert.AreEquivalent`. So, we need to specify `<object>` to compare different objects. To verify that `Assert.AreEquivalent` actually performs the comparison, here's a test that checks that the assertion fails because the street has a different value.
-
-```csharp
 [TestMethod]
 public void AreEquivalent_ExpectedAndActualAreDifferentTypesWithDifferentValues_AssertionFails()
 {
@@ -142,9 +153,11 @@ public void AreEquivalent_ExpectedAndActualAreDifferentTypesWithDifferentValues_
 }
 ```
 
-### Cross-Type Comparison
+The first test shows that the assertion succeeds as long as the property values are the same, and the second test shows it fails when a property value differs. In this case the street.
 
-As shown in the previous section, `Assert.AreEquivalent<T>` can compare objects of different types as long as they share the same property names and values. AwesomeAssertions handles this the same way. Shouldly, however, doesn't support comparing different types, so that's something to keep in mind if you're considering it as an alternative.
+Note that there is only a generic implementation of `AreEquivalent`. So, we need to specify `<object>` to compare different objects.
+
+AwesomeAssertions handles this the same way. Shouldly, however, doesn't support comparing different types, so that's something to keep in mind if you're considering it as an alternative.
 
 ### Nested Objects
 
@@ -152,7 +165,7 @@ Complex child objects are also supported. For example, a `PersonInternal` object
 
 ```csharp
 [TestMethod]
-public void AreEquivalent_EquivalentNestedObjectsOfDifferentTypes_Success()
+public void AreEquivalent_NestedObjectsOfDifferentTypesWithSameValues_Success()
 {
     var expected = new PersonInternal("John", "Doe", 30,
         new AddressInternal("123 Main St", "Anytown", "CA", "12345"));
@@ -180,11 +193,11 @@ public void AreEquivalent_NestedObjectsOfDifferentTypesWithDifferentValues_Asser
 
 ### Collection Comparison
 
-Comparing collections also works with `Assert.AreEquivalent<T>`. Here's an example using a list of addresses:
+Comparing collections also works with `AreEquivalent`. Here's an example using a list of addresses:
 
 ```csharp
 [TestMethod]
-public void AreEquivalent_CollectionsWithSameObjects_Success()
+public void AreEquivalent_CollectionsOfObjectsWithSameValues_Success()
 {
     var expected = new List<AddressInternal>
     {
@@ -201,7 +214,7 @@ public void AreEquivalent_CollectionsWithSameObjects_Success()
 }
 
 [TestMethod]
-public void AreEquivalent_DifferentListOfObjects_AssertionFails()
+public void AreEquivalent_CollectionsOfObjectsWithDifferentValues_AssertionFails()
 {
     var expected = new List<AddressInternal>
     {
@@ -251,9 +264,9 @@ public void AreEquivalent_ExpectedHasExtraProperty_AssertionFails()
 }
 ```
 
-Similar to AwesomeAssertions, the objects are considered equivalent when the actual object has the extra property and different when the expected property has the extra property.
+Similar to AwesomeAssertions, the objects are considered equivalent when the actual object has the extra property and different when expected has the extra property.
 
-### Limitations
+### No Support for Ignoring Properties
 
 The current implementation is a solid first step, but it's not feature-complete yet. One noticeable gap is the lack of support for ignoring specific properties during comparison. AwesomeAssertions supports this through its options parameter:
 
