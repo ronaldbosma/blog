@@ -5,7 +5,6 @@ publishdate: 2026-07-09T20:00:00+02:00
 lastmod: 2026-07-09T20:00:00+02:00
 tags: [ "MSTest", "Test Automation", ".NET", "Testing" ]
 summary: "MSTest v4.3.0 introduces the Assert.AreEquivalent<T> method that performs a deep equality comparison of two objects, checking that all properties have the same value. In this post, I'll show you what it can do and how it compares to AwesomeAssertions and Shouldly."
-draft: true
 ---
 
 I've used [FluentAssertions](https://fluentassertions.com/) in many test projects over the years. The fluent API is great, but the feature I relied on most was the `Should().BeEquivalentTo` extension method. It performs a deep equality comparison of two objects by checking that all properties have the same value. Using it means you don't have to write code to check each property yourself, keeping tests clean and easy to write.
