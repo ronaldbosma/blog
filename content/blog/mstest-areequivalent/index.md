@@ -2,7 +2,7 @@
 title: "Deep Object Comparison in MSTest with Assert.AreEquivalent"
 date: 2026-07-09T20:00:00+02:00
 publishdate: 2026-07-09T20:00:00+02:00
-lastmod: 2026-07-10T09:00:00+02:00
+lastmod: 2026-07-10T10:30:00+02:00
 tags: [ "MSTest", "Test Automation" ]
 summary: "MSTest v4.3.0 introduces the Assert.AreEquivalent<T> method that performs a deep equality comparison of two objects, checking that all properties have the same value. In this post, I'll show you what it can do and how it compares to AwesomeAssertions and Shouldly."
 ---
@@ -120,9 +120,11 @@ public void AreEquivalent_ExpectedAndActualAreDifferentObjectsWithSameValues_Suc
 }
 ```
 
-The third test now passes as well because `AreEquivalent` checks the properties of both objects and compares their values rather than relying on `Equals`. 
+The third test now passes as well because `AreEquivalent` checks the properties of both objects and compares their values rather than relying on `Equals`.
 
-Note that MSTest also provides `Assert.AreNotEquivalent<T>` to assert when two objects are not equivalent.
+One thing to note is how each framework reports failures when multiple properties differ. In the second test, `expected` and `actual` have four different property values. AwesomeAssertions includes all differing properties in the exception message, which makes it easy to see every difference at once. MSTest and Shouldly only report the first property that differs.
+
+MSTest also provides `Assert.AreNotEquivalent<T>` to assert when two objects are not equivalent.
 
 ### Cross-Type Comparison
 
@@ -286,6 +288,6 @@ This test passes with AwesomeAssertions even though `Street` differs between the
 
 The new `Assert.AreEquivalent<T>` and `Assert.AreNotEquivalent<T>` methods in MSTest v4.3.0 fill a gap that previously required a third-party library. They handle deep property comparison, work across different types with the same shape and support collections. If you're already using MSTest and want to reduce dependencies, this is a welcome addition.
 
-The implementation isn't complete yet. Ignoring properties during comparison is a common need that isn't supported at the time of writing. 
+The implementation isn't complete yet. Ignoring properties during comparison is a common need that isn't supported at the time of writing. And when multiple properties differ, MSTest only reports the first one, whereas AwesomeAssertions includes all differing properties in the failure message. 
 
 If you want to try it yourself, the [sample solution](https://github.com/ronaldbosma/blog-code-examples/tree/master/MSTest.AreEquivalent) on GitHub contains all the examples from this post for AwesomeAssertions, Shouldly and MSTest side by side, along with additional scenarios.
