@@ -2,7 +2,7 @@
 title: "Deep Object Comparison in MSTest with Assert.AreEquivalent"
 date: 2026-07-09T20:00:00+02:00
 publishdate: 2026-07-09T20:00:00+02:00
-lastmod: 2026-07-09T20:00:00+02:00
+lastmod: 2026-07-10T09:00:00+02:00
 tags: [ "MSTest", "Test Automation", ".NET", "Testing" ]
 summary: "MSTest v4.3.0 introduces the Assert.AreEquivalent<T> method that performs a deep equality comparison of two objects, checking that all properties have the same value. In this post, I'll show you what it can do and how it compares to AwesomeAssertions and Shouldly."
 ---
@@ -261,6 +261,8 @@ public void AreEquivalent_ExpectedHasExtraProperty_AssertionFails()
 ```
 
 Similar to AwesomeAssertions, the objects are considered equivalent when the actual object has the extra property and different when expected has the extra property.
+
+MSTest also provides an overload with the `strict` parameter. If set to `true`, the comparison fails if actual has public properties or fields that are not present on expected.
 
 ### No Support for Ignoring Properties
 
