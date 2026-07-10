@@ -3,7 +3,7 @@ title: "Track Availability in Application Insights using .NET"
 date: 2026-01-19T09:00:00+01:00
 publishdate: 2026-01-19T09:00:00+01:00
 lastmod: 2026-05-08T11:15:00+02:00
-tags: [ "Azure", "Application Insights", "Azure Monitor", "Azure Functions", "Azure Integration Services", ".NET" ]
+tags: [ "Azure", "Application Insights", "Azure Monitor", "Azure Functions", "Azure Integration Services" ]
 series: [ "track-availability-in-app-insights" ]
 summary: "Standard availability tests in Application Insights have limitations like no multi-step authentication, no mTLS support and no access to private networks. This post shows you how to create custom availability tests using .NET and Azure Functions to overcome these restrictions while gaining full control over your monitoring logic."
 ---

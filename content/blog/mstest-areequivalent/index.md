@@ -3,7 +3,7 @@ title: "Deep Object Comparison in MSTest with Assert.AreEquivalent"
 date: 2026-07-09T20:00:00+02:00
 publishdate: 2026-07-09T20:00:00+02:00
 lastmod: 2026-07-10T09:00:00+02:00
-tags: [ "MSTest", "Test Automation", ".NET", "Testing" ]
+tags: [ "MSTest", "Test Automation", "Testing" ]
 summary: "MSTest v4.3.0 introduces the Assert.AreEquivalent<T> method that performs a deep equality comparison of two objects, checking that all properties have the same value. In this post, I'll show you what it can do and how it compares to AwesomeAssertions and Shouldly."
 ---
 
