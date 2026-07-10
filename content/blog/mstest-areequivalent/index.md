@@ -122,6 +122,7 @@ public void AreEquivalent_ExpectedAndActualAreDifferentObjectsWithSameValues_Suc
 
 The third test now passes as well because `AreEquivalent` checks the properties of both objects and compares their values rather than relying on `Equals`. 
 
+Note that MSTest also provides `Assert.AreNotEquivalent<T>` to assert when two objects are not equivalent.
 
 ### Cross-Type Comparison
 
@@ -283,7 +284,7 @@ This test passes with AwesomeAssertions even though `Street` differs between the
 
 ### Conclusion
 
-The new `Assert.AreEquivalent<T>` method in MSTest v4.3.0 fills a gap that previously required a third-party library. It handles deep property comparison, works across different types with the same shape and supports collections. If you're already using MSTest and want to reduce dependencies, this is a welcome addition.
+The new `Assert.AreEquivalent<T>` and `Assert.AreNotEquivalent<T>` methods in MSTest v4.3.0 fill a gap that previously required a third-party library. They handle deep property comparison, work across different types with the same shape and support collections. If you're already using MSTest and want to reduce dependencies, this is a welcome addition.
 
 The implementation isn't complete yet. Ignoring properties during comparison is a common need that isn't supported at the time of writing. 
 
