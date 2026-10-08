@@ -12,8 +12,6 @@ I've been working with the [Azure Developer CLI (azd)](https://learn.microsoft.c
 
 To address this, I created the `azure.logicappsstandard` azd extension. The extension introduces the `logicappsstandard` language, which handles packaging Logic Apps Standard projects correctly, including support for custom code projects.
 
-> **Note**: azd extensions are currently in beta. Features and APIs may change, which can impact the extension. See the [Azure Developer CLI extensions overview](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/extensions/overview) for the latest information.
-
 In this post, I'll explain the problem in more detail, introduce azd extensions and walk through how to install and use the `azure.logicappsstandard` extension.
 
 ### Table of Contents
@@ -166,4 +164,3 @@ The `customCodeProject` property is the path to the `.csproj` file, relative to 
 
 The `azure.logicappsstandard` extension removes the Node.js dependency from Logic Apps Standard deployments and adds first-class support for custom code projects, without needing prepackage hooks or custom scripts. If you're deploying Logic Apps Standard with azd, give it a try.
 
-Since azd extensions are still in beta, I'd recommend not using this in production scenarios just yet.
