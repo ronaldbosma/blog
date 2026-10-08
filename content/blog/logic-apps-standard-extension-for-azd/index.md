@@ -75,7 +75,7 @@ In the case of the `azure.logicappsstandard` extension, when azd encounters `lan
 
 ### Installing the Extension
 
-To install the `azure.logicappsstandard` extension, run:
+The `azure.logicappsstandard` extension is available from the official azd extension source, so you can install it directly without adding a source:
 
 ```shell
 azd ext install azure.logicappsstandard
@@ -175,4 +175,3 @@ When someone runs azd without the extension installed, azd fails with a clear er
 ### Conclusion
 
 The `azure.logicappsstandard` extension removes the Node.js dependency from Logic Apps Standard deployments and adds first-class support for custom code projects, without needing prepackage hooks or custom scripts. The [sample template](https://github.com/ronaldbosma/azure-logicappsstandard-azd-extension-sample) gives you a working starting point for both scenarios, including infrastructure and a test workflow. If you're deploying Logic Apps Standard with azd, give it a try.
-
