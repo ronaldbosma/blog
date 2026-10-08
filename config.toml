@@ -1,5 +1,5 @@
 baseURL = "https://ronaldbosma.github.io/"
-languageCode = "en-us"
+locale = "en-US"
 title = "Ronald's Blog"
 theme = "mediumish"
 summaryLength = 25
