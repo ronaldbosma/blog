@@ -57,7 +57,7 @@ services:
 
 The hook script itself executes something like:
 
-```cmd
+```shell
 dotnet build ./Functions/Functions.csproj --configuration Release
 ```
 
