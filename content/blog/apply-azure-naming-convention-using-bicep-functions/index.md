@@ -2,7 +2,7 @@
 title: "Apply Azure naming convention using Bicep functions"
 date: 2024-06-05T08:00:00+02:00
 publishdate: 2024-06-05T08:00:00+02:00
-lastmod: 2025-06-08T10:45:00+02:00
+lastmod: 2026-07-31T10:15:00+02:00
 tags: [ "Azure", "Bicep", "Infra as Code", "Test Automation" ]
 summary: "When deploying Azure resources, it's a good practice to apply a naming convention to your resources. This will help you to identify the purpose of the resource and the environment it belongs to. In this blog post, I will show you how to apply a naming convention using Bicep user-defined functions. This post also includes a short introduction to the (experimental) Bicep Testing Framework."
 ---
@@ -84,7 +84,7 @@ Below is a snippet of the functions to retrieve the prefix.
 ```bicep
 func getPrefix(resourceType string) string => getPrefixMap()[resourceType]
 
-func getPrefixMap() object => {
+func getPrefixMap() { *: string } => {
   apiManagement: 'apim'
   keyVault: 'kv'
   resourceGroup: 'rg'
@@ -104,7 +104,7 @@ Similar to the resource type prefix, I've created a map of environment names to 
 ```bicep
 func abbreviateEnvironment(environment string) string => getEnvironmentMap()[toLower(environment)]
 
-func getEnvironmentMap() object => {
+func getEnvironmentMap() { *: string } => {
   dev: 'dev'
   development: 'dev'
   tst: 'tst'
@@ -124,7 +124,7 @@ Likewise, for the Azure region, I'm using another map to abbreviate it. Below is
 ```bicep
 func abbreviateRegion(region string) string => getRegionMap()[region]
 
-func getRegionMap() object => {
+func getRegionMap() { *: string } => {
   northeurope: 'ne'
   norwayeast: 'nwe'
   westcentralus: 'wcus'
@@ -171,12 +171,12 @@ func getResourceNameByConvention(resourceType string, workload string, environme
 
 For most resources, this approach will suffice. However, a few resources have stricter requirements on name length, and some disallow hyphens. For instance, a Key Vault and Storage Account are limited to a maximum of 24 characters, while a Windows virtual machine’s name can only be up to 15 characters.
 
-To comply with these constraints, we need to shorten the name for these specific resources. First, we'll need a function to determine if a resource type needs to be shortened. We'll use an array of resource types that should be shortened and then check if the specified resource type is included in the list. Here are the functions:
+To comply with these constraints, we need to shorten the name for these specific resources. First, we'll need a function to determine if a resource type needs to be shortened. We'll use a string array of resource types that should be shortened and then check if the specified resource type is included in the list. Here are the functions:
 
 ```bicep
 func shouldBeShortened(resourceType string) bool => contains(getResourcesTypesToShorten(), resourceType)
 
-func getResourcesTypesToShorten() array => [
+func getResourcesTypesToShorten() string[] => [
   'keyVault'
   'storageAccount'
   'virtualMachine'
