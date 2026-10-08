@@ -1,8 +1,8 @@
 ---
 title: "Logic Apps Standard Extension for Azure Developer CLI (azd)"
-date: 2026-05-04T17:30:00+02:00
-publishdate: 2026-05-04T17:30:00+02:00
-lastmod: 2026-05-04T17:30:00+02:00
+date: 2026-10-08T13:45:00+02:00
+publishdate: 2026-10-08T13:45:00+02:00
+lastmod: 2026-10-08T13:45:00+02:00
 tags: [ "azd", "Azure", "Azure Developer CLI", "Azure Integration Services", "Logic Apps" ]
 summary: "Deploying a Logic Apps Standard project with azd currently requires configuring Node.js as the language, even when your project has nothing to do with Node. In this post, I'll introduce the azure.logicappsstandard extension I created to fix this and walk through how to use it for both a basic Logic App and one that includes a .NET custom code project."
 draft: true
