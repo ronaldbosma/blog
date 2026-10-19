@@ -5,7 +5,7 @@ publishdate: 2026-10-19T11:45:00+02:00
 lastmod: 2026-10-19T11:45:00+02:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "API Management", "Azure Functions", "Logic Apps", "Azure Service Bus", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
-summary: "Integrations built with Azure Integration Services can include components from several services, each with its own monitoring experience. In this post, I show how I bring API Management requests, Azure Functions, Logic App workflowss and Service Bus signals together in an Azure dashboard, then turn that dashboard into a reusable Bicep deployment."
+summary: "Integrations built with Azure Integration Services can include components from several services, each with its own monitoring experience. In this post, I show how I bring API Management requests, Azure Functions, Logic App workflows and Service Bus signals together in an Azure dashboard, then turn that dashboard into a reusable Bicep deployment."
 draft: true
 ---
 
@@ -228,7 +228,7 @@ Once you're happy with the dashboard and it's ready to deploy, select **Export**
 Before deploying to multiple environments, the environment-specific values in the dashboard definition need to be replaced. The sample template repository includes a [PowerShell script](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/scripts/replace-dashboard-hardcoded-values.ps1) that replaces hard-coded values. If the sample template has been deployed, you can run it with [`azd exec`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-exec), which supplies values from the current `azd` environment:
 
 ```powershell
-azd exec ./replace-dashboard-hardcoded-values.ps1
+azd exec ./scripts/replace-dashboard-hardcoded-values.ps1
 ```
 
 Alternatively, you can run the script directly and provide the required parameters. To adapt it for another dashboard, you update the `$replacements` variable with the resource values that need replacing. The `$dashboardReplacements` variable contains values specific to the sample dashboard, such as its title.
