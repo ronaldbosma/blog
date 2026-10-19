@@ -35,7 +35,11 @@ The sample application lets users manage movies and submit or update ratings. It
 
 The dashboard is intended to give me a quick overview of the integration environment, not to replace the detailed monitoring views in each service. I include a mixture of availability and health information, request activity, workflow status, function results, alerts and messaging metrics.
 
-For example, the dashboard in the sample template includes:
+The sample dashboard looks like this:
+
+![Environment Overview Dashboard](../../../../../images/monitoring-azure-integration-services/ais-environment-overview-dashboard/environment-overview-dashboard.png)
+
+The dashboard in the sample template includes:
 
 - Availability test results and health check status for the Function App and Logic App.
 - API Management requests, grouped by API and response code.
@@ -54,6 +58,10 @@ I usually adjust the dashboard for each project. If the environment has an Appli
 Some tiles use metrics directly, while others use queries over Application Insights data. These examples show the queries I use for API Management requests, Azure Functions, Logic App workflows and request duration.
 
 #### API Management Requests
+
+The dashboard shows request counts by API and response code, alongside the latest success and failure times.
+
+![API Management Requests](../../../../../images/monitoring-azure-integration-services/ais-environment-overview-dashboard/apim-requests.png)
 
 This query groups requests by API and response code. I separate client failures from other failures because client errors don't usually require the same response from my team. Sorting by the latest server failure helps me spot APIs with recent server-side errors.
 
@@ -85,6 +93,10 @@ The `project-reorder` step puts `api` and `lastServerFailure` first, orders the 
 
 #### Azure Functions
 
+The dashboard shows success and failure counts for each function, along with the latest success and failure times.
+
+![Azure Functions](../../../../../images/monitoring-azure-integration-services/ais-environment-overview-dashboard/azure-functions.png)
+
 This query includes function request telemetry and host result records. It summarizes successes and failures per function and function app.
 
 ```kusto
@@ -110,6 +122,10 @@ requests
 This query is based on OpenTelemetry logging. My [Migrate Azure Functions project from Application Insights to OpenTelemetry](https://gist.github.com/ronaldbosma/ac21e32e2d7f8ad1512760bca8b0609b#kusto-queries) gist includes an example query for the older Application Insights logging and another that combines OpenTelemetry with the older logging.
 
 #### Logic App Workflows
+
+The dashboard shows workflow run counts by status and the latest success, failure and cancellation times.
+
+![Logic App Workflows](../../../../../images/monitoring-azure-integration-services/ais-environment-overview-dashboard/logic-app-workflows.png)
 
 The workflow query joins start and end events to determine the run status. It uses both `operation_Id` and `runId` to match events for a workflow run.
 
@@ -172,9 +188,14 @@ This query requires enhanced telemetry to be enabled for the Logic App. Set `Run
    }
 }
 ```
-The example also sets `Runtime.ApplicationInsights.PreserveIncomingOperationId` to preserve the incoming operation ID, which lets you correlate workflow telemetry with related telemetry.
+
+Setting `Runtime.ApplicationInsights.PreserveIncomingOperationId` to `true` preserves the incoming operation ID so workflow telemetry can be correlated with related telemetry. But because of this configuration, `operation_Id` alone doesn't always identify a specific workflow run, so the query extracts `runId` from the `resource` custom dimension and joins on both `operation_Id` and `runId`.
 
 #### Request Duration
+
+The dashboard plots average, median and 80th, 95th and 99th percentile request durations in five-minute intervals.
+
+![Request Duration](../../../../../images/monitoring-azure-integration-services/ais-environment-overview-dashboard/request-duration.png)
 
 This query calculates average, median and percentile durations in five-minute intervals. I use percentiles to see how slower requests compare with the typical request.
 
