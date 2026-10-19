@@ -1,5 +1,5 @@
 ---
-title: "Monitoring Azure Integration Services with a Dashboard"
+title: "Monitoring Azure Integrations with a Dashboard"
 date: 2026-10-19T11:45:00+02:00
 publishdate: 2026-10-19T11:45:00+02:00
 lastmod: 2026-10-19T11:45:00+02:00
@@ -37,7 +37,7 @@ The dashboard is intended to give me a quick overview of the integration environ
 
 The sample dashboard looks like this:
 
-![Environment Overview Dashboard](../../../../../images/monitoring-azure-integration-services/monitor-ais-with-a-dashboard/environment-overview-dashboard.png)
+![Environment Overview Dashboard](../../../../../images/monitoring-azure-integration-services/monitoring-azure-integrations-with-a-dashboard/environment-overview-dashboard.png)
 
 The dashboard in the sample template includes:
 
@@ -61,7 +61,7 @@ Some tiles use metrics directly, while others use queries over Application Insig
 
 The dashboard shows request counts by API and response code, alongside the latest success and failure times.
 
-![API Management Requests](../../../../../images/monitoring-azure-integration-services/monitor-ais-with-a-dashboard/apim-requests.png)
+![API Management Requests](../../../../../images/monitoring-azure-integration-services/monitoring-azure-integrations-with-a-dashboard/apim-requests.png)
 
 This query groups requests by API and response code. I separate client failures from other failures because client errors don't usually require the same response from my team. Sorting by the latest server failure helps me spot APIs with recent server-side errors.
 
@@ -95,7 +95,7 @@ The `project-reorder` step puts `api` and `lastServerFailure` first, orders the 
 
 The dashboard shows success and failure counts for each function, along with the latest success and failure times.
 
-![Azure Functions](../../../../../images/monitoring-azure-integration-services/monitor-ais-with-a-dashboard/azure-functions.png)
+![Azure Functions](../../../../../images/monitoring-azure-integration-services/monitoring-azure-integrations-with-a-dashboard/azure-functions.png)
 
 This query includes function request telemetry and host result records. It summarizes successes and failures per function and function app.
 
@@ -125,7 +125,7 @@ This query is based on OpenTelemetry logging. My [Migrate Azure Functions projec
 
 The dashboard shows workflow run counts by status and the latest success, failure and cancellation times.
 
-![Logic App Workflows](../../../../../images/monitoring-azure-integration-services/monitor-ais-with-a-dashboard/logic-app-workflows.png)
+![Logic App Workflows](../../../../../images/monitoring-azure-integration-services/monitoring-azure-integrations-with-a-dashboard/logic-app-workflows.png)
 
 The workflow query joins start and end events to determine the run status. It uses both `operation_Id` and `runId` to match events for a workflow run.
 
@@ -195,7 +195,7 @@ Setting `Runtime.ApplicationInsights.PreserveIncomingOperationId` to `true` pres
 
 The dashboard plots average, median and 80th, 95th and 99th percentile request durations in five-minute intervals.
 
-![Request Duration](../../../../../images/monitoring-azure-integration-services/monitor-ais-with-a-dashboard/request-duration.png)
+![Request Duration](../../../../../images/monitoring-azure-integration-services/monitoring-azure-integrations-with-a-dashboard/request-duration.png)
 
 This query calculates average, median and percentile durations in five-minute intervals. I use percentiles to see how slower requests compare with the typical request.
 
