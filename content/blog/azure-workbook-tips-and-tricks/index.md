@@ -20,8 +20,11 @@ In this blog post I'll share some tips & tricks that I've gathered over the year
   - [Api Parameter (drop down from logs)](#api-parameter-drop-down-from-logs)
   - [Success Parameter (drop down from JSON)](#success-parameter-drop-down-from-json)
 - [Table](#table)
+  - [Status Icon](#status-icon)
+  - [Duration Formatting](#duration-formatting)
   - [Request Details in Context Pane](#request-details-in-context-pane)
   - [End-to-end Transaction Details](#end-to-end-transaction-details)
+  - [Column Labels](#column-labels)
 - [Totals (tiles)](#totals-tiles)
 - [Master-detail Table](#master-detail-table)
   - [Export Selection from Master Table](#export-selection-from-master-table)
@@ -51,10 +54,10 @@ The result should look similar to the image below.
 By clicking on 'View in Logs' you'll go to the Logs screen where the query we've just constructed is loaded. It should look like the query below.
 
 ```kusto
-union isfuzzy=true requests
-| where timestamp > datetime("2023-02-24T11:12:00.662Z") and timestamp < datetime("2023-02-25T11:12:00.662Z")
-| where customDimensions["Service ID"] in ("apim-robo-test")
-| where customDimensions["API Name"] in ("bar", "qux")
+union isfuzzy = true requests
+| where timestamp > datetime("2026-10-18T13:05:55.344Z") and timestamp < datetime("2026-10-19T13:05:55.344Z")
+| where customDimensions["Service ID"] in("apim-robo-test")
+| where customDimensions["API Name"] in("user-ratings-api", "movies-api")
 | order by timestamp desc
 | take 100
 ```
@@ -78,7 +81,6 @@ requests
 | where customDimensions["Service ID"] == "apim-robo-test"
 | extend subscription = tostring(customDimensions["Subscription Name"])
     , api = tostring(customDimensions["API Name"])
-    , sessionCorrelationId = tostring(customDimensions["Request-Session-Correlation-Id"])
 ```
 
 We've made the following changes:
@@ -90,7 +92,6 @@ We've made the following changes:
 - We extend the query results with the following properties from the custom dimensions array. We also convert them to strings, so they're easier to work with.
   - Subscription Name: the name of the subscription that was used to call an API. This will make it possible to identify who performed a request.
   - API Name: this is the name of the API that was called.
-  - Request-Session-Correlation-Id: this is a custom dimension I've added to every request so I can correlate all requests from a specific session. We'll use it when creating a [master-detail table](#master-detail-table).
 - Sorting is up to the queries using the function, so `| order by timestamp desc` can be removed.
 - Lastly, we can remove the `| take 100` to show more results.
 
@@ -226,16 +227,16 @@ ApimRequests
 | where array_length(subscriptionFilter) == 0 or subscription in (subscriptionFilter)
 | where array_length(apiFilter) == 0 or api in (apiFilter)
 | where isempty(successFilter) or success == tobool(successFilter)
-| project timestamp
+| project status = iif(success==true, "success", "error")
+    , timestamp
     , subscription
     , api
     , name
-    , success
     , resultCode
-    , duration = strcat(round(duration, 1), " ms")
+    , duration
     , details = itemId
     , transaction = itemId
-    , sessionCorrelationId
+    , operation_Id
 | order by timestamp desc
 ```
 
@@ -243,25 +244,67 @@ The subscription and api filters are like the one in the query of the Api parame
 
 The Success parameter was not multiselect, so `let successFilter = '{Success}';` will be empty if nothing is selected, `true` if yes is selected and `false` if no is selected. With the filter `| where isempty(successFilter) or success == tobool(successFilter)` we either show all request or the requests that were (un)successful.
 
-With the `project` keyword we specify a list of columns to display in the table. The `itemId` is displayed twice in both the `details` and `transaction` column. We'll use these further on to create links to the request details.
+With the `project` keyword we specify a list of columns to display in the table. The `status` column uses [`iif`](https://learn.microsoft.com/en-us/kusto/query/iff-function?view=microsoft-fabric) to display `success` when the request succeeded and `error` otherwise. We'll use this to display an icon further on. The `itemId` is displayed twice in both the `details` and `transaction` column. We'll use these to create links to the request details.
 
 The query is executed when you click the Run Query button. You can filter the data by changing the values of the parameters. For example, select 'no' in the Success parameter to show all failed requests.
 
-You can configure more settings in the Advanced Settings tab. I've set the chart title to 'Requests'. I also like to check the 'Show filter field above grid or tiles' box. This will show a filter input field above the table. It can be used to further filter the results as shown below.
+You can configure more settings in the Advanced Settings tab. I've set the chart title to 'Requests'. I also like to check the following options:
+- Show open external query button when not editing: this will add a button above the table on the right that opens the executed query in a new screen.
+- Show refresh icon when not editing: this will add a button above the table on the right to refresh the results.
+- Show Export to CSV button when not editing: this will add a button above the table on the right to export the results to a CSV.
+- Show filter field above grid or tiles: this will show a filter input field above the table. It can be used to further filter the results as shown below.
 
 ![Table Filter Field](../../../../../images/azure-workbook-tips-and-tricks/table-filter-field.png)
+
+#### Status Icon
+
+To make it easier to differentiate successful from failed requests, we can use icons in our table.
+
+Follow these steps:
+- Click on the 'Column Settings' button in the 'Settings' tab and select the status column
+- Select Icon in the 'Column renderer' drop down
+
+![Status Column Settings](../../../../../images/azure-workbook-tips-and-tricks/table-column-status.png)
+
+Choose 'Save and Close' to see the results.
+
+The status column will display a green/red icon depending on the value:
+
+![Icon in Grid](../../../../../images/azure-workbook-tips-and-tricks/icon-in-grid.png)
+
+See the [Rendering options](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-renderers) page for more supported icon values.
+
+#### Duration Formatting
+
+By default, the duration is displayed in milliseconds. Making it difficult to quickly see how long a request took. We can configure a different renderer and custom number formatting to improve readability.
+
+Follow these steps:
+- Open the column settings again  and select the duration column
+- Select 'Bar (underneath)' in the 'Column renderer' drop down
+- Check the 'Custom number formatting' checkbox
+- Select Milliseconds as the unit
+
+![Duration Column Settings](../../../../../images/azure-workbook-tips-and-tricks/table-column-duration.png)
+
+Choose 'Save and Close' to see the results.
+
+Now, the duration column will display the value in milliseconds or seconds, depending on the value. It also renders a bar to indicate its relative value in relation to the slowest request.
+
+![Duration in Grid](../../../../../images/azure-workbook-tips-and-tricks/duration-in-grid.png)
+
 
 #### Request Details in Context Pane
 
 To show more information about a request, we can change the details column to show a link that opens the request details to the side.
 
 Follow these steps:
-- Click on the 'Column Settings' button in the 'Settings' tab and select the details column
+- Open the column settings again  and select the details column
 - Select Link in the 'Column renderer' drop down
 - Enter '11ch' as the 'Custom Column Width'
 - Select 'Request Details' in the 'View to open' drop down
 - Enter 'details' as the 'Link label'
 - Check the 'Open link in Context pane' box
+- Select Workbook in the 'Resource Id comes from' drop down
 
 ![Table Column Details](../../../../../images/azure-workbook-tips-and-tricks/table-column-details.png)
 
@@ -282,6 +325,7 @@ Follow these steps:
 - Select 'Request Details' in the 'View to open' drop down
 - Enter 'transaction' as the 'Link label'
 - Keep the 'Open link in Context pane' unchecked
+- Select Workbook in the 'Resource Id comes from' drop down
 
 ![Table Column Transaction](../../../../../images/azure-workbook-tips-and-tricks/table-column-transaction.png)
 
@@ -291,6 +335,18 @@ When you click on a transaction link, the end-to-end transaction screen is opene
 
 ![End-to-end Transaction Details](../../../../../images/azure-workbook-tips-and-tricks/end-to-end-transaction-details.png)
 
+#### Column Labels
+
+The current column headings look fairly technical because some are using camelCasing. When can improve these by configuring column labels.
+
+Follow these steps:
+- Open the column settings again
+- Click on the Labels tab
+- Specify the labels for the columns
+
+![Column Labels](../../../../../images/azure-workbook-tips-and-tricks/column-labels.png)
+
+Choose 'Save and Close' to see the results.
 
 ### Totals (Tiles)
 
@@ -327,7 +383,7 @@ The Tile Settings screen should look like this.
 
 Choose 'Save and Close'.
 
-We can add a title to the chart to clarify what is displayed. Go to Advanced Settings and set the chart title to `Total # of errors per API (status code >=500)`.
+We can add a title to the chart to clarify what is displayed. Go to Advanced Settings and set the chart title to `Total # of errors per API (status code >=500)`. I also like to check 'Show open external query button when not editing', 'Show refresh icon when not editing' and 'Show Export to CSV button when not editing'.
 
 I usually display the totals above a table. You can move the Tiles section above the table by choosing 'Move > Move up'.
 
@@ -336,7 +392,7 @@ I usually display the totals above a table. You can move the Tiles section above
 
 Tables and other items provide the option to select data. We can use that selection as a filter in other items. 
 
-As an example, we'll create a master-detail table. When a request in the master table is selected, all requests that have the same session correlation id will be displayed in the detail table. See the example below.
+As an example, we'll create a master-detail table. When a request in the master table is selected, all requests that have the same operation id will be displayed in the detail table. See the example below.
 
 ![Master-detail Table](../../../../../images/azure-workbook-tips-and-tricks/master-detail-table.png)
 
@@ -344,7 +400,7 @@ As an example, we'll create a master-detail table. When a request in the master 
 
 To start, Edit the current Requests table. Go to Advanced Settings and check the 'When items are selected, export parameters' box.
 
-Click on Add parameter. Enter sessionCorrelationId as the field to export. Enter SelectedSessionCorrelationId as the parameter name.
+Click on Add parameter. Enter `operation_Id` as the field to export. Enter `SelectedOperationId` as the parameter name.
 
 ![Export Parameter Settings](../../../../../images/azure-workbook-tips-and-tricks/export-parameter-settings.png)
 
@@ -364,22 +420,22 @@ Add the following query.
 
 ```kusto
 ApimRequests
-| where sessionCorrelationId == '{SelectedSessionCorrelationId}'
-| project timestamp
+| where operation_Id == '{SelectedOperationId}'
+| project status = iif(success==true, "success", "error")
+    , timestamp
     , subscription
     , api
     , name
-    , success
     , resultCode
-    , duration = strcat(round(duration, 1), " ms")
+    , duration
     , details = itemId
     , transaction = itemId
 | order by timestamp desc
 ```
 
-This query looks like the previous one, but only filters on the `sessionCorrelationId` column using the exported parameter of the master table. 
+This query looks like the previous one, but only filters on the `operation_Id` column using the exported parameter of the master table. 
 
-You can customize the columns again, similar to the master table. I also like to add a chart title in which I display the selected value. You can update the chart title in the Advanced Settings with: `Requests for session: {SelectedSessionCorrelationId}`.
+You can customize the columns again, similar to the master table. I also like to add a chart title in which I display the selected value. You can update the chart title in the Advanced Settings with: `Requests for operation: {SelectedOperationId}`.
 
 #### Show Detail Table on Selection
 
@@ -389,11 +445,11 @@ If you don't select an item in the master table. You'll see the message below in
 
 If you don't like this, you can make the detail table hide when no row is selected in the master table. 
 
-Open the Advanced Settings and check the 'Make this item conditionally visible'. Choose Add Condition. Enter SelectedSessionCorrelationId as the Parameter name and select 'is not equal to' in the Comparison drop down. Leave the Parameter value input empty.
+Open the Advanced Settings and check the 'Make this item conditionally visible'. Choose Add Condition. Enter SelectedOperationId as the Parameter name and select 'is not equal to' in the Comparison drop down. Leave the Parameter value input empty.
 
 ![Visibility Condition](../../../../../images/azure-workbook-tips-and-tricks/visibility-condition.png)
 
-With this the details table is only shown when the SelectedSessionCorrelationId has a value, which it will have if a row is selected in the master table.
+With this the details table is only shown when the SelectedOperationId has a value, which it will have if a row is selected in the master table.
 
 
 ### Save Workbook
