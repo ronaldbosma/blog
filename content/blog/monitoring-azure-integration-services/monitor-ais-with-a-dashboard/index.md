@@ -1,9 +1,9 @@
 ---
-title: "Monitoring Azure Integration Services with an Environment Overview Dashboard"
+title: "Monitoring Azure Integration Services with a Dashboard"
 date: 2026-10-19T11:45:00+02:00
 publishdate: 2026-10-19T11:45:00+02:00
 lastmod: 2026-10-19T11:45:00+02:00
-tags: [ "Azure", "Azure Monitor", "Application Insights", "API Management", "Azure Functions", "Logic Apps", "Azure Service Bus", "Bicep", "Kusto" ]
+tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "API Management", "Azure Functions", "Logic Apps", "Azure Service Bus", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "An Azure Integration Services environment can include several services, each with its own monitoring experience. In this post, I show how I bring API Management, Azure Functions, Logic Apps and Service Bus signals together in an Azure dashboard, then turn that dashboard into a reusable Bicep deployment."
 draft: true
@@ -11,7 +11,7 @@ draft: true
 
 When I start working on a new Azure Integration Services project, one of the first things I do is make sure I can monitor it. The integrations I've worked on often include API Management, Azure Functions, Logic App workflows and Azure Service Bus. Looking across those services individually makes it harder to get a quick sense of the environment.
 
-I start with an [Azure dashboard](https://learn.microsoft.com/en-us/azure/azure-portal/azure-portal-dashboards) that brings the signals I care about into one view. In this post, I'll walk through a sample dashboard, the queries behind some of its tiles and how I prepare the dashboard for deployment to multiple environments.
+I usually start with an [Azure dashboard](https://learn.microsoft.com/en-us/azure/azure-portal/azure-portal-dashboards) that brings the signals I care about into one view. In this post, I'll walk through a sample dashboard, the queries behind some of its tiles and how I prepare the dashboard for deployment to multiple environments.
 
 This is the first post in my [Monitoring Azure Integration Services](/series/monitoring-azure-integration-services/) series.
 
@@ -37,7 +37,7 @@ The dashboard is intended to give me a quick overview of the integration environ
 
 The sample dashboard looks like this:
 
-![Environment Overview Dashboard](../../../../../images/monitoring-azure-integration-services/ais-environment-overview-dashboard/environment-overview-dashboard.png)
+![Environment Overview Dashboard](../../../../../images/monitoring-azure-integration-services/monitor-ais-with-a-dashboard/environment-overview-dashboard.png)
 
 The dashboard in the sample template includes:
 
@@ -61,7 +61,7 @@ Some tiles use metrics directly, while others use queries over Application Insig
 
 The dashboard shows request counts by API and response code, alongside the latest success and failure times.
 
-![API Management Requests](../../../../../images/monitoring-azure-integration-services/ais-environment-overview-dashboard/apim-requests.png)
+![API Management Requests](../../../../../images/monitoring-azure-integration-services/monitor-ais-with-a-dashboard/apim-requests.png)
 
 This query groups requests by API and response code. I separate client failures from other failures because client errors don't usually require the same response from my team. Sorting by the latest server failure helps me spot APIs with recent server-side errors.
 
@@ -95,7 +95,7 @@ The `project-reorder` step puts `api` and `lastServerFailure` first, orders the 
 
 The dashboard shows success and failure counts for each function, along with the latest success and failure times.
 
-![Azure Functions](../../../../../images/monitoring-azure-integration-services/ais-environment-overview-dashboard/azure-functions.png)
+![Azure Functions](../../../../../images/monitoring-azure-integration-services/monitor-ais-with-a-dashboard/azure-functions.png)
 
 This query includes function request telemetry and host result records. It summarizes successes and failures per function and function app.
 
@@ -125,7 +125,7 @@ This query is based on OpenTelemetry logging. My [Migrate Azure Functions projec
 
 The dashboard shows workflow run counts by status and the latest success, failure and cancellation times.
 
-![Logic App Workflows](../../../../../images/monitoring-azure-integration-services/ais-environment-overview-dashboard/logic-app-workflows.png)
+![Logic App Workflows](../../../../../images/monitoring-azure-integration-services/monitor-ais-with-a-dashboard/logic-app-workflows.png)
 
 The workflow query joins start and end events to determine the run status. It uses both `operation_Id` and `runId` to match events for a workflow run.
 
@@ -195,7 +195,7 @@ Setting `Runtime.ApplicationInsights.PreserveIncomingOperationId` to `true` pres
 
 The dashboard plots average, median and 80th, 95th and 99th percentile request durations in five-minute intervals.
 
-![Request Duration](../../../../../images/monitoring-azure-integration-services/ais-environment-overview-dashboard/request-duration.png)
+![Request Duration](../../../../../images/monitoring-azure-integration-services/monitor-ais-with-a-dashboard/request-duration.png)
 
 This query calculates average, median and percentile durations in five-minute intervals. I use percentiles to see how slower requests compare with the typical request.
 
