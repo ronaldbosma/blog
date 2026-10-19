@@ -213,31 +213,31 @@ requests
 
 ### Editing the Dashboard
 
-I usually build up the dashboard by pinning useful charts and queries from the Azure portal. For example, I can configure a metric on a service's Metrics page and pin it, or create a query in Application Insights or Log Analytics and pin its results. I can also add tiles directly from the dashboard.
+I usually build up a dashboard by pinning useful charts and queries from the Azure portal. For example, you can configure a metric on a service's Metrics page of a resource and pin it, or create a query in Application Insights or Log Analytics and pin its results. You can also add tiles directly from the dashboard.
 
-Some tiles use the time range selected on the dashboard, while others retain the time range from their source. To make a tile follow the dashboard's time range, open its `...` menu, select **Configure tile settings** and clear **Override the dashboard time settings at the tile level**. This is also where I can set a tile title and subtitle.
+Some tiles use the time range selected on the dashboard, while others retain the time range from their source. To make a tile follow the dashboard's time range, open its `...` menu, select **Configure tile settings** and clear **Override the dashboard time settings at the tile level**. This is also where you can set a tile title and subtitle.
 
-For an [Azure Resource Graph](https://learn.microsoft.com/en-us/azure/governance/resource-graph/first-query-portal) tile, the **Pin to dashboard** or **Update pinned part on dashboard** action is above the Results table. To edit the query later, I select the tile itself. This tile doesn't have a **Customize** button like some other dashboard tiles.
+For an [Azure Resource Graph](https://learn.microsoft.com/en-us/azure/governance/resource-graph/first-query-portal) tile, the **Pin to dashboard** or **Update pinned part on dashboard** action is above the Results table. It took me a while to find it because it's in a different place from the pinning controls on other screens. This tile doesn't have a **Customize** button like some other dashboard tiles. To edit the query later, you click on the tile itself. 
 
-Some metrics can be split by resource or entity. For example, an availability test metric can show a separate line for each test. The App Service health check status metric doesn't support splitting this way, so I add each Function App and Logic App to the tile separately.
+Some metrics can be split by resource or entity. For example, an availability test metric can show a separate line for each test. The App Service health check status metric doesn't support splitting on resource, so you need add each Function App and Logic App to the tile separately.
 
 ### Deploying the Dashboard with Bicep
 
-Once I'm happy with the dashboard, I select **Export** and download its definition. I copy the JSON definition into the Bicep file I use to deploy the dashboard. The [Bicep extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-bicep) can convert the JSON into Bicep.
+Once you're happy with the dashboard and it's ready to deploy, select **Export** and download its definition. Then copy the JSON definition into the Bicep file you use to deploy the dashboard. The [Bicep extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-bicep) can convert the JSON into Bicep.
 
-Before deploying to multiple environments, I replace resource-specific values in the dashboard definition. The template includes a [PowerShell script](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/scripts/replace-dashboard-hardcoded-values.ps1) that replaces hard-coded values. If the sample template has been deployed, I can run it with [`azd exec`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-exec), which supplies values from the current `azd` environment:
+Before deploying to multiple environments, the environment-specific values in the dashboard definition need to be replaced. The sample template repository includes a [PowerShell script](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/scripts/replace-dashboard-hardcoded-values.ps1) that replaces hard-coded values. If the sample template has been deployed, you can run it with [`azd exec`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-exec), which supplies values from the current `azd` environment:
 
 ```powershell
 azd exec ./replace-dashboard-hardcoded-values.ps1
 ```
 
-Alternatively, I can run the script directly and provide the required parameters. To adapt it for another dashboard, I update the `$replacements` variable with the resource values that need replacing. The `$dashboardReplacements` variable contains values specific to the sample dashboard, such as its title.
+Alternatively, you can run the script directly and provide the required parameters. To adapt it for another dashboard, you update the `$replacements` variable with the resource values that need replacing. The `$dashboardReplacements` variable contains values specific to the sample dashboard, such as its title.
 
 The Bicep module used by the sample is [environment-overview-dashboard.bicep](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/infra/03-monitoring/modules/environment-overview-dashboard.bicep).
 
 ### Considerations
 
-Queries over Application Insights data can show incomplete results when telemetry is sampled. I can check the retained percentage with this query:
+Queries over Application Insights data can show incomplete results when telemetry is sampled. You can check the retained percentage with this query:
 
 ```kusto
 union requests, dependencies, pageViews, browserTimings, exceptions, traces
@@ -246,10 +246,12 @@ union requests, dependencies, pageViews, browserTimings, exceptions, traces
     by bin(timestamp, 1h), itemType
 ```
 
-If sampling affects the results I need, I can use metrics instead or review the sampling configuration. The dashboard also depends on the underlying services sending the telemetry used by its queries.
+If sampling affects the results you need, you can use metrics instead or review the sampling configuration.
 
 ### Conclusion
 
-An Azure dashboard gives me a quick overview of an integration environment without having to open each service separately. By combining service metrics with Application Insights queries, I can see request activity, failures, workflow health and message counts in one place. Exporting the dashboard and replacing environment-specific values lets me deploy the same overview across environments.
+An Azure dashboard gives me a quick overview of an integration environment without having to open each service separately. By combining service metrics with Application Insights queries, you can see request activity, failures, health and other signals in one place. Exporting the dashboard and replacing environment-specific values lets you deploy the same overview across environments.
 
-Dashboards are useful for a quick overview, but [Azure Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) provide more control over interactive reports. I cover workbook techniques in [Azure Workbook Tips & Tricks](/blog/2023/02/28/azure-workbook-tips-tricks/). In the next posts in this series, I'll explore some workbooks I've created for Azure Integration Services.
+Dashboards are useful for a quick overview, but someone needs to be looking at them to notice issues. Alerts can notify the right people when something needs attention without requiring them to keep the dashboard open. I'll cover alerts in a future post in this series.
+
+[Azure Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) provide more control over interactive reports than dashboards. I cover workbook techniques in [Azure Workbook Tips & Tricks](/blog/2023/02/28/azure-workbook-tips-tricks/). In future posts in this series, I'll explore some workbooks I've created for Azure Integration Services.
