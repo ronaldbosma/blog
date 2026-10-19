@@ -27,7 +27,7 @@ This is the first post in my [Monitoring Azure Integration Services](/series/mon
 
 ### Sample Template
 
-I've created an Azure Developer CLI (`azd`) template called [Monitor Azure Integration Services](https://github.com/ronaldbosma/monitor-azure-integration-services). It demonstrates monitoring approaches for Azure Integration Services, including dashboards, workbooks, alerts and health models.
+I've created an Azure Developer CLI (`azd`) template called [Monitor Azure Integration Services](https://github.com/ronaldbosma/monitor-azure-integration-services). It demonstrates monitoring approaches for Azure Integration Services, including dashboards, workbooks, health checks, alerts and health models.
 
 The sample application lets users manage movies and submit or update ratings. It uses API Management, Azure Functions, Logic App workflows and Azure Service Bus. If you'd like to deploy and try the solution, follow the template's [getting started instructions](https://github.com/ronaldbosma/monitor-azure-integration-services#getting-started).
 
