@@ -2,7 +2,7 @@
 title: "Deploy Azure Workbook and App Insights Function"
 date: 2023-03-10T15:00:00+01:00
 publishdate: 2023-03-10T15:00:00+01:00
-lastmod: 2024-05-03T09:25:00+02:00
+lastmod: 2026-10-20T12:15:00+02:00
 tags: [ "Azure", "Azure CLI", "Application Insights", "Azure Monitor", "Azure Workbook", "Bicep", "Continuous Integration", "Infra as Code", "PowerShell" ]
 summary: "In this post I explain how to deploy an Azure workbook using Bicep and set environment specific variables. I'll also show how to deploy a shared kusto function in Application Insights with the Azure CLI."
 ---
@@ -33,18 +33,18 @@ The result will be a Bicep file like the snippet below. See [sample-after-decomp
 
 ```bicep
 @description('The friendly name for the workbook that is used in the Gallery or Saved List.  This name must be unique within a resource group.')
-param workbookDisplayName string = 'API Management Requests'
+param workbookDisplayName string = 'Sample Workbook'
 
 @description('The gallery that the workbook will been shown under. Supported values include workbook, tsg, etc. Usually, this is \'workbook\'')
 param workbookType string = 'workbook'
 
 @description('The id of resource instance to which the workbook will be associated')
-param workbookSourceId string = '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-test/providers/microsoft.insights/components/appin-robo-test'
+param workbookSourceId string = '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-monitorais-frc-u7eei/providers/microsoft.insights/components/appi-monitorais-frc-u7eei'
 
 @description('The unique guid for this workbook instance')
 param workbookId string = newGuid()
 
-resource workbookId_resource 'microsoft.insights/workbooks@2021-03-08' = {
+resource workbookId_resource 'microsoft.insights/workbooks@2022-04-01' = {
   name: workbookId
   location: resourceGroup().location
   kind: 'shared'
@@ -118,7 +118,7 @@ Using the bicep script from the previous example as a starting point, we can now
 var definition = loadTextContent('./sample.workbook')
 var serializedData = replace(definition, '##applicationInsightsId##', workbookSourceId)
 
-resource workbookId_resource 'microsoft.insights/workbooks@2021-03-08' = {
+resource workbookId_resource 'microsoft.insights/workbooks@2022-04-01' = {
   ...
   properties: {
     serializedData: serializedData
@@ -170,7 +170,6 @@ requests
 | where customDimensions["Service ID"] == "##apimName##"
 | extend subscription = tostring(customDimensions["Subscription Name"])
     , api = tostring(customDimensions["API Name"])
-    , sessionCorrelationId = tostring(customDimensions["Request-Session-Correlation-Id"])
 ```
 
 I thought I could use a similar approach as with the workbook and use the [analyticsItems](https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/components/analyticsitems?pivots=deployment-language-bicep) Bicep resource, but unfortunately this doesn't work at all. The problem has been reported on GitHub in [this issue](https://github.com/Azure/bicep/issues/5518).
