@@ -4,7 +4,7 @@ date: 2023-02-28T19:30:00+01:00
 publishdate: 2023-02-28T19:30:00+01:00
 lastmod: 2024-05-03T09:25:00+02:00
 tags: [ "Azure", "Application Insights", "Azure Monitor", "Azure Workbook", "kusto" ]
-summary: "If you use Azure, you most likely use Application Insights for logging. You can use a dashboard to visualize your logging and gain better insights, but dashboards come with some limitations. For more flexibility Azure has worbooks. In this blog post I'll share some tips & tricks that I've gathered over the years. As a sample, we'll create a workbook that shows information about requests sent to an API Management instance."
+summary: "If you use Azure, you most likely use Application Insights for logging. You can use a dashboard to visualize your logging and gain better insights, but dashboards come with some limitations. For more flexibility Azure has workbooks. In this blog post I'll share some tips & tricks that I've gathered over the years. As a sample, we'll create a workbook that shows information about requests sent to an API Management instance."
 ---
 
 If you use Azure, you most likely use Application Insights for logging. You can use a [dashboard](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/tutorial-logs-dashboards) to visualize your logging and gain better insights, but dashboards come with some limitations. For more flexibility Azure has [workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview).
@@ -32,6 +32,7 @@ In this blog post I'll share some tips & tricks that I've gathered over the year
   - [Add Detail Table](#add-detail-table)
   - [Show Detail Table on Selection](#show-detail-table-on-selection)
 - [Save Workbook](#save-workbook)
+- [Share Workbook](#share-workbook)
 - [Conclusion](#conclusion)
 
 ### Construct a query
@@ -86,7 +87,7 @@ requests
 
 We've made the following changes:
 
-- The `union isfuzzy=true` part is useful when querying multiple even types. Because we're only querying requests we've removed it.
+- The `union isfuzzy=true` part is useful when querying multiple event types. Because we're only querying requests we've removed it.
 - The query screen provides a 'Time range' pill that can be used to specify a time range to filter on. We will provide a similar filter in our workbook. So, the where clause on `timestamp` is removed.
 - We'll only query on a single API Management instance, so the 'in' filter has become an 'equals'.
 - We'll be adding the filter on API name in our workbook. So, it's removed for now.
@@ -350,7 +351,7 @@ Choose 'Save and Close' to see the results.
 
 #### Column Labels
 
-The current column headings look fairly technical because some are using camelCasing. When can improve these by configuring column labels.
+The current column headings look fairly technical because some are using camelCasing. We can improve these by configuring column labels.
 
 Follow these steps:
 - Open the column settings again
@@ -371,7 +372,7 @@ Start by adding another query to the workbook. Select Time as the Time Range, Ti
 
 Add the following query.
 
-```
+```kusto
 ApimRequests
 | summarize 
         requests=strcat('Total # of requests: ', count()), 
@@ -445,7 +446,7 @@ dependencies
 | order by timestamp desc
 ```
 
-This query looks like the query for requests. A view columns are different and it only filters on the `operation_Id` column using the exported parameter of the master table. 
+This query looks similar to the query for requests. A few columns are different and it only filters on the `operation_Id` column using the exported parameter of the master table. 
 
 You can customize the styling of the columns again, similar to the master table. I also like to add a chart title in which I display the selected value. You can update the chart title in the Advanced Settings with: `Dependencies of operation: {SelectedOperationId}`.
 
@@ -463,19 +464,26 @@ Open the Advanced Settings and check the 'Make this item conditionally visible'.
 
 With this the details table is only shown when the SelectedOperationId has a value, which it will have if a row is selected in the master table.
 
-
 ### Save Workbook
 
 Once you're done editing the workbook you can choose 'Done Editing'. Then click the Save button. Enter a title in the Save As window and select the correct subscription, resource group & location. Choose Apply and the workbook is saved.
 
-Note that parameter selections are also saved. Meaning, if you're filtering on for example success == no and choose Save, this selection will be saved. Whenever you or another user opens the workbook, this selection will be pre-selected.
+Note that parameter selections are also saved. Meaning, if you're filtering on for example success == no and choose Save, this selection will be saved. Whenever you or another user opens the workbook, this selection will be preselected.
 
-Here are links to the exported workbook and shared function:
-- [API Management Requests.workbook](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/AzureWorkbookTipsAndTricks/API%20Management%20Requests.workbook)
-- [ApimRequests.kql](https://github.com/ronaldbosma/blog-code-examples/blob/master/AzureWorkbookTipsAndTricks/ApimRequests.kql)
+### Share Workbook
 
-In my blog post [Deploy Azure Workbook and App Insights Function](/blog/2023/03/10/deploy-azure-workbook-and-app-insights-function/) I show you how to deploy this workbook using Bicep and the Azure CLI.
+To share the workbook with different parameters preselected, configure the parameters and click the Share button: ![Share this workbook button](../../../../../images/azure-workbook-tips-and-tricks/share-this-workbook-button.png).
 
+Then, in the share workbook screen:
+
+- Specify whether people who open the workbook from the link can edit it or only view it.
+- Check the 'Open with selected parameter values' checkbox.
+- Specify which parameter values should be preselected.
+- Copy the link to share.
+
+![Share workbook screen](../../../../../images/azure-workbook-tips-and-tricks/share-workbook-screen.png)
+
+I use this for parameter configurations that I frequently use. For example all failed API Management requests in the last 24 hours.
 
 ### Conclusion
 
@@ -483,3 +491,9 @@ As you can see, there's a lot you can do with workbooks, and we've only scratche
 
 - [Azure Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview)
 - [Kusto Query Language (KQL) overview](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/)
+
+Here are links to the exported workbook and shared function:
+- [API Management Requests.workbook](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/AzureWorkbookTipsAndTricks/API%20Management%20Requests.workbook)
+- [ApimRequests.kql](https://github.com/ronaldbosma/blog-code-examples/blob/master/AzureWorkbookTipsAndTricks/ApimRequests.kql)
+
+In my blog post [Deploy Azure Workbook and App Insights Function](/blog/2023/03/10/deploy-azure-workbook-and-app-insights-function/) I show you how to deploy this workbook using Bicep and the Azure CLI.
