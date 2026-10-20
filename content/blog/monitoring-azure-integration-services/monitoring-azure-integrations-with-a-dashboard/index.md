@@ -151,11 +151,11 @@ runEvents
   )
 | summarize
     succeeded = countif(status == "Succeeded"),
-    lastSucceeded = maxif(timestamp, status == "Succeeded"),
+    lastSucceeded = maxif(timestamp1, status == "Succeeded"),
     failed = countif(status == "Failed"),
-    lastFailure = maxif(timestamp, status == "Failed"),
+    lastFailure = maxif(timestamp1, status == "Failed"),
     cancelled = countif(status == "Cancelled"),
-    lastCancelled = maxif(timestamp, status == "Cancelled"),
+    lastCancelled = maxif(timestamp1, status == "Cancelled"),
     running = countif(status == "Running")
   by operation_Name, cloud_RoleName
 | sort by lastFailure desc, operation_Name asc
