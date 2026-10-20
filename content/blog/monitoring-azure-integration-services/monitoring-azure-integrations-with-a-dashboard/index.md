@@ -171,6 +171,8 @@ runEvents
     logicApp = cloud_RoleName
 ```
 
+The query first selects all workflow run events, and extracts the event name and run ID from custom dimensions. It takes the start events and uses a left outer join to match each one to an end event. A start event without a matching end event has no end status, so the query treats it as `Running`. It then groups runs by workflow and Logic App, counts each status and finds the latest success, failure and cancellation times from the end-event timestamps.
+
 The query requires enhanced telemetry to be enabled for the Logic App. To enable it, set `Runtime.ApplicationInsightTelemetryVersion` to `v2` in your Logic App's `host.json`:
 
 ```json
