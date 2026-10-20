@@ -339,7 +339,7 @@ When you click on a transaction link, the end-to-end transaction screen is opene
 
 #### Hide Operation ID
 
-We'll use the `operation_Id` further on to load dependencies of a selected request, but I want to hide the column in this table.
+The query needs to include `operation_Id` so we can use it later to load dependencies for the selected request. However, I don't want to display this column in the table.
 
 Follow these steps:
 - Open the column settings again and select the operation_Id column
