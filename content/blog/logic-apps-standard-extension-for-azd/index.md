@@ -10,9 +10,9 @@ draft: true
 
 I've been working with the [Azure Developer CLI (azd)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/) to deploy Logic Apps Standard projects for a while, and one thing I was missing was native support for Logic Apps Standard projects in azd. To package a Logic Apps Standard project, you can use Node.js as a workaround by configuring `language: js` in your `azure.yaml`. It works, but it creates an unnecessary dependency on Node.js, even when your project has nothing to do with Node. It also doesn't handle the scenario where your Logic App includes a [.NET custom code project](https://learn.microsoft.com/en-us/azure/logic-apps/create-run-custom-code-functions).
 
-To address this, I created the `azure.logicappsstandard` azd extension. The extension introduces the `logicappsstandard` language, which handles packaging Logic Apps Standard projects correctly, including support for custom code projects.
+To address this, I created the [Azure Logic Apps Standard extension](https://github.com/Azure/azure-dev/tree/main/cli/azd/extensions/azure.logicappsstandard). It introduces the `logicappsstandard` language, which handles packaging Logic Apps Standard projects correctly, including support for custom code projects.
 
-In this post, I'll explain the problem in more detail, introduce azd extensions and walk through how to install and use the `azure.logicappsstandard` extension. I've also created a [sample template](https://github.com/ronaldbosma/azure-logicappsstandard-azd-extension-sample) that you can deploy to see the extension in action.
+In this post, I'll explain the problem in more detail, introduce azd extensions and walk through how to install and use the extension. I've also created a [sample template](https://github.com/ronaldbosma/azure-logicappsstandard-azd-extension-sample) that you can deploy to see the extension in action.
 
 ### Table of Contents
 
@@ -40,7 +40,7 @@ This works because the configured project folder will be zipped, but it has a fe
 
 > Note that Logic Apps Standard is built on top of the Azure Functions runtime, so using `host: function` makes sense.
 
-The situation gets more complicated when your Logic App includes a [custom code project](https://learn.microsoft.com/en-us/azure/logic-apps/create-run-custom-code-functions). Custom code projects let you add .NET functions that your workflows can call. Before packaging the Logic App, you need to build the .NET project so the compiled output gets included in the deployment zip. You can do this by adding a `prepackage` [hook](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/azd-extensibility) that executes the build:
+The situation gets more complicated when your Logic App includes a [custom code project](https://learn.microsoft.com/en-us/azure/logic-apps/create-run-custom-code-functions). Custom code projects let you add .NET functions that your workflows can call. Before packaging the Logic App, you need to build the .NET project so the compiled output gets included in the deployment zip. You can do this by adding a `prepackage` [hook](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/azd-extensibility) that builds the project:
 
 ```yaml
 services:
