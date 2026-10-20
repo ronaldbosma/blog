@@ -1,8 +1,8 @@
 ---
 title: "Monitoring Azure Integrations with a Dashboard"
-date: 2026-10-19T11:45:00+02:00
-publishdate: 2026-10-19T11:45:00+02:00
-lastmod: 2026-10-19T11:45:00+02:00
+date: 2026-10-20T12:30:00+02:00
+publishdate: 2026-10-20T12:30:00+02:00
+lastmod: 2026-10-20T12:30:00+02:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "API Management", "Azure Functions", "Logic Apps", "Azure Service Bus", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "Integrations built with Azure Integration Services can include components from several services, each with its own monitoring experience. In this post, I show how I bring API Management requests, Azure Functions, Logic App workflows and Service Bus signals together in an Azure dashboard, then turn that dashboard into a reusable Bicep deployment."
@@ -20,6 +20,10 @@ This is the first post in my [Monitoring Azure Integration Services](/series/mon
 - [Sample Template](#sample-template)
 - [Environment Overview Dashboard](#environment-overview-dashboard)
 - [Queries Behind the Dashboard](#queries-behind-the-dashboard)
+  - [API Management Requests](#api-management-requests)
+  - [Azure Functions](#azure-functions)
+  - [Logic App Workflows](#logic-app-workflows)
+  - [Request Duration](#request-duration)
 - [Editing the Dashboard](#editing-the-dashboard)
 - [Deploying the Dashboard with Bicep](#deploying-the-dashboard-with-bicep)
 - [Considerations](#considerations)
@@ -27,13 +31,11 @@ This is the first post in my [Monitoring Azure Integration Services](/series/mon
 
 ### Sample Template
 
-I've created an Azure Developer CLI (`azd`) template called [Monitor Azure Integration Services](https://github.com/ronaldbosma/monitor-azure-integration-services). It demonstrates monitoring approaches for Azure Integration Services, including dashboards, workbooks, health checks, alerts and health models.
-
-The sample application lets users manage movies and submit or update ratings. It uses API Management, Azure Functions, Logic App workflows and Azure Service Bus. If you'd like to deploy and try the solution, follow the template's [getting started instructions](https://github.com/ronaldbosma/monitor-azure-integration-services#getting-started).
+I've created an Azure Developer CLI (`azd`) template called [Monitor Azure Integration Services](https://github.com/ronaldbosma/monitor-azure-integration-services) to demonstrate different monitoring approaches for Azure Integration Services, including dashboards, workbooks, health checks, alerts and health models. The dashboard featured in this post is included in the template. It has a sample application that lets users manage movies and submit or update ratings. It uses API Management, Azure Functions, Logic App workflows and Azure Service Bus. If you'd like to deploy and try the solution, follow the template's [getting started instructions](https://github.com/ronaldbosma/monitor-azure-integration-services#getting-started).
 
 ### Environment Overview Dashboard
 
-The dashboard is intended to give me a quick overview of the integration environment, not to replace the detailed monitoring views in each service. I include a mixture of availability and health information, request activity, workflow status, function results, alerts and messaging metrics.
+The dashboard is intended to give me a quick overview of the integration health in an environment, not to replace the detailed monitoring views in each service. I include a mixture of availability and health information, request activity, workflow status, function results, alerts and messaging metrics.
 
 The sample dashboard looks like this:
 
@@ -63,7 +65,7 @@ The dashboard shows request counts by API and response code, alongside the lates
 
 ![API Management Requests](../../../../../images/monitoring-azure-integration-services/monitoring-azure-integrations-with-a-dashboard/apim-requests.png)
 
-This query groups requests by API and response code. I separate client failures from other failures because client errors don't usually require the same response from my team. Sorting by the latest server failure helps me spot APIs with recent server-side errors.
+This query groups requests by API and response code. I separate client failures from other failures because client failures don't usually require the same response from my team. Sorting by the latest server failure helps me spot APIs with recent server-side errors.
 
 ```kusto
 let requestSummary = requests
@@ -97,12 +99,12 @@ The dashboard shows success and failure counts for each function, along with the
 
 ![Azure Functions](../../../../../images/monitoring-azure-integration-services/monitoring-azure-integrations-with-a-dashboard/azure-functions.png)
 
-This query includes function request telemetry and host result records. It summarizes successes and failures per function and function app.
+This query summarizes successes and failures per function and function app.
 
 ```kusto
 requests
-| where customDimensions["faas.name"] != "" or customDimensions["Category"] == "Host.Results"
-| extend function = tostring(coalesce(customDimensions["faas.name"], name))
+| where customDimensions["faas.name"] != ""
+| extend function = tostring(customDimensions["faas.name"])
 | summarize
     success = countif(success == true),
     lastSuccess = maxif(timestamp, success == true),
@@ -119,7 +121,7 @@ requests
 | sort by lastFailure desc, function asc
 ```
 
-This query is based on OpenTelemetry logging. My [Migrate Azure Functions project from Application Insights to OpenTelemetry](https://gist.github.com/ronaldbosma/ac21e32e2d7f8ad1512760bca8b0609b#kusto-queries) gist includes an example query for the older Application Insights logging and another that combines OpenTelemetry with the older logging.
+The query is based on OpenTelemetry logging. My [Migrate Azure Functions project from Application Insights to OpenTelemetry](https://gist.github.com/ronaldbosma/ac21e32e2d7f8ad1512760bca8b0609b#kusto-queries) gist includes an example query for the older Application Insights logging and another that combines both.
 
 #### Logic App Workflows
 
@@ -127,7 +129,7 @@ The dashboard shows workflow run counts by status and the latest success, failur
 
 ![Logic App Workflows](../../../../../images/monitoring-azure-integration-services/monitoring-azure-integrations-with-a-dashboard/logic-app-workflows.png)
 
-The workflow query joins start and end events to determine the run status. It uses both `operation_Id` and `runId` to match events for a workflow run.
+The workflow query joins workflow start and end events to determine the run status, using both `operation_Id` and `runId` to match events for a workflow run.
 
 ```kusto
 let runEvents = traces
@@ -169,7 +171,7 @@ runEvents
     logicApp = cloud_RoleName
 ```
 
-This query requires enhanced telemetry to be enabled for the Logic App. Set `Runtime.ApplicationInsightTelemetryVersion` to `v2` in the Logic App's `host.json`:
+The query requires enhanced telemetry to be enabled for the Logic App. To enable it, set `Runtime.ApplicationInsightTelemetryVersion` to `v2` in your Logic App's `host.json`:
 
 ```json
 {
@@ -213,17 +215,17 @@ requests
 
 ### Editing the Dashboard
 
-I usually build up a dashboard by pinning useful charts and queries from the Azure portal. For example, you can configure a metric on a service's Metrics page of a resource and pin it, or create a query in Application Insights or Log Analytics and pin its results. You can also add tiles directly from the dashboard.
+I usually build up a dashboard by pinning useful charts and queries from the Azure portal to a dashboard. For example, you can configure a metric on a service's Metrics page of a resource and pin it, or create a query in Application Insights or Log Analytics and pin its results. You can also add tiles directly from the dashboard.
 
-Some tiles use the time range selected on the dashboard, while others retain the time range from their source. To make a tile follow the dashboard's time range, open its `...` menu, select **Configure tile settings** and clear **Override the dashboard time settings at the tile level**. This is also where you can set a tile title and subtitle.
+Some tiles use the time range selected on the dashboard, while others retain the time range from their source when they're pinned. To make a tile follow the dashboard's time range, open its `...` menu, select **Configure tile settings** and clear **Override the dashboard time settings at the tile level**. This is also where you can set a tile title and subtitle.
 
-For an [Azure Resource Graph](https://learn.microsoft.com/en-us/azure/governance/resource-graph/first-query-portal) tile, the **Pin to dashboard** or **Update pinned part on dashboard** action is above the Results table. It took me a while to find it because it's in a different place from the pinning controls on other screens. This tile doesn't have a **Customize** button like some other dashboard tiles. To edit the query later, you click on the tile itself. 
+For an [Azure Resource Graph](https://learn.microsoft.com/en-us/azure/governance/resource-graph/first-query-portal) tile (used to display alerts in the sample), the **Pin to dashboard** or **Update pinned part on dashboard** action is above the Results table. It took me a while to find it because it's in a different place from the pinning controls on other screens. This tile also doesn't have a **Customize** button like some other dashboard tiles. To edit the query later, you click on the tile itself. 
 
-Some metrics can be split by resource or entity. For example, an availability test metric can show a separate line for each test. The App Service health check status metric doesn't support splitting on resource, so you need add each Function App and Logic App to the tile separately.
+Some metrics can be split by resource or entity. For example, an availability test metric can show a separate line for each test. The App Service health check status metric doesn't support splitting on resource, so you need to add each Function App and Logic App to the tile separately.
 
 ### Deploying the Dashboard with Bicep
 
-Once you're happy with the dashboard and it's ready to deploy, select **Export** and download its definition. Then copy the JSON definition into the Bicep file you use to deploy the dashboard. The [Bicep extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-bicep) can convert the JSON into Bicep.
+Once you're happy with the dashboard and it's ready to deploy, select **Export** and download its definition. Then copy the JSON definition into the Bicep file you use to deploy the dashboard. The [Bicep extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-bicep) automatically converts the JSON into Bicep.
 
 Before deploying to multiple environments, the environment-specific values in the dashboard definition need to be replaced. The sample template repository includes a [PowerShell script](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/scripts/replace-dashboard-hardcoded-values.ps1) that replaces hard-coded values. If the sample template has been deployed, you can run it with [`azd exec`](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/reference#azd-exec), which supplies values from the current `azd` environment:
 
