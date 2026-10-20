@@ -24,6 +24,7 @@ In this blog post I'll share some tips & tricks that I've gathered over the year
   - [Duration Formatting](#duration-formatting)
   - [Request Details in Context Pane](#request-details-in-context-pane)
   - [End-to-end Transaction Details](#end-to-end-transaction-details)
+  - [Hide Operation ID](#hide-operation-id)
   - [Column Labels](#column-labels)
 - [Totals (tiles)](#totals-tiles)
 - [Master-detail Table](#master-detail-table)
@@ -56,7 +57,7 @@ By clicking on 'View in Logs' you'll go to the Logs screen where the query we've
 ```kusto
 union isfuzzy = true requests
 | where timestamp > datetime("2026-10-18T13:05:55.344Z") and timestamp < datetime("2026-10-19T13:05:55.344Z")
-| where customDimensions["Service ID"] in("apim-robo-test")
+| where customDimensions["Service ID"] in("apim-monitorais-frc-u7eei")
 | where customDimensions["API Name"] in("user-ratings-api", "movies-api")
 | order by timestamp desc
 | take 100
@@ -78,7 +79,7 @@ We'll be reusing the same query in different parts of our workbook, so we're goi
 
 ```kusto
 requests
-| where customDimensions["Service ID"] == "apim-robo-test"
+| where customDimensions["Service ID"] == "apim-monitorais-frc-u7eei"
 | extend subscription = tostring(customDimensions["Subscription Name"])
     , api = tostring(customDimensions["API Name"])
 ```
@@ -279,7 +280,7 @@ See the [Rendering options](https://learn.microsoft.com/en-us/azure/azure-monito
 By default, the duration is displayed in milliseconds. Making it difficult to quickly see how long a request took. We can configure a different renderer and custom number formatting to improve readability.
 
 Follow these steps:
-- Open the column settings again  and select the duration column
+- Open the column settings again and select the duration column
 - Select 'Bar (underneath)' in the 'Column renderer' drop down
 - Check the 'Custom number formatting' checkbox
 - Select Milliseconds as the unit
@@ -298,7 +299,7 @@ Now, the duration column will display the value in milliseconds or seconds, depe
 To show more information about a request, we can change the details column to show a link that opens the request details to the side.
 
 Follow these steps:
-- Open the column settings again  and select the details column
+- Open the column settings again and select the details column
 - Select Link in the 'Column renderer' drop down
 - Enter '11ch' as the 'Custom Column Width'
 - Select 'Request Details' in the 'View to open' drop down
@@ -334,6 +335,18 @@ Choose 'Save and Close' to see the results.
 When you click on a transaction link, the end-to-end transaction screen is opened. See the example below.
 
 ![End-to-end Transaction Details](../../../../../images/azure-workbook-tips-and-tricks/end-to-end-transaction-details.png)
+
+#### Hide Operation ID
+
+We'll use the `operation_Id` further on to load dependencies of a selected request, but I want to hide the column in this table.
+
+Follow these steps:
+- Open the column settings again and select the operation_Id column
+- Select Hidden in the 'Column renderer' drop down
+
+![Operation ID Column Transaction](../../../../../images/azure-workbook-tips-and-tricks/table-column-operation-id.png)
+
+Choose 'Save and Close' to see the results.
 
 #### Column Labels
 
@@ -387,12 +400,11 @@ We can add a title to the chart to clarify what is displayed. Go to Advanced Set
 
 I usually display the totals above a table. You can move the Tiles section above the table by choosing 'Move > Move up'.
 
-
 ### Master-detail Table
 
 Tables and other items provide the option to select data. We can use that selection as a filter in other items. 
 
-As an example, we'll create a master-detail table. When a request in the master table is selected, all requests that have the same operation id will be displayed in the detail table. See the example below.
+As an example, we'll create a master-detail table. When a request in the master table is selected, all dependencies that have the same operation id will be displayed in the details table. See the example below.
 
 ![Master-detail Table](../../../../../images/azure-workbook-tips-and-tricks/master-detail-table.png)
 
@@ -419,13 +431,13 @@ Choose 'Add > Add query' to add another table. Select Time as the Time Range and
 Add the following query.
 
 ```kusto
-ApimRequests
+dependencies
 | where operation_Id == '{SelectedOperationId}'
 | project status = iif(success==true, "success", "error")
     , timestamp
-    , subscription
-    , api
+    , target
     , name
+    , type
     , resultCode
     , duration
     , details = itemId
@@ -433,9 +445,9 @@ ApimRequests
 | order by timestamp desc
 ```
 
-This query looks like the previous one, but only filters on the `operation_Id` column using the exported parameter of the master table. 
+This query looks like the query for requests. A view columns are different and it only filters on the `operation_Id` column using the exported parameter of the master table. 
 
-You can customize the columns again, similar to the master table. I also like to add a chart title in which I display the selected value. You can update the chart title in the Advanced Settings with: `Requests for operation: {SelectedOperationId}`.
+You can customize the styling of the columns again, similar to the master table. I also like to add a chart title in which I display the selected value. You can update the chart title in the Advanced Settings with: `Dependencies of operation: {SelectedOperationId}`.
 
 #### Show Detail Table on Selection
 
