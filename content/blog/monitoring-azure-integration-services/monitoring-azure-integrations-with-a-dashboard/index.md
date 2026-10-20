@@ -1,12 +1,11 @@
 ---
 title: "Monitoring Azure Integrations with a Dashboard"
-date: 2026-10-20T12:30:00+02:00
-publishdate: 2026-10-20T12:30:00+02:00
-lastmod: 2026-10-20T12:30:00+02:00
+date: 2026-10-20T13:15:00+02:00
+publishdate: 2026-10-20T13:15:00+02:00
+lastmod: 2026-10-20T13:15:00+02:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "API Management", "Azure Functions", "Logic Apps", "Azure Service Bus", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "Integrations built with Azure Integration Services can include components from several services, each with its own monitoring experience. In this post, I show how I bring API Management requests, Azure Functions, Logic App workflows and Service Bus signals together in an Azure dashboard, then turn that dashboard into a reusable Bicep deployment."
-draft: true
 ---
 
 When I start working on a new Azure Integration Services project, one of the first things I do is make sure I can monitor it. The integrations I've worked on often include API Management, Azure Functions, Logic App workflows and Azure Service Bus. Looking across those services individually makes it harder to get a quick sense of the health of the integrations.
