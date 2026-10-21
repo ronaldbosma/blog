@@ -1,7 +1,7 @@
 ---
 title: "Deploy Azure Workbooks with a Reusable Bicep Module"
-date: 2026-10-27T10:00:00+02:00
-publishdate: 2026-10-27T10:00:00+02:00
+date: 2026-10-27T10:00:00+01:00
+publishdate: 2026-10-27T10:00:00+01:00
 lastmod: 2026-10-21T12:30:00+02:00
 tags: [ "Azure", "Azure Monitor", "Azure Workbook", "Bicep", "Infra as Code" ]
 summary: "When deploying Azure Workbooks with Bicep, I use a module that constructs a stable resource name and an environment-specific display name, replaces placeholders in the workbook content and fails the deployment if any placeholders are left. In this post I explain how the module works and how to use it."
