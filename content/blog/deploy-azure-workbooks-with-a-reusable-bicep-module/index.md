@@ -8,9 +8,9 @@ summary: "When deploying Azure Workbooks with Bicep, I use a module that constru
 draft: true
 ---
 
-When deploying [Azure Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) with Bicep, I tend to use a module that takes care of a couple of things for me. Without it, I found myself repeating the same boilerplate in every project: constructing a unique name, adding the environment to the display name and replacing environment-specific values in the workbook JSON. I've shared the module on GitHub, so you can use it too.
+I've been deploying [Azure Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) with Bicep to multiple environments and kept repeating the same boilerplate in every project: constructing a stable name, adding the environment to the display name and replacing environment-specific values in the workbook JSON. To avoid that, I created a reusable Bicep module, which I've shared on GitHub so you can use it too.
 
-In this post I'll explain why the module is useful, show how to use it and walk through its logic. I've written about deploying workbooks before in [Deploy Azure Workbook and App Insights Function](/blog/2023/03/10/deploy-azure-workbook-and-app-insights-function/). That post explains how to deploy a workbook using Bicep. This post builds on that and wraps the logic in a reusable module.
+In this post I'll show how to use the module and walk through its logic. I've written about deploying workbooks before in [Deploy Azure Workbook and App Insights Function](/blog/2023/03/10/deploy-azure-workbook-and-app-insights-function/). That post explains how to deploy a workbook using Bicep. This post builds on that and wraps the logic in a reusable module.
 
 ### Table of Contents
 
