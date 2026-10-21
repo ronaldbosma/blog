@@ -1,8 +1,8 @@
 ---
 title: "Logic App Workflow Runs Workbook"
-date: 2026-10-21T16:35:51+02:00
-publishdate: 2026-10-21T16:35:51+02:00
-lastmod: 2026-10-21T16:35:51+02:00
+date: 2026-11-03T10:00:00+01:00
+publishdate: 2026-10-21T17:30:00+02:00
+lastmod: 2026-10-21T17:30:00+02:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "Azure Workbook", "Logic Apps", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "The Insights screen of a Logic App shows workflow runs, but only for a single Logic App and with some limitations. In this post, I walk through an Azure Workbook that shows the runs of multiple Logic Apps in one place, including cancelled runs, a graph over time, trace links and the option to view or resubmit a run."
