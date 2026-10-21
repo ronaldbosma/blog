@@ -83,25 +83,12 @@ The workbook has the following parameters at the top:
 
 - Subscription and Application Insights: these let me deploy the workbook once and try it on different environments.
 - Time: the time range used by all queries.
-- Status: a hardcoded list of statuses.
-- Logic App: a drop-down with the Logic Apps that logged to the Application Insights instance in the selected time range.
-- Workflow: a drop-down with the workflows that ran in the selected time range.
-- Client Tracking ID: lets me find the runs for a specific client tracking ID.
+- Status: a hardcoded list of statuses (Cancelled, Failed, Running and Succeeded).
+- Logic App: a drop-down with the Logic Apps that logged to the Application Insights instance in the selected time range, filtered on the selected statuses.
+- Workflow: a drop-down with the workflows that ran in the selected time range, filtered on the selected statuses and Logic Apps.
+- Client Tracking ID: a text field to where you can enter a specific client tracking ID.
 
-The Status parameter uses this JSON:
-
-```json
-[
-    { "value": "Cancelled", "label": "Cancelled"},
-    { "value": "Failed", "label": "Failed"},
-    { "value": "Running", "label": "Running"},
-    { "value": "Succeeded", "label": "Succeeded"}
-]
-```
-
-The Logic App parameter queries all Logic Apps that have logged to the Application Insights instance in the selected time range. If one or more statuses are selected, the Logic App drop-down only contains Logic Apps with runs in those statuses. Similarly, the Workflow parameter queries all workflows that ran and filters on status and the selected Logic Apps, if any are selected.
-
-For a more detailed explanation of parameters, see [Azure Workbook Tips & Tricks - Parameters](/blog/2023/02/28/azure-workbook-tips-tricks/#parameters).
+For a more detailed explanation on how to configure parameters in a workbook, see [Azure Workbook Tips & Tricks - Parameters](/blog/2023/02/28/azure-workbook-tips-tricks/#parameters).
 
 ### Graph
 
@@ -134,18 +121,16 @@ runEvents
 | make-series numberOfRequests=count() default=0 on timestamp from todatetime("{TimeRange:startISO}") to todatetime("{TimeRange:endISO}") step {TimeRange:grain} by status
 ```
 
-The query starts by defining a filter for each parameter. The multi-select parameters are wrapped in `dynamic([...])` so they become arrays. When nothing is selected the array is empty, which is why the filters use `array_length(filter) == 0 or column in (filter)`. That way, an empty selection doesn't filter anything. I explain this approach in [Azure Workbook Tips & Tricks - Table](/blog/2023/02/28/azure-workbook-tips-tricks/#table).
+The query first turns the multi-select parameters into arrays with `dynamic([...])`. An empty array means nothing is selected, so the filters only apply when the array isn't empty. 
 
-The `runEvents` variable selects the workflow run events from the `traces` table. The category `Workflow.Operations.Runs` holds the events logged for a workflow run and the `EventName` custom dimension tells which event it is. The run ID is part of the `resource` custom dimension, which contains JSON as a string. That's why the query first converts it with `tostring` and then parses it with `parse_json`.
+It then selects all workflow run events, and extracts the event name, run ID from the custom dimensions. 
 
-Each run has a `WorkflowRunStart` event and, when it has finished, a `WorkflowRunEnd` event. The query takes the start events, applies the Logic App, workflow and client tracking ID filters and then uses a left outer join to find the matching end event. The `cloud_RoleName` is the name of the Logic App and `operation_Name` is the name of the workflow. Columns from the right side of the join get a `1` suffix, which is why the end event's custom dimensions are available as `customDimensions1`. The join matches on both `operation_Id` and `runId`. I explain why in [Preserving Incoming Operation ID](#preserving-incoming-operation-id).
-
-A run that has no end event yet is still running, so the `status` column is `Running` when the end event has no status. Otherwise, the status from the end event is used. The value in the custom dimension contains quotes, which `replace_string` removes. Because the status is only known after the join, the status filter is applied afterwards.
+It takes the start events, applies filters and uses a left outer join to match each start event to an end event. The join is on both `operation_Id` and `runId`. I explain why in [Preserving Incoming Operation ID](#preserving-incoming-operation-id). A start event without a matching end event has no end status, so the query treats it as `Running`. The status filter is applied last, because the status is only known after the join.
 
 Finally, [`make-series`](https://learn.microsoft.com/en-us/kusto/query/make-series-operator) counts the runs per status and creates a time series. This has a few benefits:
 
 - With `make-series`, the graph uses the entire selected period and shows no bars when there are no runs. A `summarize` with `bin` would only return time slots that have data.
-- The granularity is determined by `{TimeRange:grain}`. This way, the granularity is automatically adjusted depending on the time range you've selected.
+- The granularity is determined by `{TimeRange:grain}`. This way, the granularity is automatically adjusted depending on the time range you've selected in the Time parameter.
 
 #### Time Brushing
 
@@ -218,7 +203,7 @@ runEvents
 
 The first part is the same as in the graph query: it finds the start event of each run, joins the end event and determines the status. This query adds a second variable, `triggers`, which selects the trigger events from the `requests` table. A trigger is logged as a request, with its name in the `name` column. The run ID is extracted the same way as for the run events.
 
-A second left outer join, again on `operation_Id` and `runId`, adds the name of the trigger to each run. I need it for the Resubmit link, which calls an API that requires the trigger name. The `project` inside the join keeps only the columns I need, so no duplicate columns are added.
+A second left outer join, again on `operation_Id` and `runId`, adds the name of the trigger to each run. It's needed for the Resubmit link, which calls an API that requires the trigger name.
 
 The final `project` selects and renames the columns for the table:
 
@@ -228,11 +213,11 @@ The final `project` selects and renames the columns for the table:
 - `trace` is the `itemId` of the start event. The Trace link uses it to open the end-to-end transaction details. See [Azure Workbook Tips & Tricks - End-to-end Transaction Details](/blog/2023/02/28/azure-workbook-tips-tricks/#end-to-end-transaction-details) for how to configure that.
 - `runId` and `operation_Id` identify the run. The View and Resubmit links and the triggers and actions table use them.
 
-The table sorts by start time in descending order, so the most recent runs are shown first. The workbook shows a maximum of 1000 rows, so use the filters or time brushing to narrow down the results if needed.
+The table sorts by start time in descending order, so the most recent runs are shown first. I've configured the workbook to show a maximum of 1000 rows, so use the filters or time brushing to narrow down the results if needed.
 
 ### Preserving Incoming Operation ID
 
-By default, the operation ID matches the run ID of a workflow run. When you preserve incoming operation IDs, a workflow that's triggered by, for example, a request from API Management or another workflow, keeps the operation ID of the incoming request.
+By default, when enhanced telemetry is enabled, the operation ID matches the run ID of a workflow run. However, this is not the case when you preserve incoming operation IDs. A workflow that's triggered by, for example, a request from API Management or another workflow, keeps the operation ID of the incoming request.
 
 In my sample application, I have a workflow that triggers on a schedule and selects all movies. For each movie, a 'recalculate rating' command is sent to a Service Bus queue. Another workflow is triggered for each of those messages to recalculate the rating of the movie. When the incoming operation ID is preserved, all the logging of these workflows is correlated and contained in a single end-to-end trace.
 
@@ -262,7 +247,7 @@ This preserves the incoming operation ID so workflow telemetry can be correlated
 
 ### View Link
 
-The View link opens a workflow run in the graphical interface of the Logic App (the designer). It works for workflows that have state, like stateful workflows or stateless workflows with run history enabled (app setting or environment variable `Workflows.<workflow-name>.OperationOptions` set to `WithStatelessRunHistory`).
+The View link opens a workflow run in the graphical designer interface of the Logic App. It works for workflows that have state, like stateful workflows or stateless workflows with run history enabled by setting the environment variable `Workflows.<workflow-name>.OperationOptions` to `WithStatelessRunHistory`. Here's an example:
 
 ![Workflow run in the designer](../../../../../images/monitoring-azure-integration-services/logic-app-workflow-runs-workbook/view-workflow-in-designer-view.png)
 
@@ -273,8 +258,7 @@ To configure the link:
 1. Select **Custom View**.
 1. Click **Configure**.
 1. In the **Custom View settings** screen, enter `Microsoft_Azure_EMA` as the **Extension name** and `WorkflowMonitorBlade` as the **View name**.
-1. Select **JSON** for the **View inputs** and enter the following:
-
+1. Select **JSON** for the **View inputs** and enter the following:  
     ```json
     {
       "id": "{LogicAppId_column}/workflows/{Workflow_column}",
