@@ -18,26 +18,27 @@ This is the second post in my [Monitoring Azure Integration Services](/series/mo
 ### Table of Contents
 
 - [Sample Template](#sample-template)
-- [Logic App Workflow Runs Workbook](#logic-app-workflow-runs-workbook)
-- [Enable Enhanced Telemetry](#enable-enhanced-telemetry)
+- [Workbook Overview](#workbook-overview)
+- [Enabling Enhanced Telemetry](#enabling-enhanced-telemetry)
 - [Parameters](#parameters)
-- [Graph](#graph)
+- [Workflow Runs Graph](#workflow-runs-graph)
   - [Time Brushing](#time-brushing)
-- [Workflow Runs](#workflow-runs)
-- [Preserving Incoming Operation ID](#preserving-incoming-operation-id)
-- [View Link](#view-link)
-- [Resubmitting Workflows](#resubmitting-workflows)
-- [Get Logic App ID](#get-logic-app-id)
-- [Triggers and Actions](#triggers-and-actions)
-- [Dependencies and Exceptions of an Action](#dependencies-and-exceptions-of-an-action)
-- [Deployment](#deployment)
+- [Workflow Runs Table](#workflow-runs-table)
+  - [Preserving Incoming Operation ID](#preserving-incoming-operation-id)
+  - [Configuring the View Link](#configuring-the-view-link)
+  - [Configuring the Resubmit Link](#configuring-the-resubmit-link)
+  - [Getting the Logic App ID](#getting-the-logic-app-id)
+- [Triggers and Actions Table](#triggers-and-actions-table)
+- [Action Dependencies and Exceptions](#action-dependencies-and-exceptions)
+- [Deploying the Workbook](#deploying-the-workbook)
+- [Considerations](#considerations)
 - [Conclusion](#conclusion)
 
 ### Sample Template
 
 I've created an Azure Developer CLI (`azd`) template called [Monitor Azure Integration Services](https://github.com/ronaldbosma/monitor-azure-integration-services) to demonstrate different monitoring approaches for Azure Integration Services, including dashboards, workbooks, health checks, alerts and health models. The workbook featured in this post is included in the template. The template has a sample application that lets users manage movies and submit or update ratings. It uses API Management, Azure Functions, Logic App workflows and Azure Service Bus. If you'd like to deploy and try the solution, follow the template's [getting started instructions](https://github.com/ronaldbosma/monitor-azure-integration-services#getting-started). The template also includes a [demo guide](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/demos/demo-logic-app-workflow-runs-workbook.md) for this workbook.
 
-### Logic App Workflow Runs Workbook
+### Workbook Overview
 
 The workbook shows a graph with the number of workflow runs over time, a table with the runs themselves and, for the selected run, a table with its triggers and actions. For a selected action, you can see its dependencies and exceptions.
 
@@ -56,7 +57,7 @@ The workbook is inspired by [Extending Logic Apps App Insight integration with A
 
 I'm assuming you know a bit about editing Azure Workbooks. If not, have a look at my [Azure Workbook Tips & Tricks](/blog/2023/02/28/azure-workbook-tips-tricks/) post first.
 
-### Enable Enhanced Telemetry
+### Enabling Enhanced Telemetry
 
 For the workbook to work, you need to enable enhanced telemetry for your Logic App. You do this by setting `Runtime.ApplicationInsightTelemetryVersion` to `v2` in your `host.json` file:
 
@@ -90,7 +91,7 @@ The workbook has the following parameters at the top:
 
 For a more detailed explanation on how to configure parameters in a workbook, see [Azure Workbook Tips & Tricks - Parameters](/blog/2023/02/28/azure-workbook-tips-tricks/#parameters).
 
-### Graph
+### Workflow Runs Graph
 
 The graph displays the number of workflow runs per status over time. This is the query:
 
@@ -156,7 +157,7 @@ Next, edit the `TimeRange` parameter:
 
 With this configuration, the time range selected in the drop-down is used by default. When you select a different time range in the graph, the `TimeRange` parameter is updated and all data is filtered using the brushed range instead.
 
-### Workflow Runs
+### Workflow Runs Table
 
 This is the base query to select the workflow runs. I've left out the filters, which are the same as in the graph query.
 
@@ -215,7 +216,7 @@ The final `project` selects and renames the columns for the table:
 
 The table sorts by start time in descending order, so the most recent runs are shown first. I've configured the workbook to show a maximum of 1000 rows, so use the filters or time brushing to narrow down the results if needed.
 
-### Preserving Incoming Operation ID
+#### Preserving Incoming Operation ID
 
 By default, when enhanced telemetry is enabled, the operation ID matches the run ID of a workflow run. However, this is not the case when you preserve incoming operation IDs. A workflow that's triggered by, for example, a request from API Management or another workflow, keeps the operation ID of the incoming request.
 
@@ -245,7 +246,7 @@ To preserve the incoming operation ID, set `Runtime.ApplicationInsights.Preserve
 
 This preserves the incoming operation ID so workflow telemetry can be correlated with related telemetry. But because of this configuration, `operation_Id` alone doesn't always identify a specific workflow run. That's why my queries extract `runId` from the `resource` custom dimension and join on both `operation_Id` and `runId`.
 
-### View Link
+#### Configuring the View Link
 
 The View link opens a workflow run in the graphical designer interface of the Logic App. It works for workflows that have state, like stateful workflows or stateless workflows with run history enabled by setting the environment variable `Workflows.<workflow-name>.OperationOptions` to `WithStatelessRunHistory`. Here's an example:
 
@@ -270,9 +271,9 @@ To configure the link:
 
 ![Custom View settings of the View column](../../../../../images/monitoring-azure-integration-services/logic-app-workflow-runs-workbook/column-view-custom-view-settings.png)
 
-The `{LogicAppId_column}` syntax refers to the column of the row in which the View link is clicked. You can use `{ParameterName}` to refer to a parameter (no postfix necessary). The Logic App ID and location aren't part of the telemetry. I explain how I get them in [Get Logic App ID](#get-logic-app-id).
+The `{LogicAppId_column}` syntax refers to the column of the row in which the View link is clicked. You can use `{ParameterName}` to refer to a parameter (no postfix necessary). The Logic App ID and location aren't part of the telemetry. I explain how I get them in [Getting the Logic App ID](#getting-the-logic-app-id).
 
-### Resubmitting Workflows
+#### Configuring the Resubmit Link
 
 The Resubmit link only works for stateful workflows. I haven't found a way to hide the link for stateless workflows.
 
@@ -292,9 +293,9 @@ To configure the link:
 
 ![ARM Action settings of the Resubmit column](../../../../../images/monitoring-azure-integration-services/logic-app-workflow-runs-workbook/column-resubmit-arm-action-settings.png)
 
-As with the View link, you can use `{Workflow_column}` to use values from the columns of the row in which the link is clicked and `{ParameterName}` to refer to a parameter. I use this in the description to show the workflow, Logic App and run ID, and to mention that resubmitting doesn't work for stateless workflows.
+As with the View link, you can use `{Workflow_column}` to use values from the columns of the row in which the link is clicked and `{ParameterName}` to refer to a parameter. It works in the fields of both the **ARM Action Settings** and **UX Settings** tabs.
 
-### Get Logic App ID
+#### Getting the Logic App ID
 
 The View and Resubmit links need the full ID of the Logic App, which includes the subscription ID and resource group name. For example: `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-monitorais-frc-u7eei/providers/Microsoft.Web/sites/logic-monitorais-frc-u7eei`. This isn't available in the Application Insights logging of a workflow run, so I've created two hidden queries and combine their results in a third one.
 
@@ -316,7 +317,7 @@ The third grid is the one that's displayed. It merges the results of the other t
 
 ![Configure merge](../../../../../images/monitoring-azure-integration-services/logic-app-workflow-runs-workbook/configure-merge.png)
 
-### Triggers and Actions
+### Triggers and Actions Table
 
 I use a master-detail table to show the completed triggers and actions of the selected workflow run. See [Azure Workbook Tips & Tricks - Master-detail Table](/blog/2023/02/28/azure-workbook-tips-tricks/#master-detail-table) for how to set that up.
 
@@ -352,9 +353,9 @@ requests
 
 Triggers and actions are both logged as requests, so the query selects both categories. The `{SelectedWorkflowOperationID}` and `{SelectedWorkflowRunID}` parameters hold the values exported from the selected row in the workflow runs table. Filtering on both the operation ID and the run ID ensures only the telemetry of the selected run is shown, even when the operation ID is shared by multiple runs.
 
-The `type` column uses `coalesce` to show the action type for actions and the trigger type for triggers. This is what lets me include the trigger in the same table as the actions. The `retries` column counts the entries in the `retryHistory` custom dimension, if it exists. The `id` column identifies the action and is what the dependencies and exceptions queries use as `{SelectedWorkflowActionID}`.
+The `type` column uses `coalesce` to show the action type for actions and the trigger type for triggers. This is what lets me include the trigger in the same table as the actions. The `retries` column counts the entries in the `retryHistory` custom dimension, if it exists. The `id` column identifies the action and is what the dependencies and exceptions queries use as `{SelectedWorkflowActionID}`. This column is hidden in the table, because it's only needed to pass the selected action to those queries. 
 
-### Dependencies and Exceptions of an Action
+### Action Dependencies and Exceptions
 
 When you select an action, the workbook shows its dependencies and exceptions in two tabs. This is the dependencies query:
 
@@ -393,7 +394,7 @@ exceptions
 
 Both queries select the telemetry whose parent is the selected action, using `operation_ParentId`. In the dependencies query, I map the result to a status so I can show an icon. A successful dependency is a success, a 4xx response code is a warning and everything else is an error. I treat client errors as a warning because they don't necessarily indicate a problem with the workflow itself.
 
-### Deployment
+### Deploying the Workbook
 
 I use a generic module to deploy the workbook, as described in [Deploy Azure Workbooks with a Reusable Bicep Module](/blog/2026/10/27/deploy-azure-workbooks-with-a-reusable-bicep-module). The module is used in [main.bicep](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/infra/03-monitoring/main.bicep) of the sample template. Here's a short snippet:
 
@@ -415,8 +416,6 @@ module logicAppWorkflowRunsWorkbook './modules/workbooks/workbook.bicep' = {
 }
 ```
 
-If you want to use an older approach, my post [Deploy Azure Workbook and App Insights Function](/blog/2023/03/10/deploy-azure-workbook-and-app-insights-function/) shows how to deploy a workbook using an ARM template in Bicep.
-
 You can also deploy the workbook manually, independently of the sample template:
 
 1. Navigate to your **Application Insights** resource in the **Azure portal**.
@@ -431,8 +430,36 @@ You can also deploy the workbook manually, independently of the sample template:
 1. Specify a **Title** and configure the **Subscription**, **Resource Group** and **Location** where you want to save the workbook.
 1. Click **Save As**.
 
+### Considerations
+
+Queries over Application Insights data can show incomplete results when telemetry is [sampled](https://learn.microsoft.com/en-us/azure/azure-functions/configure-monitoring#configure-sampling). Sampling is enabled by default for Logic Apps, so some workflow runs, triggers or actions might be missing from the workbook. I've also seen completed workflow runs shown as running because the end event wasn't logged. You can check the retained percentage with this query:
+
+```kusto
+union requests, dependencies, pageViews, browserTimings, exceptions, traces
+| where timestamp > ago(1d)
+| summarize RetainedPercentage = 100 / avg(itemCount)
+    by bin(timestamp, 1h), itemType
+```
+
+To disable sampling for a Logic App, set `isEnabled` to `false` in the `samplingSettings` of your `host.json` file:
+
+```json
+{
+  ...
+  "logging": {
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": false
+      }
+    }
+  }
+}
+```
+
+Beware that this might significantly increase the amount of telemetry, which increases cost as well.
+
 ### Conclusion
 
 Finding failed, cancelled or running workflow runs across multiple Logic Apps was the problem I wanted to solve. This workbook does that with a graph for the trend, a table to find specific runs and detail tables to drill into triggers, actions, dependencies and exceptions. Joining on both the operation ID and the run ID makes it work when incoming operation IDs are preserved, so I can keep my end-to-end traces.
 
-The workbook is a starting point. You can adjust the parameters, columns and queries to fit your own integrations. In the next posts in this series, I'll continue with other ways to monitor Azure Integration Services, like alerts.
+The workbook is a starting point. You can adjust the parameters, columns and queries to fit your own integrations.
