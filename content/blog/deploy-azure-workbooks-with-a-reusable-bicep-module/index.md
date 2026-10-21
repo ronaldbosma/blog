@@ -1,6 +1,6 @@
 ---
 title: "Deploy Azure Workbooks with a Reusable Bicep Module"
-date: 2026-10-21T11:39:00+02:00
+date: 2026-10-27T10:00:00+02:00
 publishdate: 2026-10-21T11:39:00+02:00
 lastmod: 2026-10-21T11:39:00+02:00
 tags: [ "Azure", "Azure Monitor", "Azure Workbook", "Bicep", "Infra as Code" ]
