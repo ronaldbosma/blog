@@ -174,7 +174,7 @@ requests
 
 I thought I could use a similar approach as with the workbook and use the [analyticsItems](https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/components/analyticsitems?pivots=deployment-language-bicep) Bicep resource, but unfortunately this doesn't work at all. The problem has been reported on GitHub in [this issue](https://github.com/Azure/bicep/issues/5518).
 
-The Azure CLI doesn't provide any specific commands either. The only option seems to be to use the REST API. There is no page about creating an Application Insights function in [the REST API documentation](https://learn.microsoft.com/en-us/rest/api/application-insights/), but luckily I found [this blog post](https://blog.peterschen.de/create-functions-in-application-insights-through-rest-api/) that describes the various operations.
+The Azure CLI doesn't provide any specific commands either. The only option seems to be to use the REST API. There is no page about creating an Application Insights function in [the REST API documentation](https://learn.microsoft.com/en-us/rest/api/application-insights/), but luckily I found [this blog post](https://www.peterschen.de/create-functions-in-application-insights-through-rest-api/) that describes the various operations.
 
 The following `PUT` can be used to create a function.
 
