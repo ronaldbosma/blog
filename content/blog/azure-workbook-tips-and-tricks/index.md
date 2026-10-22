@@ -2,7 +2,7 @@
 title: "Azure Workbook Tips & Tricks"
 date: 2023-02-28T19:30:00+01:00
 publishdate: 2023-02-28T19:30:00+01:00
-lastmod: 2026-10-20T12:15:00+02:00
+lastmod: 2026-10-22T16:30:00+02:00
 tags: [ "Azure", "Application Insights", "Azure Monitor", "Azure Workbook", "kusto" ]
 summary: "If you use Azure, you most likely use Application Insights for logging. You can use a dashboard to visualize your logging and gain better insights, but dashboards come with some limitations. For more flexibility Azure has workbooks. In this blog post I'll share some tips & tricks that I've gathered over the years. As a sample, we'll create a workbook that shows information about requests sent to an API Management instance."
 ---
@@ -26,7 +26,8 @@ In this blog post I'll share some tips & tricks that I've gathered over the year
   - [End-to-end Transaction Details](#end-to-end-transaction-details)
   - [Hide Operation ID](#hide-operation-id)
   - [Column Labels](#column-labels)
-- [Totals (tiles)](#totals-tiles)
+- [Number of Requests Graph](#number-of-requests-graph)
+  - [Time Brushing](#time-brushing)
 - [Master-detail Table](#master-detail-table)
   - [Export Selection from Master Table](#export-selection-from-master-table)
   - [Add Detail Table](#add-detail-table)
@@ -76,7 +77,7 @@ When you specify your own custom properties to log from your application, you'll
 
 ### Create reusable query
 
-We'll be reusing the same query in different parts of our workbook, so we're going to make a function. First, we'll cleanup the previously generated query to look like this:
+We'll be reusing the same query in different parts of our workbook, so we're going to make a function. First, we'll clean up the previously generated query to look like this:
 
 ```kusto
 requests
@@ -244,7 +245,7 @@ ApimRequests
 
 The subscription and api filters are like the one in the query of the Api parameter.
 
-The Success parameter was not multiselect, so `let successFilter = '{Success}';` will be empty if nothing is selected, `true` if yes is selected and `false` if no is selected. With the filter `| where isempty(successFilter) or success == tobool(successFilter)` we either show all request or the requests that were (un)successful.
+The Success parameter was not multiselect, so `let successFilter = '{Success}';` will be empty if nothing is selected, `true` if yes is selected and `false` if no is selected. With the filter `| where isempty(successFilter) or success == tobool(successFilter)` we either show all requests or the requests that were (un)successful.
 
 With the `project` keyword we specify a list of columns to display in the table. The `status` column uses [`iif`](https://learn.microsoft.com/en-us/kusto/query/iff-function?view=microsoft-fabric) to display `success` when the request succeeded and `error` otherwise. We'll use this to display an icon further on. The `itemId` is displayed twice in both the `details` and `transaction` column. We'll use these to create links to the request details.
 
@@ -362,44 +363,71 @@ Follow these steps:
 
 Choose 'Save and Close' to see the results.
 
-### Totals (Tiles)
+### Number of Requests Graph
 
-Besides tables you can also use other visualizations to display your query results. One I like to use is tiles. You can use it to for instance show the total number of requests, failures and errors per API. See the example below.
+Besides tables you can also use other visualizations to display your query results. A graph that shows the number of requests over time gives a quick impression of the traffic and when errors occur. See the example below.
 
-![Total Tiles](../../../../../images/azure-workbook-tips-and-tricks/tiles-totals.png)
+![Number of Requests Chart](../../../../../images/azure-workbook-tips-and-tricks/number-of-requests-chart.png)
 
-Start by adding another query to the workbook. Select Time as the Time Range, Tiles as the Visualization and Tiny as the Size.
+Start by adding another query to the workbook with 'Add > Add query'. Select Time as the Time Range and Bar chart as the Visualization.
 
-Add the following query.
+Add the following query:
 
 ```kusto
+let subscriptionFilter = dynamic([{Subscription}]);
+let apiFilter = dynamic([{Api}]);
+let successFilter = '{Success}';
+
 ApimRequests
-| summarize 
-        requests=strcat('Total # of requests: ', count()), 
-        failures=strcat('Total # of failures: ', countif(success==false)),
-        errors=countif(toint(resultCode)>=500)
-    by api
+| where array_length(subscriptionFilter) == 0 or subscription in (subscriptionFilter)
+| where array_length(apiFilter) == 0 or api in (apiFilter)
+| where isempty(successFilter) or success == tobool(successFilter)
+| make-series numberOfRequests=count() default=0 on timestamp from todatetime("{Time:startISO}") to todatetime("{Time:endISO}") step {Time:grain} by success
 ```
 
-This query groups the results by api and counts all requests, all failed requests and all requests with result code >= 500. To clarify what the different numbers are, I've included a bit of text in the results.
+The filters are the same as in the table query. The query then uses [`make-series`](https://learn.microsoft.com/en-us/kusto/query/make-series-operator) instead of `summarize` with `bin`, because a `summarize` only returns time slots that have data. With `make-series`, the graph always shows the entire selected time period, even if there are no requests at the start or end of the period.
 
-If you run the query, you'll notice that it doesn't quite look the same as the example above. We need to customize the tile.
+The `make-series` operator is configured as follows:
 
-Choose Tile Settings. The api is already the title and the errors are displayed as the big number on the left.
+- `from` and `to` use the `{Time:startISO}` and `{Time:endISO}` properties of the Time parameter, so the series covers the selected time range.
+- `step` uses `{Time:grain}`. This way, the granularity is automatically adjusted depending on the time range you've selected in the Time parameter.
+- `default=0` makes sure time slots without requests get the value 0 instead of null.
+- `by success` splits the results, so you get a separate series for successful and failed requests.
 
-To add the total number of requests. Select the Subtitle field and select requests as the column to use. To add the total number of failures. Select the Bottom field and select failures as the column to use.
+To configure the color and labels, follow these steps:
+- Click on the 'Chart Settings' button in the 'Settings' tab
+- Open the 'Series Settings' tab
+- Specify a display label and color for each series
 
-You can also configure on what property to order the results. Select api as the Sort Criteria under Sort Settings and Ascending as the Sort Order.
+![Number of Requests Chart Settings](../../../../../images/azure-workbook-tips-and-tricks/number-of-requests-chart-settings.png)
 
-The Tile Settings screen should look like this.
+Choose 'Save and Close' to see the results.
 
-![Tiles Settings](../../../../../images/azure-workbook-tips-and-tricks/tiles-settings.png)
+I usually display a graph like this above a table. You can move it up by choosing 'Move > Move up'.
 
-Choose 'Save and Close'.
+#### Time Brushing
 
-We can add a title to the chart to clarify what is displayed. Go to Advanced Settings and set the chart title to `Total # of errors per API (status code >=500)`. I also like to check 'Show open external query button when not editing', 'Show refresh icon when not editing' and 'Show Export to CSV button when not editing'.
+The graph supports time brushing, which means you can select a time period in the graph and all data in the workbook will be filtered accordingly.
 
-I usually display the totals above a table. You can move the Tiles section above the table by choosing 'Move > Move up'.
+![Time Brushing](../../../../../images/azure-workbook-tips-and-tricks/time-brushing.png)
+
+To configure time brushing, you first enable it on the graph:
+
+1. Open the 'Advanced Settings' of the graph.
+1. Check 'Enable time range brushing'.
+1. Use `Time` as the parameter name. This is the same name as the time range parameter at the top of the workbook, which all queries use to filter on time.
+1. Check 'Only export the parameter when a range is brushed'.
+
+![Enable Time Brushing](../../../../../images/azure-workbook-tips-and-tricks/enable-time-brushing.png)
+
+Next, edit the `Time` parameter:
+
+1. Go to 'Advanced Settings'.
+1. Check 'Treat this parameter as a global'.
+
+![Time Global Parameter](../../../../../images/azure-workbook-tips-and-tricks/time-global-parameter.png)
+
+With this configuration, the time range selected in the drop-down is used by default. When you select a different time range in the graph, the `Time` parameter is updated and all data is filtered using the brushed range instead.
 
 ### Master-detail Table
 
@@ -493,7 +521,7 @@ As you can see, there's a lot you can do with workbooks, and we've only scratche
 - [Kusto Query Language (KQL) overview](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/)
 
 Here are links to the exported workbook and shared function:
-- [API Management Requests.workbook](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/AzureWorkbookTipsAndTricks/API%20Management%20Requests.workbook)
-- [ApimRequests.kql](https://github.com/ronaldbosma/blog-code-examples/blob/master/AzureWorkbookTipsAndTricks/ApimRequests.kql)
+- [API Management Requests.workbook](https://github.com/ronaldbosma/azure-monitoring/blob/main/other/azure-workbook-tips-and-tricks/API%20Management%20Requests.workbook)
+- [ApimRequests.kql](https://github.com/ronaldbosma/azure-monitoring/blob/main/other/azure-workbook-tips-and-tricks/ApimRequests.kql)
 
 In my blog post [Deploy Azure Workbook and App Insights Function](/blog/2023/03/10/deploy-azure-workbook-and-app-insights-function/) I show you how to deploy this workbook using Bicep and the Azure CLI.
