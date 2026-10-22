@@ -493,7 +493,7 @@ As you can see, there's a lot you can do with workbooks, and we've only scratche
 - [Kusto Query Language (KQL) overview](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/)
 
 Here are links to the exported workbook and shared function:
-- [API Management Requests.workbook](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/AzureWorkbookTipsAndTricks/API%20Management%20Requests.workbook)
-- [ApimRequests.kql](https://github.com/ronaldbosma/blog-code-examples/blob/master/AzureWorkbookTipsAndTricks/ApimRequests.kql)
+- [API Management Requests.workbook](https://github.com/ronaldbosma/azure-monitoring/blob/main/other/azure-workbook-tips-and-tricks/API%20Management%20Requests.workbook)
+- [ApimRequests.kql](https://github.com/ronaldbosma/azure-monitoring/blob/main/other/azure-workbook-tips-and-tricks/ApimRequests.kql)
 
 In my blog post [Deploy Azure Workbook and App Insights Function](/blog/2023/03/10/deploy-azure-workbook-and-app-insights-function/) I show you how to deploy this workbook using Bicep and the Azure CLI.
