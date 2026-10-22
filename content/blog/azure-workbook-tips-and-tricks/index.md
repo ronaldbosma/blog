@@ -77,7 +77,7 @@ When you specify your own custom properties to log from your application, you'll
 
 ### Create reusable query
 
-We'll be reusing the same query in different parts of our workbook, so we're going to make a function. First, we'll cleanup the previously generated query to look like this:
+We'll be reusing the same query in different parts of our workbook, so we're going to make a function. First, we'll clean up the previously generated query to look like this:
 
 ```kusto
 requests
@@ -245,7 +245,7 @@ ApimRequests
 
 The subscription and api filters are like the one in the query of the Api parameter.
 
-The Success parameter was not multiselect, so `let successFilter = '{Success}';` will be empty if nothing is selected, `true` if yes is selected and `false` if no is selected. With the filter `| where isempty(successFilter) or success == tobool(successFilter)` we either show all request or the requests that were (un)successful.
+The Success parameter was not multiselect, so `let successFilter = '{Success}';` will be empty if nothing is selected, `true` if yes is selected and `false` if no is selected. With the filter `| where isempty(successFilter) or success == tobool(successFilter)` we either show all requests or the requests that were (un)successful.
 
 With the `project` keyword we specify a list of columns to display in the table. The `status` column uses [`iif`](https://learn.microsoft.com/en-us/kusto/query/iff-function?view=microsoft-fabric) to display `success` when the request succeeded and `error` otherwise. We'll use this to display an icon further on. The `itemId` is displayed twice in both the `details` and `transaction` column. We'll use these to create links to the request details.
 
