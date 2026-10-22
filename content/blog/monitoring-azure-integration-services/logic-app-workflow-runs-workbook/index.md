@@ -124,14 +124,14 @@ runEvents
 
 The query first turns the multi-select parameters into arrays with `dynamic([...])`. An empty array means nothing is selected, so the filters only apply when the array isn't empty. 
 
-It then selects all workflow run events, and extracts the event name, run ID from the custom dimensions. 
+It then selects all workflow run events, and extracts the event name and run ID from the custom dimensions. 
 
-It takes the start events, applies filters and uses a left outer join to match each start event to an end event. The join is on both `operation_Id` and `runId`. I explain why in [Preserving Incoming Operation ID](#preserving-incoming-operation-id). A start event without a matching end event has no end status, so the query treats it as `Running`. The status filter is applied last, because the status is only known after the join.
+It takes the start events, applies the filters and uses a left outer join to match each start event to an end event. The join is on both `operation_Id` and `runId`. I explain why in [Preserving Incoming Operation ID](#preserving-incoming-operation-id). A start event without a matching end event has no end status, so the query treats it as `Running`. The status filter is applied last, because the status is only known after the join.
 
 Finally, [`make-series`](https://learn.microsoft.com/en-us/kusto/query/make-series-operator) counts the runs per status and creates a time series. This has a few benefits:
 
-- With `make-series`, the graph uses the entire selected period and shows no bars when there are no runs. A `summarize` with `bin` would only return time slots that have data.
-- The granularity is determined by `{TimeRange:grain}`. This way, the granularity is automatically adjusted depending on the time range you've selected in the Time parameter.
+- With `make-series`, the graph shows the entire selected period, even if there are no requests at the start or end of the period. A `summarize` with `bin` would only return time slots that have data.
+- The granularity is based on the TimeRange parameter by using `{TimeRange:grain}`. This way, the granularity is automatically adjusted depending on the time range you've selected in the Time parameter.
 
 #### Time Brushing
 
