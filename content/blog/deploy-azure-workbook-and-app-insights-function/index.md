@@ -21,7 +21,7 @@ After you've created your workbook, you can download an ARM Template of the work
 
 ![Edit Workbook - Advanced Editor](../../../../../images/deploy-azure-workbook-and-app-insights-function/edit-workbook-advanced-editor.png)
 
-Choose ARM Template as the Template Type and download the template. The result will look like [sample-arm-template.json](https://github.com/ronaldbosma/blog-code-examples/blob/master/DeployAzureWorkbookAndAppInsightsFunction/arm-template/sample-arm-template.json).
+Choose ARM Template as the Template Type and download the template. The result will look like [sample-arm-template.json](https://github.com/ronaldbosma/azure-monitoring/blob/master/other/deploy-azure-workbook-and-appinsights-function/arm-template/sample-arm-template.json).
 
 The ARM template can be decompiled to a Bicep script with the following Azure CLI command. 
 
@@ -29,7 +29,7 @@ The ARM template can be decompiled to a Bicep script with the following Azure CL
 az bicep decompile --file .\sample-arm-template.json
 ```
 
-The result will be a Bicep file like the snippet below. See [sample-after-decompile.bicep](https://github.com/ronaldbosma/blog-code-examples/blob/master/DeployAzureWorkbookAndAppInsightsFunction/arm-template/sample-after-decompile.bicep) for the full script.
+The result will be a Bicep file like the snippet below. See [sample-after-decompile.bicep](https://github.com/ronaldbosma/azure-monitoring/blob/master/other/deploy-azure-workbook-and-appinsights-function/arm-template/sample-after-decompile.bicep) for the full script.
 
 ```bicep
 @description('The friendly name for the workbook that is used in the Gallery or Saved List.  This name must be unique within a resource group.')
@@ -91,7 +91,7 @@ If you run this command multiple times, it will fail with the error `A Workbook 
 param workbookId string = guid('sample-workbook')
 ```
 
-A working sample with these changes can be found [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/DeployAzureWorkbookAndAppInsightsFunction/arm-template/sample.bicep). 
+A working sample with these changes can be found [here](https://github.com/ronaldbosma/azure-monitoring/blob/master/other/deploy-azure-workbook-and-appinsights-function/arm-template/sample.bicep). 
 
 The biggest downside of this solution is that the entire workbook definition is a serialized string on a single line. This makes it difficult to make minor changes directly in the definition or to see what has changed. To solve this problem, we can load the workbook definition from a separate file. 
 
@@ -102,9 +102,9 @@ The first step is to download the workbook definition. Open the workbook in Edit
 
 ![Edit Workbook - Advanced Editor](../../../../../images/deploy-azure-workbook-and-app-insights-function/edit-workbook-advanced-editor.png)
 
-Choose Gallery Template as the Template Type and download the template. The result will be a JSON file containing only the definition of the workbook. It should look like [sample.workbook](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/DeployAzureWorkbookAndAppInsightsFunction/load-workbook-from-file/sample.workbook).
+Choose Gallery Template as the Template Type and download the template. The result will be a JSON file containing only the definition of the workbook. It should look like [sample.workbook](https://raw.githubusercontent.com/ronaldbosma/azure-monitoring/master/other/deploy-azure-workbook-and-appinsights-function/load-workbook-from-file/sample.workbook).
 
-We can't replace the application insights id with the `workbookSourceId` parameter like we did before, so I've replaced the value inside [sample.workbook](https://raw.githubusercontent.com/ronaldbosma/blog-code-examples/master/DeployAzureWorkbookAndAppInsightsFunction/load-workbook-from-file/sample.workbook) with a placeholder. You can do this for every environment specific value. See the example below.
+We can't replace the application insights id with the `workbookSourceId` parameter like we did before, so I've replaced the value inside [sample.workbook](https://raw.githubusercontent.com/ronaldbosma/azure-monitoring/master/other/deploy-azure-workbook-and-appinsights-function/load-workbook-from-file/sample.workbook) with a placeholder. You can do this for every environment specific value. See the example below.
 
 ```json
 "fallbackResourceIds": [
@@ -127,7 +127,7 @@ resource workbookId_resource 'microsoft.insights/workbooks@2022-04-01' = {
 }
 ```
 
-As you can see, the definition is loaded from the file using the `loadTextContent` function. We then use the `replace` function to replace the placeholder. The last step is to set the `serializedData` property. See [sample.bicep](https://github.com/ronaldbosma/blog-code-examples/blob/master/DeployAzureWorkbookAndAppInsightsFunction/load-workbook-from-file/sample.bicep) for the full sample.
+As you can see, the definition is loaded from the file using the `loadTextContent` function. We then use the `replace` function to replace the placeholder. The last step is to set the `serializedData` property. See [sample.bicep](https://github.com/ronaldbosma/azure-monitoring/blob/master/other/deploy-azure-workbook-and-appinsights-function/load-workbook-from-file/sample.bicep) for the full sample.
 
 > If you want to know more about how to replace multiple placeholders in a string, see [Replace placeholders in string with user-defined Bicep function](/blog/2024/06/21/replace-placeholders-in-string-with-user-defined-bicep-function).
 
@@ -156,14 +156,14 @@ I've found this solution to be to error prone though. Over the past weeks I enco
 
 I find that loading the workbook definition from a JSON file and doing a simple string replace on the placeholders is an easier way to deploy. It's less error prone and simpler to explain to other people.
 
-So, I would not recommend this solution given the disadvantages. If you're still interested, see this [README](https://github.com/ronaldbosma/blog-code-examples/blob/master/DeployAzureWorkbookAndAppInsightsFunction/bicep-object/README.md).
+So, I would not recommend this solution given the disadvantages. If you're still interested, see this [README](https://github.com/ronaldbosma/azure-monitoring/blob/master/other/deploy-azure-workbook-and-appinsights-function/bicep-object/README.md).
 
 
 ### Deploy shared function in App Insights
 
 The last step is to deploy [the shared function](/blog/2023/02/28/azure-workbook-tips-tricks#create-reusable-query) that the workbook uses to query the API Management requests.
 
-I've stored the following kusto query in a file called [ApimRequests.kql](https://github.com/ronaldbosma/blog-code-examples/blob/master/DeployAzureWorkbookAndAppInsightsFunction/app-insights-function/ApimRequests.kql). The environment specific API Management name has been replaced by the placeholder `##apimName##`.
+I've stored the following kusto query in a file called [ApimRequests.kql](https://github.com/ronaldbosma/azure-monitoring/blob/master/other/deploy-azure-workbook-and-appinsights-function/app-insights-function/ApimRequests.kql). The environment specific API Management name has been replaced by the placeholder `##apimName##`.
 
 ```kusto
 requests
@@ -174,7 +174,7 @@ requests
 
 I thought I could use a similar approach as with the workbook and use the [analyticsItems](https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/components/analyticsitems?pivots=deployment-language-bicep) Bicep resource, but unfortunately this doesn't work at all. The problem has been reported on GitHub in [this issue](https://github.com/Azure/bicep/issues/5518).
 
-The Azure CLI doesn't provide any specific commands either. The only option seems to be to use the REST API. There is no page about creating an Application Insights function in [the REST API documentation](https://learn.microsoft.com/en-us/rest/api/application-insights/), but luckily I found [this blog post](https://blog.peterschen.de/create-functions-in-application-insights-through-rest-api/) that describes the various operations.
+The Azure CLI doesn't provide any specific commands either. The only option seems to be to use the REST API. There is no page about creating an Application Insights function in [the REST API documentation](https://learn.microsoft.com/en-us/rest/api/application-insights/), but luckily I found [this blog post](https://www.peterschen.de/create-functions-in-application-insights-through-rest-api/) that describes the various operations.
 
 The following `PUT` can be used to create a function.
 
@@ -234,7 +234,7 @@ Step two is to query the existing functions and check if a function with the sam
 
 The last step is to (re)create the function. We first create a JSON file with the request body and then use the `az rest` command to execute the request.
 
-You can find a full working parameterized script [here](https://github.com/ronaldbosma/blog-code-examples/blob/master/DeployAzureWorkbookAndAppInsightsFunction/app-insights-function/deploy-shared-function.ps1). It can be executed with the following command.
+You can find a full working parameterized script [here](https://github.com/ronaldbosma/azure-monitoring/blob/master/other/deploy-azure-workbook-and-appinsights-function/app-insights-function/deploy-shared-function.ps1). It can be executed with the following command.
 
 ```powershell
 $placeholders = @{
