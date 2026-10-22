@@ -22,7 +22,6 @@ This is the second post in my [Monitoring Azure Integration Services](/series/mo
 - [Enabling Enhanced Telemetry](#enabling-enhanced-telemetry)
 - [Parameters](#parameters)
 - [Workflow Runs Graph](#workflow-runs-graph)
-  - [Time Brushing](#time-brushing)
 - [Workflow Runs Table](#workflow-runs-table)
   - [Preserving Incoming Operation ID](#preserving-incoming-operation-id)
   - [Configuring the View Link](#configuring-the-view-link)
@@ -133,29 +132,7 @@ Finally, [`make-series`](https://learn.microsoft.com/en-us/kusto/query/make-seri
 - With `make-series`, the graph shows the entire selected period, even if there are no requests at the start or end of the period. A `summarize` with `bin` would only return time slots that have data.
 - The granularity is based on the TimeRange parameter by using `{TimeRange:grain}`. This way, the granularity is automatically adjusted depending on the time range you've selected in the Time parameter.
 
-#### Time Brushing
-
-The graph supports time brushing, which means you can select a time period in the graph and all data in the workbook will be filtered accordingly.
-
-![Time brushing](../../../../../images/monitoring-azure-integration-services/logic-app-workflow-runs-workbook/time-brushing.png)
-
-To configure time brushing, you first enable it on the graph:
-
-1. Open the **Advanced Settings** of the graph.
-1. Check **Enable time range brushing**.
-1. Use `TimeRange` as the parameter name. This is the same name as the time range parameter at the top of the workbook, which all queries use to filter on time.
-1. Check **Only export the parameter when a range is brushed**.
-
-![Enable time brushing](../../../../../images/monitoring-azure-integration-services/enable-time-brushing.png)
-
-Next, edit the `TimeRange` parameter:
-
-1. Go to **Advanced Settings**.
-1. Check **Treat this parameter as a global**.
-
-![Time range as global parameter](../../../../../images/monitoring-azure-integration-services/time-range-global-parameter.png)
-
-With this configuration, the time range selected in the drop-down is used by default. When you select a different time range in the graph, the `TimeRange` parameter is updated and all data is filtered using the brushed range instead.
+I've enabled time brushing on this graph, which means you can select a time period in the graph and all data in the workbook will be filtered accordingly. See [Azure Workbook Tips & Tricks - Time Brushing](/blog/2023/02/28/azure-workbook-tips-tricks/#time-brushing) for how to configure this.
 
 ### Workflow Runs Table
 
