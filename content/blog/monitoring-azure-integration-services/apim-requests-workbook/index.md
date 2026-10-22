@@ -5,15 +5,15 @@ publishdate: 2026-10-22T12:30:00+02:00
 lastmod: 2026-10-22T12:30:00+02:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "Azure Workbook", "API Management", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
-summary: "Finding specific API Management requests in Application Insights means re-adding the same filters every time and the results lack API Management specific data. In this post, I walk through an Azure Workbook that filters on status, subscription, API, operation and result code, and shows a graph over time and a table with the matching requests."
+summary: "Finding specific API Management requests in Application Insights means re-adding the same filters every time and the results lack API Management specific data. In this post, I walk through an Azure Workbook that can filter on status, subscription, API, operation and result code, and shows a graph over time and a table with the matching requests."
 draft: true
 ---
 
-When I troubleshoot an API Management instance, I often need to find specific requests. You can find them through Application Insights as well, but you have to add filters on, for example, the API or subscription every time you look for something. I found that annoying. The results also show very generic request data like the URL and response code. They don't include API Management specific data like the API, subscription and operation.
+When I troubleshoot an API Management instance, I often need to find specific requests. You can find these through Application Insights, but you have to add filters on, for example, the API or subscription every time you look for something. I found that annoying. The results also show very generic request data like the URL and response code. They don't include API Management specific data like the API, subscription and operation.
 
-In this post, I'll walk through an Azure Workbook that gives that overview and makes it easy to find requests. I'll explain how to enable Application Insights logging for API Management, the queries behind the workbook and how to configure time brushing.
+In this post, I'll walk through an Azure Workbook that gives that overview and makes it easy to find requests. I'll explain how to enable Application Insights logging for API Management and the queries behind the workbook.
 
-This is the third post in my [Monitoring Azure Integration Services](/series/monitoring-azure-integration-services/) series.
+This is the second post in my [Monitoring Azure Integration Services](/series/monitoring-azure-integration-services/) series.
 
 ### Table of Contents
 
