@@ -146,14 +146,14 @@ To configure time brushing, you first enable it on the graph:
 1. Use `TimeRange` as the parameter name. This is the same name as the time range parameter at the top of the workbook, which all queries use to filter on time.
 1. Check **Only export the parameter when a range is brushed**.
 
-![Enable time brushing](../../../../../images/monitoring-azure-integration-services/logic-app-workflow-runs-workbook/enable-time-brushing.png)
+![Enable time brushing](../../../../../images/monitoring-azure-integration-services/enable-time-brushing.png)
 
 Next, edit the `TimeRange` parameter:
 
 1. Go to **Advanced Settings**.
 1. Check **Treat this parameter as a global**.
 
-![Time range as global parameter](../../../../../images/monitoring-azure-integration-services/logic-app-workflow-runs-workbook/time-range-global-parameter.png)
+![Time range as global parameter](../../../../../images/monitoring-azure-integration-services/time-range-global-parameter.png)
 
 With this configuration, the time range selected in the drop-down is used by default. When you select a different time range in the graph, the `TimeRange` parameter is updated and all data is filtered using the brushed range instead.
 
