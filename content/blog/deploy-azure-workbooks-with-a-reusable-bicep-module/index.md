@@ -1,13 +1,13 @@
 ---
 title: "Deploy Azure Workbooks with a Reusable Bicep Module"
-date: 2026-10-27T10:00:00+01:00
-publishdate: 2026-10-27T10:00:00+01:00
-lastmod: 2026-10-21T12:30:00+02:00
+date: 2026-10-27T09:30:00+01:00
+publishdate: 2026-10-27T09:30:00+01:00
+lastmod: 2026-10-27T09:30:00+01:00
 tags: [ "Azure", "Azure Monitor", "Azure Workbook", "Bicep", "Infra as Code" ]
 summary: "When deploying Azure Workbooks with Bicep, I use a module that constructs a stable resource name and an environment-specific display name, replaces placeholders in the workbook content and fails the deployment if any placeholders are left. In this post I explain how the module works and how to use it."
 ---
 
-I've been deploying [Azure Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) with Bicep to multiple environments and kept repeating the same boilerplate in every project: constructing a stable name, adding the environment to the display name and replacing environment-specific values in the workbook JSON. To avoid that, I created a reusable Bicep module, which I've shared on GitHub so you can use it too.
+I've been deploying [Azure Workbooks](https://learn.microsoft.com/en-us/azure/azure-monitor/visualize/workbooks-overview) with Bicep to multiple environments and kept repeating the same boilerplate in every project: constructing a stable name, adding the environment to the display name and replacing environment-specific values in the workbook JSON. To avoid that, I created a reusable Bicep module.
 
 In this post I'll show how to use the module and walk through its logic. I've written about deploying workbooks before in [Deploy Azure Workbook and App Insights Function](/blog/2023/03/10/deploy-azure-workbook-and-app-insights-function/). That post explains how to deploy a workbook using Bicep. This post builds on that and wraps the logic in a reusable module.
 
@@ -74,7 +74,7 @@ The workbook content is loaded with [loadJsonContent](https://learn.microsoft.co
 
 The module has a couple more parameters, such as `category` and `version`, which have default values. See the [README](https://github.com/ronaldbosma/bicep-samples/tree/main/modules/workbook) of the module for a full list and explanation of the parameters.
 
-The `sample.workbook` file is the workbook JSON that you can export from the Advanced Editor in the portal, as described in [my earlier post](/blog/2023/03/10/deploy-azure-workbook-and-app-insights-function/). In that file, you replace the hard-coded values with placeholders. A simplified example looks like this:
+The `sample.workbook` file is the workbook JSON that you can export from the Advanced Editor in the portal, as described in [my earlier post](/blog/2023/03/10/deploy-azure-workbook-and-app-insights-function/#load-workbook-from-file). In that file, you replace the hard-coded values with placeholders. A simplified example looks like this:
 
 ```json
 {
@@ -106,10 +106,11 @@ Now let's look at the logic in [workbook.bicep](https://github.com/ronaldbosma/b
 The module constructs the resource and display name using the specified environment and display name:
 
 ```bicep
+var workbookName = guid(resourceGroup().id, displayName, environmentName)
 var workbookDisplayName = environmentName == '' ? displayName : '${displayName} (${environmentName})'
 
 resource workbook 'Microsoft.Insights/workbooks@2023-06-01' = {
-  name: guid(resourceGroup().id, displayName, environmentName)
+  name: workbookName
   location: location
   tags: tags
   kind: 'shared' // Only valid value for kind is 'shared'
@@ -134,10 +135,6 @@ The `kind` is set to `shared`, because that's the only valid value for this prop
 The workbook content is a JSON string. To replace placeholders in that string, the module uses the approach I described in [Replace placeholders in string with user-defined Bicep function](/blog/2024/06/21/replace-placeholders-in-string-with-user-defined-bicep-function/). Please read that post for the full explanation of how the `reduce` function is used to replace multiple placeholders in a string. Here's the part of the module that does this:
 
 ```bicep
-var workbookContent = placeholders == null
-  ? serializedData
-  : replacePlaceholders(serializedData, items(placeholders!))
-
 func replacePlaceholders(originalString string, placeholders array) string =>
   reduce(
     placeholders,
@@ -147,9 +144,13 @@ func replacePlaceholders(originalString string, placeholders array) string =>
 
 func replacePlaceholder(originalString string, placeholder string, value string) string =>
   replace(originalString, '##${placeholder}##', value)
+
+var workbookContent = placeholders == null
+  ? serializedData
+  : replacePlaceholders(serializedData, items(placeholders!))
 ```
 
-The `workbookContent` variable does the following:
+The `workbookContent` variable is set as follows:
 
 - If no placeholders are specified, `serializedData` is used unchanged.
 - If placeholders are specified, the `placeholders` object is converted to an array of key/value pairs with the [items](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/bicep-functions-object#items) function. The `!` operator tells Bicep the value isn't null at that point.
@@ -160,7 +161,7 @@ Because the values are inserted as-is, they need to be valid inside a JSON strin
 
 #### Failing on Unresolved Placeholders
 
-The last piece of logic is the `serializedData` property of the workbook, which I left out of the previous snippet. This is the complete line:
+The last piece of logic is setting the `serializedData` property of the workbook, which I left out of the previous snippet. This is the complete line:
 
 ```bicep
 serializedData: !like(workbookContent, '*##*##*')
