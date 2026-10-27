@@ -2,7 +2,7 @@
 title: "Deploy Azure Workbook and App Insights Function"
 date: 2023-03-10T15:00:00+01:00
 publishdate: 2023-03-10T15:00:00+01:00
-lastmod: 2026-10-20T12:15:00+02:00
+lastmod: 2026-10-21T12:10:00+02:00
 tags: [ "Azure", "Azure CLI", "Application Insights", "Azure Monitor", "Azure Workbook", "Bicep", "Continuous Integration", "Infra as Code", "PowerShell" ]
 summary: "In this post I explain how to deploy an Azure workbook using Bicep and set environment specific variables. I'll also show how to deploy a shared kusto function in Application Insights with the Azure CLI."
 ---
@@ -129,7 +129,7 @@ resource workbookId_resource 'microsoft.insights/workbooks@2022-04-01' = {
 
 As you can see, the definition is loaded from the file using the `loadTextContent` function. We then use the `replace` function to replace the placeholder. The last step is to set the `serializedData` property. See [sample.bicep](https://github.com/ronaldbosma/azure-monitoring/blob/master/other/deploy-azure-workbook-and-appinsights-function/load-workbook-from-file/sample.bicep) for the full sample.
 
-> If you want to know more about how to replace multiple placeholders in a string, see [Replace placeholders in string with user-defined Bicep function](/blog/2024/06/21/replace-placeholders-in-string-with-user-defined-bicep-function).
+> For a reusable Bicep module that implements this approach, see [Deploy Azure Workbooks with a Reusable Bicep Module](/blog/2026/10/27/deploy-azure-workbooks-with-a-reusable-bicep-module). If you want to know more about how to replace multiple placeholders in a string, see [Replace placeholders in string with user-defined Bicep function](/blog/2024/06/21/replace-placeholders-in-string-with-user-defined-bicep-function).
 
 Using the same Azure CLI command as before, we can deploy the workbook using Bicep.
 
