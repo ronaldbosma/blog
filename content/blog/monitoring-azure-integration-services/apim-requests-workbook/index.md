@@ -82,11 +82,12 @@ resource apimInsightsDiagnostics 'Microsoft.ApiManagement/service/diagnostics@20
 The snippet does the following:
 
 - The named value stores the Application Insights connection string, so the logger can reference it.
-- The logger connects API Management to the Application Insights instance. It references the named value using the `{{displayName}}` syntax. (If `appInsights.properties.ConnectionString` is referenced directly, a new named value would be created every time a deployment is executed.)
-- Setting `identityClientId` to `SystemAssigned` makes API Management use its system-assigned managed identity to send telemetry. This requires that the managed identity is enabled and has the Monitoring Metrics Publisher role on the Application Insights resource. See [Integrate Azure API Management with Application Insights](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-app-insights) for details.
-- The diagnostics resource specifies what to log to the logger. Its name has to be `applicationinsights`, because that's the logger type I chose.
-- `alwaysLog: 'allErrors'` makes sure failed requests are always logged, even if sampling is configured.
-- `httpCorrelationProtocol: 'W3C'` enables logging to Application Insights in W3C format, so requests are correlated with the telemetry of the backend services.
+- The logger connects API Management to the Application Insights instance.
+  - It references the named value using the `{{displayName}}` syntax. (If `appInsights.properties.ConnectionString` is referenced directly, a new named value would be created every time a deployment is executed.)
+  - Setting `identityClientId` to `SystemAssigned` makes API Management use its system-assigned managed identity to send telemetry. This requires that the managed identity is enabled and has the Monitoring Metrics Publisher role on the Application Insights resource. See [Integrate Azure API Management with Application Insights](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-app-insights) for details.
+- The diagnostics resource specifies what to log to the logger.
+  - `alwaysLog: 'allErrors'` makes sure failed requests are always logged, even if sampling is configured.
+  - `httpCorrelationProtocol: 'W3C'` enables logging to Application Insights in W3C format, so requests are correlated with the telemetry of the backend services.
 
 ### Parameters
 
@@ -195,6 +196,7 @@ The first part is the same as in the graph query: it selects the API Management 
 - `name` is the name Application Insights logs for the request, which is the HTTP method and path.
 - `details` and `trace` both contain the `itemId` of the request. The Details link opens the request details in a context pane. The Trace link opens the end-to-end transaction details.
 - `subscription`, `api` and `operation` are the API Management specific columns that the standard Application Insights results don't show.
+- `url` contains the full request URL, unlike `name`. It may include query parameters when logging them is enabled, which lets you search requests by query-parameter data using the table's filter field.
 
 The table sorts by timestamp in descending order, so the most recent requests are shown first. I've configured the workbook to show a maximum of 1000 rows, so use the filters or time brushing to narrow down the results if needed.
 
@@ -244,4 +246,3 @@ Finding specific API Management requests in Application Insights is more work th
 The workbook is a starting point. You can adjust the parameters, columns and queries to fit your own APIs.
 
 In my next post, I'll cover the APIM Insights workbook. It gives further insights into API Management with capacity and autoscale graphs, graphs with the number of requests and the request duration and details about individual operations.
-
