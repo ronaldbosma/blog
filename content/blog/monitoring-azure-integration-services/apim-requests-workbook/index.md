@@ -1,19 +1,19 @@
 ---
 title: "API Management Requests Workbook"
 date: 2026-11-10T10:00:00+01:00
-publishdate: 2026-10-22T12:30:00+02:00
-lastmod: 2026-10-22T12:30:00+02:00
+publishdate: 2026-10-28T17:00:00+01:00
+lastmod: 2026-10-28T17:00:00+01:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "Azure Workbook", "API Management", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "Finding specific API Management requests in Application Insights means re-adding the same filters every time and the results lack API Management specific data. In this post, I walk through an Azure Workbook that can filter on status, subscription, API, operation and result code, and shows a graph over time and a table with the matching requests."
 draft: true
 ---
 
-When I troubleshoot an API Management instance, I often need to find specific requests. You can find these through Application Insights, but you have to add filters on, for example, the API or subscription every time you look for something. I found that annoying. The results also show very generic request data like the URL and response code. They don't include API Management specific data like the API, subscription and operation.
+When I troubleshoot integrations, I often need to find specific API Management requests. You can find these through Application Insights, but you have to add filters on, for example, the API or subscription every time you look for something. I found that annoying. The results also show very generic request data like the URL and response code. They don't include API Management specific data like the API, subscription and operation.
 
 In this post, I'll walk through an Azure Workbook that gives that overview and makes it easy to find requests. I'll explain how to enable Application Insights logging for API Management and the queries behind the workbook.
 
-This is the second post in my [Monitoring Azure Integration Services](/series/monitoring-azure-integration-services/) series.
+This is the third post in my [Monitoring Azure Integration Services](/series/monitoring-azure-integration-services/) series.
 
 ### Table of Contents
 
@@ -43,7 +43,7 @@ The workbook is similar to the sample workbook I created in [Azure Workbook Tips
 
 ### Enabling Application Insights Logging
 
-The workbook queries the `requests` table in Application Insights, so API Management needs to log to it. Here's a snippet that enables this at the API Management level. See [api-management.bicep](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/infra/01-base/modules/api-management.bicep) for the full configuration.
+The workbook queries the `requests` table in Application Insights, so API Management needs to log to it. Here's a snippet that enables this at the API Management level. See [api-management.bicep](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/infra/01-base/modules/api-management.bicep) for the full configuration in the sample template.
 
 ```bicep
 resource appInsightsConnectionStringNamedValue 'Microsoft.ApiManagement/service/namedValues@2025-09-01-preview' = {
@@ -82,7 +82,7 @@ resource apimInsightsDiagnostics 'Microsoft.ApiManagement/service/diagnostics@20
 The snippet does the following:
 
 - The named value stores the Application Insights connection string, so the logger can reference it.
-- The logger connects API Management to the Application Insights instance. It references the named value using the `{{displayName}}` syntax. If I referenced `appInsights.properties.ConnectionString` directly, a new named value would be created every time I execute a deployment.
+- The logger connects API Management to the Application Insights instance. It references the named value using the `{{displayName}}` syntax. (If `appInsights.properties.ConnectionString` is referenced directly, a new named value would be created every time a deployment is executed.)
 - Setting `identityClientId` to `SystemAssigned` makes API Management use its system-assigned managed identity to send telemetry. This requires that the managed identity is enabled and has the Monitoring Metrics Publisher role on the Application Insights resource. See [Integrate Azure API Management with Application Insights](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-app-insights) for details.
 - The diagnostics resource specifies what to log to the logger. Its name has to be `applicationinsights`, because that's the logger type I chose.
 - `alwaysLog: 'allErrors'` makes sure failed requests are always logged, even if sampling is configured.
@@ -193,16 +193,16 @@ The first part is the same as in the graph query: it selects the API Management 
 
 - `status` is rendered as an icon.
 - `name` is the name Application Insights logs for the request, which is the HTTP method and path.
-- `details` and `trace` both contain the `itemId` of the request. The Details link opens the request details in a context pane. The Trace link opens the end-to-end transaction details. Having two columns means I can render each as its own link.
+- `details` and `trace` both contain the `itemId` of the request. The Details link opens the request details in a context pane. The Trace link opens the end-to-end transaction details.
 - `subscription`, `api` and `operation` are the API Management specific columns that the standard Application Insights results don't show.
 
 The table sorts by timestamp in descending order, so the most recent requests are shown first. I've configured the workbook to show a maximum of 1000 rows, so use the filters or time brushing to narrow down the results if needed.
 
-See [Azure Workbook Tips & Tricks - Table](/blog/2023/02/28/azure-workbook-tips-tricks/#table) for more info on the configuration, styling and formatting.
+See [Azure Workbook Tips & Tricks - Table](/blog/2023/02/28/azure-workbook-tips-tricks/#table) for more info on configuring, styling and formatting tables.
 
 ### Deploying the Workbook
 
-I use a generic module to deploy the workbook, as described in [Deploy Azure Workbooks with a Reusable Bicep Module](/blog/2026/10/27/deploy-azure-workbooks-with-a-reusable-bicep-module). The module is used in [main.bicep](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/infra/03-monitoring/main.bicep) of the sample template. Here's a short snippet:
+I use a generic module to deploy the workbook, as described in [Deploy Azure Workbooks with a Reusable Bicep Module](/blog/2026/10/27/deploy-azure-workbooks-with-a-reusable-bicep-module). The module is used in this [main.bicep](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/infra/03-monitoring/main.bicep) of the sample template. Here's a short snippet:
 
 ```bicep
 module apimRequestsWorkbook './modules/workbooks/workbook.bicep' = {
@@ -222,23 +222,11 @@ module apimRequestsWorkbook './modules/workbooks/workbook.bicep' = {
 }
 ```
 
-You can also deploy the workbook manually, independently of the sample template:
-
-1. Navigate to your **Application Insights** resource in the **Azure portal**.
-1. Open **Workbooks**.
-1. Click **+ New**.
-1. Click the **`</>`** button to open the advanced editor.
-1. Ensure the **Gallery Template** tab is selected.
-1. Paste the contents of [APIM Requests.workbook](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/infra/03-monitoring/modules/workbooks/APIM%20Requests.workbook) into the editor.
-1. Click **Apply**.
-1. Configure the **Subscription** and **Application Insights** parameters.
-1. Click **Save**.
-1. Specify a **Title** and configure the **Subscription**, **Resource Group** and **Location** where you want to save the workbook.
-1. Click **Save As**.
+You can also deploy the workbook manually, as described [here](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/demos/demo-apim-requests-workbook.md#manually-deploy-the-workbook).
 
 ### Considerations
 
-Queries over Application Insights data can show incomplete results when telemetry is sampled. The diagnostics resource in the snippet doesn't configure sampling, so I'm not sampling the requests of my API Management instance. I usually keep it that way, because with sampling some requests would be missing from the workbook and the graph would show lower numbers than what actually happened. The `alwaysLog: 'allErrors'` setting makes sure failed requests are logged, but successful requests could still be dropped. You can check the retained percentage with this query:
+Queries over Application Insights data can show incomplete results when telemetry is sampled. The diagnostics resource in the snippet doesn't configure sampling, so I'm not sampling the requests of my API Management instance. I usually keep it that way, because with sampling some requests would be missing from the workbook. The `alwaysLog: 'allErrors'` setting makes sure failed requests are logged, but successful requests could still be dropped. You can check the retained percentage with this query:
 
 ```kusto
 union requests, dependencies, pageViews, browserTimings, exceptions, traces
@@ -247,11 +235,11 @@ union requests, dependencies, pageViews, browserTimings, exceptions, traces
     by bin(timestamp, 1h), itemType
 ```
 
-Beware that logging every request increases the amount of telemetry, which increases cost as well. API Management doesn't log as much as, for example, a Logic App workflow does, which logs events for every run, trigger and action. API Management logs a request and, when it calls a backend, a dependency. But on an API with a lot of traffic, this still adds up. Keep an eye on the ingestion volume of your Application Insights instance. If the cost becomes an issue, you can configure a sampling percentage in the diagnostic settings, but then you accept that the workbook is incomplete.
+Beware that logging every request increases the amount of telemetry, which increases cost as well. API Management doesn't log as much as, for example, a Logic App workflow does, which logs events for every run, trigger and action. API Management logs a request and, when it calls a backend, a dependency. But on an API with a lot of traffic, this can still add up. Keep an eye on the ingestion volume of your Application Insights instance. If the cost becomes an issue, you can configure a sampling percentage in the diagnostic settings.
 
 ### Conclusion
 
-Finding specific API Management requests in Application Insights was more work than it needed to be. This workbook solves that with filters on status, subscription, API, operation and result code, a graph for the trend and a table with API Management specific data. The Trace link then takes me straight to the end-to-end transaction details.
+Finding specific API Management requests in Application Insights is more work than I want it to be. This workbook solves that with filters on status, subscription, API, operation and result code, a graph for the trend and a table with API Management specific data. The Trace link then takes me straight to the end-to-end transaction details.
 
 The workbook is a starting point. You can adjust the parameters, columns and queries to fit your own APIs.
 
