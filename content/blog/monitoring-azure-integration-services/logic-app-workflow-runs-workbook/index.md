@@ -45,7 +45,7 @@ The workbook shows a graph with the number of workflow runs over time, a table w
 
 The definition file is [Logic App Workflow Runs.workbook](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/infra/03-monitoring/modules/workbooks/Logic%20App%20Workflow%20Runs.workbook).
 
-The workbook is inspired by [Extending Logic Apps App Insight integration with Azure Workbooks](https://techcommunity.microsoft.com/blog/integrationsonazureblog/extending-logic-apps-app-insight-integration-with-azure-workbooks/3784062) and by the Run tab of the Insights screen of a Logic App. My workbook adds some features and fixes some issues:
+The workbook is inspired by the blog post [Extending Logic Apps App Insight integration with Azure Workbooks](https://techcommunity.microsoft.com/blog/integrationsonazureblog/extending-logic-apps-app-insight-integration-with-azure-workbooks/3784062) and by the Run tab of the Insights screen of a Logic App. My workbook adds some features and fixes some issues:
 
 - It can show data for multiple Logic Apps when they all log to the same Application Insights instance, so you don't have to navigate to each Logic App individually.
 - It shows cancelled workflow runs.
@@ -86,7 +86,7 @@ The workbook has the following parameters at the top:
 - Status: a hardcoded list of statuses (Cancelled, Failed, Running and Succeeded).
 - Logic App: a drop-down with the Logic Apps that logged to the Application Insights instance in the selected time range, filtered on the selected statuses.
 - Workflow: a drop-down with the workflows that ran in the selected time range, filtered on the selected statuses and Logic Apps.
-- Client Tracking ID: a text field to where you can enter a specific client tracking ID.
+- Client Tracking ID: a text field in which you can enter a specific client tracking ID.
 
 For a more detailed explanation on how to configure parameters in a workbook, see [Azure Workbook Tips & Tricks - Parameters](/blog/2023/02/28/azure-workbook-tips-tricks/#parameters).
 
@@ -225,7 +225,7 @@ This preserves the incoming operation ID so workflow telemetry can be correlated
 
 #### Configuring the View Link
 
-The View link opens a workflow run in the graphical designer interface of the Logic App. It works for workflows that have state, like stateful workflows or stateless workflows with run history enabled by setting the environment variable `Workflows.<workflow-name>.OperationOptions` to `WithStatelessRunHistory`. Here's an example:
+The View link opens a workflow run in the graphical designer interface of the Logic App. It works for workflows that have state, like stateful workflows or stateless workflows with run history enabled by setting the environment variable `Workflows.<workflow-name>.OperationOptions` to `WithStatelessRunHistory`. Here's an example of a workflow run:
 
 ![Workflow run in the designer](../../../../../images/monitoring-azure-integration-services/logic-app-workflow-runs-workbook/view-workflow-in-designer-view.png)
 
@@ -252,9 +252,9 @@ The `{LogicAppId_column}` syntax refers to the column of the row in which the Vi
 
 #### Configuring the Resubmit Link
 
-The Resubmit link only works for stateful workflows. I haven't found a way to hide the link for stateless workflows.
+The Resubmit link works only with stateful workflows. I couldn't find a way to hide it for stateless workflows, so it remains visible for both stateful and stateless workflows.
 
-When you click the Resubmit link, a screen with information about the workflow run is shown in the context pane on the right. You can click Resubmit there to actually resubmit the workflow run.
+When you click the Resubmit link, a screen with information about the workflow run is shown in the context pane on the right. You can click Resubmit there to actually resubmit the workflow run. Example:
 
 ![Resubmit workflow screen](../../../../../images/monitoring-azure-integration-services/logic-app-workflow-runs-workbook/resubmit-workflow-screen.png)
 
@@ -290,7 +290,7 @@ where type in~('microsoft.web/sites')
 | project id, name, location
 ```
 
-The third grid is the one that's displayed. It merges the results of the other two with a left outer join on the Logic App name (`cloud_RoleName` = `name`). This way, each run has the ID and location of the Logic App in which the workflow was executed.
+The third grid is the one that's displayed. It merges the results of the other two with a left outer join on the Logic App name. This way, each run has the ID and location of the Logic App in which the workflow was executed.
 
 ![Configure merge](../../../../../images/monitoring-azure-integration-services/logic-app-workflow-runs-workbook/configure-merge.png)
 
@@ -373,7 +373,7 @@ Both queries select the telemetry whose parent is the selected action, using `op
 
 ### Deploying the Workbook
 
-I use a generic module to deploy the workbook, as described in [Deploy Azure Workbooks with a Reusable Bicep Module](/blog/2026/10/27/deploy-azure-workbooks-with-a-reusable-bicep-module). The module is used in [main.bicep](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/infra/03-monitoring/main.bicep) of the sample template. Here's a short snippet:
+I use a generic module to deploy the workbook, as described in [Deploy Azure Workbooks with a Reusable Bicep Module](/blog/2026/10/27/deploy-azure-workbooks-with-a-reusable-bicep-module). The module is used in this [main.bicep](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/infra/03-monitoring/main.bicep) of the sample template. Here's a short snippet:
 
 ```bicep
 module logicAppWorkflowRunsWorkbook './modules/workbooks/workbook.bicep' = {
@@ -393,19 +393,7 @@ module logicAppWorkflowRunsWorkbook './modules/workbooks/workbook.bicep' = {
 }
 ```
 
-You can also deploy the workbook manually, independently of the sample template:
-
-1. Navigate to your **Application Insights** resource in the **Azure portal**.
-1. Open **Workbooks**.
-1. Click **+ New**.
-1. Click the **`</>`** button to open the advanced editor.
-1. Ensure the **Gallery Template** tab is selected.
-1. Paste the contents of [Logic App Workflow Runs.workbook](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/infra/03-monitoring/modules/workbooks/Logic%20App%20Workflow%20Runs.workbook) into the editor.
-1. Click **Apply**.
-1. Configure the **Subscription** and **Application Insights** parameters.
-1. Click **Save**.
-1. Specify a **Title** and configure the **Subscription**, **Resource Group** and **Location** where you want to save the workbook.
-1. Click **Save As**.
+You can also deploy the workbook manually, as described [here](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/demos/demo-logic-app-workflow-runs-workbook.md#manually-deploy-the-workbook).
 
 ### Considerations
 
