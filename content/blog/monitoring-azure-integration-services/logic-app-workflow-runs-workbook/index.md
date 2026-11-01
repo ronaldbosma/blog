@@ -234,14 +234,15 @@ To configure the link:
 1. Select **Link** as the **Column renderer**.
 1. Select **Custom View**.
 1. Click **Configure**.
-1. In the **Custom View settings** screen, enter `Microsoft_Azure_EMA` as the **Extension name** and `WorkflowMonitorBlade` as the **View name**.
+1. In the **Custom View settings** screen, enter `Microsoft_Azure_EMA` as the **Extension name** and `DesignerEditorV2.ReactView` as the **View name**.
 1. Select **JSON** for the **View inputs** and enter the following:  
     ```json
     {
       "id": "{LogicAppId_column}/workflows/{Workflow_column}",
       "location": "{LogicAppLocation_column}",
-      "resourceId": "/workflows/{Workflow_column}/runs/{RunID_column}",
-      "isReadOnly": 1
+      "runId": "{RunID_column}",
+      "isMonitoringView~": true,
+      "isReadOnly~": true
     }
     ```
 
