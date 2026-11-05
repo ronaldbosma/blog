@@ -2,7 +2,7 @@
 title: "Validate client certificates in API Management when it's behind an Application Gateway"
 date: 2024-02-19T19:00:00+01:00
 publishdate: 2024-02-19T19:00:00+01:00
-lastmod: 2026-06-06T11:00:00+02:00
+lastmod: 2026-11-05T16:25:00+01:00
 tags: [ "Azure", "API Management", "Application Gateway", "Azure Integration Services", "Bicep", "Client Certificates", "Infra as Code", "mTLS", "Security" ]
 series: [ "client-certificates-and-mtls-in-api-management" ]
 summary: "It's not uncommon for Azure API Management to be deployed in a Virtual Network, only allowing external access via an Azure Application Gateway. In this second post on working with client certificates in API Management, we'll explore how to configure an Application Gateway for mTLS and forward the client certificate to API Management for further validation. We'll also look at the difference between strict and passthrough modes."
@@ -190,11 +190,11 @@ Note that the hostname `agw.mtls-sample.dev` is used in the listener configurati
 The SSL server certificate is referenced from Key Vault using the following snippet:
 
 ```bicep
-resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' existing = {
+resource keyVault 'Microsoft.KeyVault/vaults@2026-05-15' existing = {
   name: keyVaultName
 }
 
-resource sslServerCertificateSecret 'Microsoft.KeyVault/vaults/secrets@2025-05-01' existing = {
+resource sslServerCertificateSecret 'Microsoft.KeyVault/vaults/secrets@2026-05-15' existing = {
   name: 'agw-ssl-server-certificate'
   parent: keyVault
 }

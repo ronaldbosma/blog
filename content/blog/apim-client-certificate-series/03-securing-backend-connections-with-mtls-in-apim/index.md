@@ -2,7 +2,7 @@
 title: "Securing backend connections with mTLS in API Management"
 date: 2024-05-24T10:15:00+02:00
 publishdate: 2024-05-24T10:15:00+02:00
-lastmod: 2026-06-09T17:00:00+02:00
+lastmod: 2026-11-05T16:25:00+01:00
 tags: [ "Azure", "API Management", "Azure Integration Services", "Bicep", "Client Certificates", "Infra as Code", "mTLS", "Security" ]
 series: [ "client-certificates-and-mtls-in-api-management" ]
 summary: "In this third post on working with client certificates in Azure API Management, we'll focus on securing backend connections with mTLS. Using Bicep, we'll reference a client certificate stored in Key Vault, make it available in API Management and configure a backend resource that uses the certificate during the mTLS handshake."
@@ -69,11 +69,11 @@ The Unprotected API needs a client certificate with a private key to authenticat
 Once the certificate is available in Key Vault, it can be referenced from API Management through the [Microsoft.ApiManagement/service/certificates](https://learn.microsoft.com/en-us/azure/templates/microsoft.apimanagement/service/certificates?pivots=deployment-language-bicep) resource:
 
 ```bicep
-resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' existing = {
+resource keyVault 'Microsoft.KeyVault/vaults@2026-05-15' existing = {
   name: keyVaultName
 }
 
-resource clientCertificateSecret 'Microsoft.KeyVault/vaults/secrets@2025-05-01' existing = {
+resource clientCertificateSecret 'Microsoft.KeyVault/vaults/secrets@2026-05-15' existing = {
   name: 'dev-unprotected-api'
   parent: keyVault
 }
