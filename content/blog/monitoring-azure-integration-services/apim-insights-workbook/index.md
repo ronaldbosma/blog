@@ -256,9 +256,7 @@ The `rowId` and `parentRowId` columns are hidden in the table. Instead, they're 
 
 ![Tree settings of the operation details table](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/operation-details-tree-settings.png)
 
-The `operation_Name` and `resultCode` columns are also projected separately and are hidden as well. They're exported as parameters when you select a row, so they can be used as filters for the details below the table.
-
-![Export parameters settings of the operation details table](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/operation-details-export-parameters.png)
+The `operation_Name` and `resultCode` columns are also projected separately and are hidden as well. They're exported as parameters when you select a row, so they can be used as filters for the details below the table. See [Azure Workbook Tips & Tricks - Master-detail Table](/blog/2023/02/28/azure-workbook-tips-tricks/#master-detail-table) for how to set that up.
 
 When you select an operation or the underlying result code, more information is displayed for the selection. This includes tables with the executed requests, dependencies, traces and exceptions, and graphs with the number of requests and failures, the duration, the request size and the response size. If you select an operation, the exported `resultCode` is empty, so the details include all result codes. If you select a result code, the details are limited to that result code.
 
