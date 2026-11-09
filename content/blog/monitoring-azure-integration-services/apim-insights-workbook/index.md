@@ -5,13 +5,13 @@ publishdate: 2026-11-09T10:00:00+01:00
 lastmod: 2026-11-09T10:00:00+01:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "Azure Workbook", "API Management", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
-summary: "The built-in API Management Analytics workbook shows totals per API, operation and product, but it relies on diagnostic settings and doesn't include everything API Management logs to Application Insights. In this post, I walk through an Azure Workbook that shows capacity, scaling, request volume, duration and details per operation, based on Application Insights."
+summary: "The APIM Requests workbook from my previous post focuses on finding specific API Management requests. The APIM Insights workbook in this post gives more insights into capacity, scaling, request volume and duration. It can also show more information for individual operations, like executed requests, dependencies, number of requests and duration."
 draft: true
 ---
 
 A few years ago, I created a workbook for a client to get more insights into how API Management behaves. On a couple of projects afterwards, I really missed it. So, I created it again in a generic way, so it can be used for every project that uses API Management and logs to Application Insights.
 
-The APIM Requests workbook from my [previous post](/blog/2026/11/10/api-management-requests-workbook/) focuses on finding specific API Management requests. The APIM Insights workbook in this post gives more insights into capacity, scaling, request volume and duration. It also shows the requests, dependencies, traces and exceptions for a selected operation.
+The APIM Requests workbook from my [previous post](/blog/2026/11/10/api-management-requests-workbook/) helps you find specific API Management requests. The APIM Insights workbook in this post takes a broader view and shows capacity, scaling, request volume and duration. For a selected operation, it also lets you drill down into the requests, dependencies, traces and exceptions, and shows graphs with the number of requests and failures, the duration, the request size and the response size.
 
 This is the fourth post in my [Monitoring Azure Integration Services](/series/monitoring-azure-integration-services/) series.
 
@@ -38,26 +38,26 @@ I've created an Azure Developer CLI (`azd`) template called [Monitor Azure Integ
 
 The workbook has four groups: Capacity and Scaling for v1 tiers, Capacity and Scaling for v2 tiers, Overview and Operation Details. The groups are collapsed by default, so you can expand the ones you need.
 
-![APIM Insights workbook - Operation Details](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/apim-insights-workbook-section-4-operation-details.png)
+![APIM Insights workbook](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/apim-insights-workbook.png)
 
 The definition file is [APIM Insights.workbook](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/infra/03-monitoring/modules/workbooks/APIM%20Insights.workbook).
 
 The workbook queries the `requests` table in Application Insights, so API Management needs to log to it. See the [Enabling Application Insights Logging](/blog/2026/11/10/api-management-requests-workbook/#enabling-application-insights-logging) section in my previous post for how to set that up.
 
-Just like the workbook in my previous post, this one is similar to the sample workbook I created in [Azure Workbook Tips & Tricks](/blog/2023/02/28/azure-workbook-tips-tricks/). I'm assuming you know a bit about editing Azure Workbooks. If not, have a look at that post first.
+I'm assuming you know a bit about editing Azure Workbooks. If not, have a look at my [Azure Workbook Tips & Tricks](/blog/2023/02/28/azure-workbook-tips-tricks/) post first.
 
 #### Comparison with the Analytics Overview Workbook
 
 API Management already has an 'Analytics Overview' workbook that you can open from the Monitoring section of the resource. It has a few graphs and some tables that mainly show totals per entity, like API, operation and product. It also has a table with the individual requests. The only parameter you can filter on is the time range.
 
-The APIM Insights workbook differs in a couple of ways:
+My APIM Insights workbook differs in a couple of ways:
 
-- The Analytics Overview workbook uses tables like `ApiManagementGatewayLogs` in a Log Analytics workspace. To get data in there, you need to add diagnostic settings, enable the logs and set the destination table to 'Resource specific'. The APIM Insights workbook uses Application Insights, which you probably already use for monitoring your integrations.
+- The Analytics Overview workbook uses tables like `ApiManagementGatewayLogs` in a Log Analytics workspace. To get data in there, you need to add diagnostic settings, enable the logs and set the destination table to 'Resource specific'. The APIM Insights workbook uses Application Insights logging.
 - The diagnostic settings logs don't contain everything. For example, policies like `send-service-bus-message` aren't logged. In Application Insights, these show up as additional dependencies.
 - The functionality is different. The APIM Insights workbook displays additional data for a selected operation, like the requests, dependencies, number of requests and duration. It also lets you open the end-to-end transaction details of a request.
-- Diagnostic settings don't work for the Consumption tier, and the workbooks aren't available through the menu of the API Management instance. The APIM Insights workbook is deployed as a separate resource and uses Application Insights, so it doesn't depend on either.
+- Diagnostic settings don't work for the Consumption tier, and the workbooks aren't available through the menu of the API Management instance for this tier. The APIM Insights workbook is deployed as a separate resource and uses Application Insights, so it doesn't depend on either.
 
-If you want to use the Analytics Overview workbook, you can enable the diagnostic settings with the following Bicep snippet:
+If you want to use the built-in Analytics Overview workbook, you can enable the diagnostic settings with the following Bicep snippet:
 
 ```bicep
 resource apimDiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
@@ -131,7 +131,7 @@ This sample doesn't actually scale, because the minimum and maximum capacity are
 
 The workbook is divided into groups. The Capacity and Scaling groups for the v1 and v2 tiers are separate, because the v2 metrics are different from the v1 metrics. This way, the workbook works for both and you can remove the group you don't need.
 
-You can expand, for example, the Capacity and Overview groups at the same time to see if an increase in capacity or instances was caused by more requests.
+You can expand, for example, the Capacity and Overview groups at the same time to see if an increase in capacity or instances was caused by an increase in requests.
 
 I've enabled time brushing on all graphs. This means you can select a time period in a graph and all data in the workbook is filtered accordingly. See [Azure Workbook Tips & Tricks - Time Brushing](/blog/2023/02/28/azure-workbook-tips-tricks/#time-brushing) for how to configure this.
 
@@ -141,20 +141,20 @@ In my [Azure Workbook Tips & Tricks](/blog/2023/02/28/azure-workbook-tips-tricks
 
 The v1 tier group has two graphs:
 
-- API Management Capacity: the average and maximum capacity metric of the API Management instance.
-- API Management Autoscale: the observed capacity (number of instances) from the autoscale setting.
+- API Management Capacity: the average and maximum capacity metric of the API Management instance, which measures the utilization of your instance's computing power (such as CPU and memory consumption).
+- API Management Autoscale: the number of instances, based on the observed capacity metric of the autoscale setting. This graph is hidden when the API Management Autoscaling parameter is empty.
 
-![APIM Insights workbook - Capacity and Scaling (v1 tier)](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/apim-insights-workbook-section-1-capacity-and-scaling-v1.png)
+![APIM Insights workbook - Capacity and Scaling (v1 tier)](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/section-1-capacity-and-scaling-v1.png)
 
 The v2 tiers use different metrics. This group has graphs for the CPU and memory percentage of the gateway instead of the capacity, plus the same autoscale graph.
 
-![APIM Insights workbook - Capacity and Scaling (v2 tier)](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/apim-insights-workbook-section-2-capacity-and-scaling-v2.png)
+![APIM Insights workbook - Capacity and Scaling (v2 tier)](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/section-2-capacity-and-scaling-v2.png)
 
 #### Overview
 
 The Overview group has three graphs, filtered by the Subscription and API parameters:
 
-![APIM Insights workbook - Overview](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/apim-insights-workbook-section-3-overview.png)
+![APIM Insights workbook - Overview](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/section-3-overview.png)
 
 The number of requests and number of failed requests graphs use a query similar to the one described in the [Number of Requests Graph](/blog/2026/11/10/api-management-requests-workbook/#number-of-requests-graph) section of my previous post. Failed requests are already part of the number of requests graph. But when there are a lot of successful requests, the failures are difficult to spot. That's why they also have their own graph.
 
@@ -180,17 +180,17 @@ requests
   on timestamp from todatetime("{TimeRange:startISO}") to todatetime("{TimeRange:endISO}") step {TimeRange:grain}
 ```
 
-The query starts like the queries in my previous post. The multi-select parameters are turned into arrays, and the filters only apply when an array isn't empty. This query also filters on the `Service ID` custom dimension, which contains the name of the API Management instance. That's needed because the Application Insights resource can receive requests from multiple API Management instances.
+The query starts like the queries in my previous post. The multi-select parameters are turned into arrays and the filters only apply when an array isn't empty. This query also filters on the `Service ID` custom dimension, which contains the name of the API Management instance.
 
 Instead of the number of requests, the [`make-series`](https://learn.microsoft.com/en-us/kusto/query/make-series-operator) operator now calculates multiple aggregations of the request `duration` (in milliseconds) per time slot: the average, the median and the 80th and 95th percentile. The average can hide a few slow requests, while the percentiles show how slow the slowest requests are. Because `make-series` uses `{TimeRange:grain}`, the granularity adjusts automatically to the selected time range.
 
 #### Operation Details
 
-This is the group I find the most interesting. The top table shows each operation with information about the number of requests, failures, duration and request and response sizes. You can expand an operation to see the same information per result code.
+This is the group I find the most interesting. The top table shows each operation with its number of requests, failures, duration, request size and response size. You can expand an operation to see the same information per result code. When you select a row, the details for that operation or result code are displayed below the table.
 
-![APIM Insights workbook - Operation Details](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/apim-insights-workbook-section-4-operation-details.png)
+![APIM Insights workbook - Operation Details](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/section-4-operation-details.png)
 
-This is the query for the table:
+This is the query for the operations table:
 
 ```kusto
 let subscriptionFilter = dynamic([{ApimSubscription}]);
@@ -256,13 +256,11 @@ The `rowId` and `parentRowId` columns are hidden in the table. Instead, they're 
 
 ![Tree settings of the operation details table](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/operation-details-tree-settings.png)
 
-The `operation_Name` and `resultCode` columns are hidden as well. They're exported as parameters when you select a row, so they can be used as filters for the details below the table.
+The `operation_Name` and `resultCode` columns are also projected separately and are hidden as well. They're exported as parameters when you select a row, so they can be used as filters for the details below the table.
 
 ![Export parameters settings of the operation details table](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/operation-details-export-parameters.png)
 
 When you select an operation or the underlying result code, more information is displayed for the selection. This includes tables with the executed requests, dependencies, traces and exceptions, and graphs with the number of requests and failures, the duration, the request size and the response size. If you select an operation, the exported `resultCode` is empty, so the details include all result codes. If you select a result code, the details are limited to that result code.
-
-The requests table has links to open the request details and the end-to-end transaction details, like the table in my previous post. The dependencies table is where the logging of policies like `send-service-bus-message` shows up.
 
 ### Deploying the Workbook
 
