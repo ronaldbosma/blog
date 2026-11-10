@@ -9,7 +9,7 @@ summary: "Finding specific Azure Functions executions means opening each functio
 draft: true
 ---
 
-I've been working with Azure Functions in integrations where several Function Apps log to the same Application Insights instance. When something goes wrong, I want to find the function execution that failed. In the Azure Portal you can view the invocations of a single function, but that means going through the functions one by one. The alternative is to use the search and filtering in Application Insights, but similar to API Management requests, you'd have to set up the same filters every time.
+I've been working with Azure Functions in integrations where several Function Apps log to the same Application Insights instance. When something goes wrong, I want to find the function execution that failed. In the Azure Portal you can view the invocations of a single function, but that means going through the functions one by one. The alternative is to use the search and filtering in Application Insights, but you'd have to set up the same filters every time.
 
 In this post, I'll walk through an Azure Workbook that shows all executed functions of all Function Apps that log to the same Application Insights. This makes it a lot easier to find the executions you're looking for. I'll explain the queries behind the workbook and how to deploy it.
 
@@ -29,7 +29,7 @@ This is the fifth post in my [Monitoring Azure Integration Services](/series/mon
 
 ### Sample Template
 
-I've created an Azure Developer CLI (`azd`) template called [Monitor Azure Integration Services](https://github.com/ronaldbosma/monitor-azure-integration-services) to demonstrate different monitoring approaches for Azure Integration Services, including dashboards, workbooks, health checks, alerts and health models. The workbook featured in this post is included in the template. If you'd like to deploy and try the solution, follow the template's [getting started instructions](https://github.com/ronaldbosma/monitor-azure-integration-services#getting-started). The template also includes a [demo guide](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/demos/demo-azure-functions-workbook.md) for this workbook.
+I've created an Azure Developer CLI (`azd`) template called [Monitor Azure Integration Services](https://github.com/ronaldbosma/monitor-azure-integration-services) to demonstrate different monitoring approaches for Azure Integration Services, including dashboards, workbooks, health checks, alerts and health models. The workbook featured in this post is included in the template. The template has a sample application that lets users manage movies and submit or update ratings. It uses API Management, Azure Functions, Logic App workflows and Azure Service Bus. If you'd like to deploy and try the solution, follow the template's [getting started instructions](https://github.com/ronaldbosma/monitor-azure-integration-services#getting-started). The template also includes a [demo guide](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/demos/demo-azure-functions-workbook.md) for this workbook.
 
 ### Workbook Overview
 
@@ -145,7 +145,7 @@ The first part is the same as in the graph query: it selects the function execut
 
 Which fields are filled differs per type of function:
 
-- Not every function logs the trigger. For an HTTP-triggered function it's set to `http`, but for a function triggered by a Service Bus message it's empty.
+- Not every function logs the trigger. For an HTTP-triggered function it's set to `http`, but for a function triggered by a Service Bus message it's empty for example.
 - Not every function has a meaningful result code. A function triggered by a Service Bus message has a result code of 0, as you can see in the screenshot.
 
 The table sorts by timestamp in descending order, so the most recent executions are shown first. I've configured the workbook to show a maximum of 1000 rows, so use the filters or time brushing to narrow down the results if needed. The search field above the table lets you search through all columns.
@@ -193,7 +193,6 @@ Beware that logging every function execution increases the amount of telemetry, 
 
 ### Conclusion
 
-Finding specific function executions across multiple Function Apps takes more effort than it should. This workbook solves that with filters on success, Function App, function and result code, a graph for the trend and a table with the executions. The Trace link then takes me straight to the end-to-end transaction details.
+This workbook makes it easier to find specific function executions across multiple Function Apps. It solves that with filters on success, Function App, function and result code, a graph for the trend and a table with the executions. The Trace link then takes me straight to the end-to-end transaction details.
 
 The workbook is a starting point. Not every field is filled for every type of function, so adjust the queries and columns to fit the triggers you use.
-
