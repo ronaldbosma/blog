@@ -2,7 +2,7 @@
 title: "Monitoring Azure Integrations with a Dashboard"
 date: 2026-10-20T13:15:00+02:00
 publishdate: 2026-10-20T13:15:00+02:00
-lastmod: 2026-10-20T13:15:00+02:00
+lastmod: 2026-11-10T11:30:00+02:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "API Management", "Azure Functions", "Logic Apps", "Azure Service Bus", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "Integrations built with Azure Integration Services can include components from several services, each with its own monitoring experience. In this post, I show how I bring API Management requests, Azure Functions, Logic App workflows and Service Bus signals together in an Azure dashboard, then turn that dashboard into a reusable Bicep deployment."
@@ -70,25 +70,25 @@ This query groups requests by API and response code. I separate client failures 
 let requestSummary = requests
 | where customDimensions["Service Type"] == "API Management"
 | extend api = tostring(customDimensions["API Name"])
-| extend isClientFailure = success == false and toint(resultCode) between (400 .. 499)
-| extend isServerFailure = success == false and isClientFailure == false
-| summarize
-    lastClientFailure = maxif(timestamp, isClientFailure),
-    lastServerFailure = maxif(timestamp, isServerFailure),
-    lastSuccess = maxif(timestamp, success == true)
+| extend isClientFailure = success==false and toint(resultCode) between (400 .. 499)
+| extend isServerFailure = success==false and isClientFailure==false
+| summarize 
+    lastClientFailure=maxif(timestamp, isClientFailure),
+    lastServerFailure=maxif(timestamp, isServerFailure),
+    lastSuccess=maxif(timestamp, success==true) 
   by api;
 
 requests
 | where customDimensions["Service Type"] == "API Management"
 | extend api = tostring(customDimensions["API Name"])
-| evaluate pivot(resultCode, count(), api)
+| evaluate pivot(resultCode, sum(itemCount), api)
 | join kind=leftouter requestSummary on api
 | project-away api1
 | project-reorder api, lastServerFailure, * desc, lastSuccess, lastClientFailure
 | sort by lastServerFailure desc, api asc
 ```
 
-The `evaluate pivot(resultCode, count(), api)` step turns distinct response codes into columns, with request counts per API. The `leftouter` join brings in the summary timestamps while keeping every API from the pivot result. The join introduces a duplicate API key column called `api1`, which `project-away api1` removes.
+The `evaluate pivot(resultCode, sum(itemCount), api)` step turns distinct response codes into columns, with request counts per API. It uses `sum(itemCount)` instead of `count()`, because `itemCount` tells how many original requests a telemetry item represents when sampling is enabled. The `leftouter` join brings in the summary timestamps while keeping every API from the pivot result. The join introduces a duplicate API key column called `api1`, which `project-away api1` removes.
 
 The `project-reorder` step puts `api` and `lastServerFailure` first, orders the response-code count columns by column name in descending order and places `lastSuccess` and `lastClientFailure` at the end. This makes the table easier to scan, with the latest server failure next to each API and higher response codes before lower ones, because I care most about errors.
 
@@ -102,20 +102,20 @@ This query summarizes successes and failures per function and function app.
 
 ```kusto
 requests
-| where customDimensions["faas.name"] != ""
-| extend function = tostring(customDimensions["faas.name"])
-| summarize
-    success = countif(success == true),
-    lastSuccess = maxif(timestamp, success == true),
-    failed = countif(success == false),
-    lastFailure = maxif(timestamp, success == false)
+| where customDimensions['faas.name'] != ''
+| extend function = tostring(customDimensions['faas.name'])
+| summarize 
+    success=sumif(itemCount, success==true), 
+    lastSuccess=maxif(timestamp, success==true),
+    failed=sumif(itemCount, success==false), 
+    lastFailure=maxif(timestamp, success==false)
   by function, cloud_RoleName
-| project
-    function,
-    lastFailure,
-    failed,
-    lastSuccess,
-    success,
+| project 
+    function, 
+    lastFailure, 
+    failed, 
+    lastSuccess, 
+    success, 
     functionApp = cloud_RoleName
 | sort by lastFailure desc, function asc
 ```
