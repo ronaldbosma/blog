@@ -2,7 +2,7 @@
 title: "API Management Requests Workbook"
 date: 2026-11-10T09:00:00+01:00
 publishdate: 2026-11-10T09:00:00+01:00
-lastmod: 2026-11-10T09:30:00+01:00
+lastmod: 2026-11-10T11:39:00+01:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "Azure Workbook", "API Management", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "Finding specific API Management requests in Application Insights means re-adding the same filters every time and the results lack API Management specific data. In this post, I walk through an Azure Workbook that can filter on status, subscription, API, operation and result code, and shows a graph over time and a table with the matching requests."
@@ -129,7 +129,7 @@ requests
 | where array_length(subscriptionFilter) == 0 or subscription in (subscriptionFilter)
 | where array_length(apiFilter) == 0 or api in (apiFilter)
 | where array_length(operationFilter) == 0 or operation in (operationFilter)
-| make-series numberOfRequests=count() default=0 on timestamp from todatetime("{TimeRange:startISO}") to todatetime("{TimeRange:endISO}") step {TimeRange:grain} by status
+| make-series numberOfRequests=sum(itemCount) default=0 on timestamp from todatetime("{TimeRange:startISO}") to todatetime("{TimeRange:endISO}") step {TimeRange:grain} by status
 ```
 
 The query first turns the multi-select parameters into arrays with `dynamic([...])`. An empty array means nothing is selected, so the filters only apply when the array isn't empty.
@@ -138,8 +138,9 @@ It then selects the requests logged by API Management. Other services can log re
 
 Next, the query determines the status of each request. A successful request is a success, a 4xx result code is a warning and everything else is an error. I treat client errors as a warning because they don't necessarily indicate a problem with API Management or the backend. The query also extracts the subscription, API and operation from the custom dimensions that API Management adds to each request. The remaining filters are applied after that, because these values are only known after the `extend`.
 
-Finally, [`make-series`](https://learn.microsoft.com/en-us/kusto/query/make-series-operator) counts the requests per status and creates a time series. This has a few benefits:
+Finally, [`make-series`](https://learn.microsoft.com/en-us/kusto/query/make-series-operator) sums `itemCount` for each status and creates a time series. This has a few benefits:
 
+-  When Application Insights sampling is enabled, `itemCount` accounts for the requests represented by each retained telemetry item, so the graph shows an estimated request count rather than just counting the sampled records.
 - With `make-series`, the graph shows the entire selected period, even if there are no requests at the start or end of the period. A `summarize` with `bin` would only return time slots that have data.
 - The granularity is based on the TimeRange parameter by using `{TimeRange:grain}`. This way, the granularity is automatically adjusted depending on the time range you've selected in the Time parameter.
 
@@ -225,7 +226,7 @@ You can also deploy the workbook manually, as described [here](https://github.co
 
 ### Considerations
 
-Queries over Application Insights data can show incomplete results when telemetry is sampled. The diagnostics resource in the snippet doesn't configure sampling, so I'm not sampling the requests of my API Management instance. I usually keep it that way, because with sampling some requests would be missing from the workbook. The `alwaysLog: 'allErrors'` setting makes sure failed requests are logged, but successful requests could still be dropped. You can check the retained percentage with this query:
+When Application Insights sampling is enabled, the graph uses `itemCount` to estimate the total number of requests represented by the sampled telemetry. The table still shows only the individual requests that were retained, so it can omit requests. The diagnostics resource in the snippet doesn't configure sampling, so I'm not sampling the requests of my API Management instance. I usually keep it that way. The `alwaysLog: 'allErrors'` setting makes sure failed requests are logged, but successful requests could still be dropped if sampling is configured. You can check the retained percentage with this query:
 
 ```kusto
 union requests, dependencies, pageViews, browserTimings, exceptions, traces
