@@ -1,8 +1,8 @@
 ---
 title: "API Management Requests Workbook"
-date: 2026-11-10T10:00:00+01:00
-publishdate: 2026-11-10T10:00:00+01:00
-lastmod: 2026-11-10T10:00:00+01:00
+date: 2026-11-10T09:00:00+01:00
+publishdate: 2026-11-10T09:00:00+01:00
+lastmod: 2026-11-10T09:30:00+01:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "Azure Workbook", "API Management", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "Finding specific API Management requests in Application Insights means re-adding the same filters every time and the results lack API Management specific data. In this post, I walk through an Azure Workbook that can filter on status, subscription, API, operation and result code, and shows a graph over time and a table with the matching requests."
@@ -124,7 +124,6 @@ requests
     ),
     subscription = tostring(customDimensions["Subscription Name"]),
     api = tostring(customDimensions["API Name"]),
-    httpMethod = tostring(customDimensions["HTTP Method"]),
     operation = tostring(customDimensions["Operation Name"])
 | where array_length(statusFilter) == 0 or status in (statusFilter)
 | where array_length(subscriptionFilter) == 0 or subscription in (subscriptionFilter)
@@ -168,7 +167,6 @@ requests
     ),
     subscription = tostring(customDimensions["Subscription Name"]),
     api = tostring(customDimensions["API Name"]),
-    httpMethod = tostring(customDimensions["HTTP Method"]),
     operation = tostring(customDimensions["Operation Name"])
 | where array_length(statusFilter) == 0 or status in (statusFilter)
 | where array_length(subscriptionFilter) == 0 or subscription in (subscriptionFilter)
