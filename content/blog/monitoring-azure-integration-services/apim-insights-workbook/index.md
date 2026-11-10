@@ -2,7 +2,7 @@
 title: "API Management Insights Workbook"
 date: 2026-11-17T10:00:00+01:00
 publishdate: 2026-11-09T10:00:00+01:00
-lastmod: 2026-11-09T10:00:00+01:00
+lastmod: 2026-11-10T11:45:00+01:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "Azure Workbook", "API Management", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "The APIM Requests workbook from my previous post focuses on finding specific API Management requests. The APIM Insights workbook in this post gives more insights into capacity, scaling, request volume and duration. It can also show more information for individual operations, like executed requests, dependencies, number of requests and duration."
@@ -212,9 +212,9 @@ let filteredRequests = requests
 
 let operations = filteredRequests
 | summarize 
-        numberOfRequests = count(),
-        numberOfFailures = countif(success == false),
-        failRatio = round(100.0 * countif(success == false) / count(), 2),
+        numberOfRequests = sum(itemCount),
+        numberOfFailures = sumif(itemCount, success == false),
+        failRatio = round(100.0 * sumif(itemCount, success == false) / sum(itemCount), 2),
         avgDuration = avg(duration),
         (medianDuration, p80Duration, p95Duration, p99Duration) = percentiles(duration, 50, 80, 95, 99),
         avgRequestSize = avg(requestSize),
@@ -227,9 +227,9 @@ let operations = filteredRequests
 
 let operationsPerResultCode = filteredRequests
 | summarize 
-        numberOfRequests = count(),
-        numberOfFailures = countif(success == false),
-        failRatio = round(100.0 * countif(success == false) / count(), 2),
+        numberOfRequests = sum(itemCount),
+        numberOfFailures = sumif(itemCount, success == false),
+        failRatio = round(100.0 * sumif(itemCount, success == false) / sum(itemCount), 2),
         avgDuration = avg(duration),
         (medianDuration, p80Duration, p95Duration, p99Duration) = percentiles(duration, 50, 80, 95, 99),
         avgRequestSize = avg(requestSize),
@@ -246,7 +246,7 @@ union operations, operationsPerResultCode
 The query does the following:
 
 - `filteredRequests` selects the requests of the API Management instance, applies the subscription and API filters and extracts the operation name. The request and response size come from the `customMeasurements` that API Management adds to each request.
-- `operations` aggregates the requests per operation. It calculates the number of requests and failures, the failure ratio, the average, median, p80, p95 and p99 duration and the average and total request and response size. The [`percentiles`](https://learn.microsoft.com/en-us/kusto/query/percentiles-aggregation-function) function calculates multiple percentiles in one go.
+- `operations` aggregates the requests per operation. It calculates the number of requests and failures, the failure ratio, the average, median, p80, p95 and p99 duration and the average and total request and response size. The request and failure totals use the sum of `itemCount` to account for sampling. The [`percentiles`](https://learn.microsoft.com/en-us/kusto/query/percentiles-aggregation-function) function calculates multiple percentiles in one go.
 - `operationsPerResultCode` calculates the same aggregations, but grouped by operation and result code.
 - The `union` combines both results into a single table, with a row per operation and a row per operation and result code.
 
