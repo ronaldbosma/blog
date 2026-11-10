@@ -2,7 +2,7 @@
 title: "Azure Functions Workbook"
 date: 2026-11-24T09:00:00+01:00
 publishdate: 2026-11-10T09:30:00+01:00
-lastmod: 2026-11-10T09:30:00+01:00
+lastmod: 2026-11-10T11:45:00+01:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "Azure Workbook", "Azure Functions", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "Finding specific Azure Functions executions means opening each function separately in the Azure Portal or building the right search in Application Insights. In this post, I walk through an Azure Workbook that shows the executions of all Function Apps that log to the same Application Insights, with a graph over time and a table you can filter on success, Function App, function and result code."
@@ -86,15 +86,16 @@ requests
 | where array_length(functionAppFilter) == 0 or cloud_RoleName in (functionAppFilter)
 | where array_length(functionFilter) == 0 or functionName in (functionFilter)
 | where array_length(resultCodeFilter) == 0 or resultCode in (resultCodeFilter)
-| make-series numberOfRequests=count() default=0 on timestamp from todatetime("{TimeRange:startISO}") to todatetime("{TimeRange:endISO}") step {TimeRange:grain} by success
+| make-series numberOfRequests=sum(itemCount) default=0 on timestamp from todatetime("{TimeRange:startISO}") to todatetime("{TimeRange:endISO}") step {TimeRange:grain} by success
 ```
 
 The query first puts the parameter values in variables. The multi-select parameters are turned into arrays with `dynamic([...])`. An empty array means nothing is selected, so those filters only apply when the array isn't empty. The Success parameter is a single value, so it's kept as a string. When it's empty, the filter is skipped.
 
 It then selects the requests logged by Azure Functions. Other services can log requests to the same Application Insights instance, so the query extracts the `faas.name` custom dimension and only keeps the requests where it has a value. Next, the filters are applied. The `functionName` filter comes after the `extend`, because that value is only known after the custom dimension is extracted. `cloud_RoleName` contains the name of the Function App.
 
-Finally, [`make-series`](https://learn.microsoft.com/en-us/kusto/query/make-series-operator) counts the executions per success value and creates a time series. This has a few benefits:
+Finally, [`make-series`](https://learn.microsoft.com/en-us/kusto/query/make-series-operator) sums `itemCount` for executions per success value and creates a time series. This has a few benefits:
 
+-  When Application Insights sampling is enabled, `itemCount` accounts for the executions represented by each retained telemetry item, so the graph shows an estimated execution count rather than just counting the sampled records.
 - With `make-series`, the graph shows the entire selected period, even if nothing was executed at the start or end of the period. A `summarize` with `bin` would only return time slots that have data.
 - The granularity is based on the TimeRange parameter by using `{TimeRange:grain}`. This way, the granularity is automatically adjusted depending on the time range you've selected in the Time parameter.
 
