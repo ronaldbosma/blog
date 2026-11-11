@@ -2,14 +2,14 @@
 title: "API Management Insights Workbook"
 date: 2026-11-17T10:00:00+01:00
 publishdate: 2026-11-09T10:00:00+01:00
-lastmod: 2026-11-10T11:45:00+01:00
+lastmod: 2026-11-11T12:00:00+01:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "Azure Workbook", "API Management", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
-summary: "The APIM Requests workbook from my previous post focuses on finding specific API Management requests. The APIM Insights workbook in this post gives more insights into capacity, scaling, request volume and duration. It can also show more information for individual operations, like executed requests, dependencies, number of requests and duration."
+summary: "The APIM Requests workbook from my previous post focuses on finding specific API Management requests. The APIM Insights workbook in this post gives more insights into capacity, scaling, request volume and duration. It also shows more information for individual operations, like executed requests, dependencies, number of requests and duration."
 draft: true
 ---
 
-A few years ago, I created a workbook for a client to get more insights into how API Management behaves. On a couple of projects afterwards, I really missed it. So, I created it again in a generic way, so it can be used for every project that uses API Management and logs to Application Insights.
+A few years ago, I created a workbook for a client to get more insights into how API Management behaves. On a couple of projects afterwards, I really missed it. So, I created a version that can be reused across projects using API Management and Application Insights.
 
 The APIM Requests workbook from my [previous post](/blog/2026/11/10/api-management-requests-workbook/) helps you find specific API Management requests. The APIM Insights workbook in this post takes a broader view and shows capacity, scaling, request volume and duration. For a selected operation, it also lets you drill down into the requests, dependencies, traces and exceptions, and shows graphs with the number of requests and failures, the duration, the request size and the response size.
 
@@ -76,7 +76,7 @@ resource apimDiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-0
 }
 ```
 
-Setting `logAnalyticsDestinationType` to `Dedicated` sends the logs to the resource specific tables.
+Setting `logAnalyticsDestinationType` to `Dedicated` sends the logs to the correct tables.
 
 ### Parameters
 
@@ -127,6 +127,8 @@ resource apimAutoscaleSettings 'Microsoft.Insights/autoscalesettings@2022-10-01'
 
 This sample doesn't actually scale, because the minimum and maximum capacity are both set to 1. But this way the metric is emitted, so it can be displayed in the workbook.
 
+See [Automatically scale an Azure API Management instance](https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-autoscale) for more information on auto scaling API Management.
+
 ### Groups
 
 The workbook is divided into groups. The Capacity and Scaling groups for the v1 and v2 tiers are separate, because the v2 metrics are different from the v1 metrics. This way, the workbook works for both and you can remove the group you don't need.
@@ -146,7 +148,7 @@ The v1 tier group has two graphs:
 
 ![APIM Insights workbook - Capacity and Scaling (v1 tier)](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/section-1-capacity-and-scaling-v1.png)
 
-The v2 tiers use different metrics. This group has graphs for the CPU and memory percentage of the gateway instead of the capacity, plus the same autoscale graph.
+The v2 tier group has graphs for the CPU and memory percentage of the gateway instead of the capacity, plus the same autoscale graph.
 
 ![APIM Insights workbook - Capacity and Scaling (v2 tier)](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/section-2-capacity-and-scaling-v2.png)
 
@@ -186,7 +188,9 @@ Instead of the number of requests, the [`make-series`](https://learn.microsoft.c
 
 #### Operation Details
 
-This is the group I find the most interesting. The top table shows each operation with its number of requests, failures, duration, request size and response size. You can expand an operation to see the same information per result code. When you select a row, the details for that operation or result code are displayed below the table.
+This is the group I find the most interesting. I've used it myself to troubleshoot issues with specific operations or find unexpected behaviour, like operations that fail more often than expected.
+
+The top table shows each operation with its number of requests, failures, duration, request size and response size. You can expand an operation to see the same information per result code. When you select a row, the details for that operation or result code are displayed below the table.
 
 ![APIM Insights workbook - Operation Details](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/section-4-operation-details.png)
 
@@ -250,11 +254,11 @@ The query does the following:
 - `operationsPerResultCode` calculates the same aggregations, but grouped by operation and result code.
 - The `union` combines both results into a single table, with a row per operation and a row per operation and result code.
 
-The `operation_Name` is a built-in column that includes both the API and the operation name, so it's unique over all operations. For example: `movies-api;rev=1 - get-movies`. The `Operation Name` custom dimension is still extracted, because it's the readable name of the operation shown in the table.
-
 The `rowId` and `parentRowId` columns are hidden in the table. Instead, they're used to configure a tree. In the column settings, a 'Parent/Child' tree is configured using the `rowId`, `parentRowId` and `rowName` columns. The operation rows have an empty `parentRowId`, so they're at the top level. The result code rows have the `operation_Name` as their `parentRowId`, so they're shown below their operation when you expand it.
 
 ![Tree settings of the operation details table](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/operation-details-tree-settings.png)
+
+The `operation_Name` is a built-in column that includes both the API and the operation name, so it uniquely identifies an operation. For example: `movies-api;rev=1 - get-movies`. The `Operation Name` custom dimension is still extracted, because it's the readable name of the operation shown in the table.
 
 The `operation_Name` and `resultCode` columns are also projected separately and are hidden as well. They're exported as parameters when you select a row, so they can be used as filters for the details below the table. See [Azure Workbook Tips & Tricks - Master-detail Table](/blog/2023/02/28/azure-workbook-tips-tricks/#master-detail-table) for how to set that up.
 
@@ -290,14 +294,12 @@ You can also deploy the workbook manually, as described [here](https://github.co
 
 ### Considerations
 
-Queries over Application Insights data can show incomplete results when telemetry is sampled. This applies to this workbook as well, because the number of requests, failures and the durations are calculated from the requests that are logged. See the [Considerations](/blog/2026/11/10/api-management-requests-workbook/#considerations) section of my previous post for how to check the retained percentage and for the effect of logging on cost.
+Queries over Application Insights data can show incomplete results when telemetry is sampled. This applies to this workbook as well. See the [Considerations](/blog/2026/11/10/api-management-requests-workbook/#considerations) section of my previous post for how to check the retained percentage and for the effect of logging on cost.
 
 The capacity and scaling graphs are based on metrics, not on Application Insights data, so sampling doesn't affect them.
 
-The Capacity and Scaling groups show data for the API Management instance selected in the parameters. The Overview and Operation Details groups filter on the name of that same instance, so an Application Insights resource shared by multiple API Management instances works as well.
-
 ### Conclusion
 
-The built-in Analytics Overview workbook gives a high-level view of API Management, but it needs diagnostic settings and doesn't include everything that is logged to Application Insights. The APIM Insights workbook fills that gap. It combines capacity and scaling metrics, request and duration graphs and a table with details per operation and result code. From there, I can drill down to the requests, dependencies, traces and exceptions, and open the end-to-end transaction details.
+The built-in Analytics Overview workbook gives a high-level view of API Management, but it needs diagnostic settings and doesn't include everything that is logged to Application Insights. The APIM Insights workbook fills that gap. It combines capacity and scaling metrics, request and duration graphs and a table with details per operation and result code. From there, you can drill down to view more information like the executed requests, dependencies, traces, etc..
 
 The workbook is a starting point. You can remove the groups you don't need and adjust the parameters and queries to fit your own APIs.
