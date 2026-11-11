@@ -178,7 +178,7 @@ Similar to the other workbooks, sampling is something to consider. Queries over 
 union requests, dependencies, pageViews, browserTimings, exceptions, traces
 | where timestamp > ago(1d)
 | summarize retainedPercentage = 100 / avg(itemCount)
-    by bin(timestamp, 1h), itemType, cloud_RoleName, cloud_RoleName
+    by bin(timestamp, 1h), itemType, cloud_RoleName
 ```
 
 Beware that logging every function execution increases the amount of telemetry, which increases cost as well. Functions that run often, like a timer trigger or a Service Bus trigger that processes many messages, can add up quickly. Keep an eye on the ingestion volume of your Application Insights instance. If the cost becomes an issue, you can configure sampling.
