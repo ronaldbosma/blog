@@ -1,12 +1,11 @@
 ---
 title: "Azure Functions Workbook"
 date: 2026-11-24T09:00:00+01:00
-publishdate: 2026-11-10T09:30:00+01:00
+publishdate: 2026-11-24T09:00:00+01:00
 lastmod: 2026-11-11T14:15:00+01:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "Azure Workbook", "Azure Functions", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "Finding specific Azure Functions executions means opening each function separately in the Azure Portal or building the right search in Application Insights. In this post, I walk through an Azure Workbook that shows the executions of all Function Apps that log to the same Application Insights, with a graph over time and a table you can filter on success, Function App, function and result code."
-draft: true
 ---
 
 I've been working with Azure Functions in integrations where several Function Apps log to the same Application Insights instance. When something goes wrong, I want to find the function execution that failed. In the Azure Portal you can view the invocations of a single function, but that means going through the functions one by one. The alternative is to use the search and filtering in Application Insights, but you'd have to set up the same filters every time.
