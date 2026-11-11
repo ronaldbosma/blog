@@ -2,7 +2,7 @@
 title: "Azure Functions Workbook"
 date: 2026-11-24T09:00:00+01:00
 publishdate: 2026-11-10T09:30:00+01:00
-lastmod: 2026-11-10T11:45:00+01:00
+lastmod: 2026-11-11T14:15:00+01:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "Azure Workbook", "Azure Functions", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "Finding specific Azure Functions executions means opening each function separately in the Azure Portal or building the right search in Application Insights. In this post, I walk through an Azure Workbook that shows the executions of all Function Apps that log to the same Application Insights, with a graph over time and a table you can filter on success, Function App, function and result code."
@@ -43,14 +43,7 @@ I'm assuming you know a bit about editing Azure Workbooks. If not, have a look a
 
 ### OpenTelemetry Logging
 
-The workbook queries the `requests` table in Application Insights and relies on the properties that Azure Functions logs when OpenTelemetry is enabled, like `faas.name` and `faas.trigger`. It's enabled by setting `telemetryMode` to `OpenTelemetry` in the `host.json` of your Function App. See [Use OpenTelemetry with Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/opentelemetry-howto) for the details.
-
-```json
-{
-  "version": "2.0",
-  "telemetryMode": "OpenTelemetry"
-}
-```
+The workbook queries the `requests` table in Application Insights and relies on the properties that Azure Functions logs when OpenTelemetry is enabled, like `faas.name` and `faas.trigger`. See [Use OpenTelemetry with Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/opentelemetry-howto) for how to enable OpenTelemetry in your app.
 
 If you're still using the Application Insights logging, the custom properties are different and the queries in this post won't return any results. See [Migrate Azure Functions project from Application Insights to OpenTelemetry](https://gist.github.com/ronaldbosma/ac21e32e2d7f8ad1512760bca8b0609b) for instructions on how to migrate to OpenTelemetry. The gist also contains an alternative query that you can use if you want to keep the current logging.
 
@@ -91,7 +84,7 @@ requests
 
 The query first puts the parameter values in variables. The multi-select parameters are turned into arrays with `dynamic([...])`. An empty array means nothing is selected, so those filters only apply when the array isn't empty. The Success parameter is a single value, so it's kept as a string. When it's empty, the filter is skipped.
 
-It then selects the requests logged by Azure Functions. Other services can log requests to the same Application Insights instance, so the query extracts the `faas.name` custom dimension and only keeps the requests where it has a value. Next, the filters are applied. The `functionName` filter comes after the `extend`, because that value is only known after the custom dimension is extracted. `cloud_RoleName` contains the name of the Function App.
+It then selects the requests logged by Azure Functions. Other types of services can log requests to the same Application Insights instance, so the query extracts the `faas.name` custom dimension and only keeps the requests where it has a value. Next, the filters are applied.
 
 Finally, [`make-series`](https://learn.microsoft.com/en-us/kusto/query/make-series-operator) sums `itemCount` for executions per success value and creates a time series. This has a few benefits:
 
@@ -179,16 +172,14 @@ You can also deploy the workbook manually, as described [here](https://github.co
 
 ### Considerations
 
-Similar to the other workbooks, sampling is something to consider. Queries over Application Insights data can show incomplete results when telemetry is sampled, because some of the executions are then missing from the graph and the table. Whether your Function Apps sample depends on how you've configured OpenTelemetry. For example, the sampling documentation states that the Microsoft OpenTelemetry Distro defaults to rate-limited sampling at five traces per second. See [Sampling in Azure Application Insights with OpenTelemetry](https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-sampling) for the details and check how your Function Apps are configured. You can check the retained percentage with this query:
+Similar to the other workbooks, sampling is something to consider. Queries over Application Insights data can show incomplete results when telemetry is sampled, because some of the executions are then missing from the graph and the table. Whether your Function Apps sample depends on how you've configured OpenTelemetry. See [Sampling in Azure Application Insights with OpenTelemetry](https://learn.microsoft.com/en-us/azure/azure-monitor/app/opentelemetry-sampling) for the details and check how your Function Apps are configured. You can check the retained percentage with this query:
 
 ```kusto
 union requests, dependencies, pageViews, browserTimings, exceptions, traces
 | where timestamp > ago(1d)
-| summarize RetainedPercentage = 100 / avg(itemCount)
-    by bin(timestamp, 1h), itemType
+| summarize retainedPercentage = 100 / avg(itemCount)
+    by bin(timestamp, 1h), itemType, cloud_RoleName, cloud_RoleName
 ```
-
-If sampling is enabled, the numbers in the graph are lower than the actual number of executions. When the sampling percentage is the same for all requests, you can get a better estimate by using `sum(itemCount)` instead of `count()` in the `make-series` of the graph query. But individual executions can still be missing from the table.
 
 Beware that logging every function execution increases the amount of telemetry, which increases cost as well. Functions that run often, like a timer trigger or a Service Bus trigger that processes many messages, can add up quickly. Keep an eye on the ingestion volume of your Application Insights instance. If the cost becomes an issue, you can configure sampling.
 
