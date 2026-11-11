@@ -1,12 +1,11 @@
 ---
 title: "API Management Insights Workbook"
 date: 2026-11-17T10:00:00+01:00
-publishdate: 2026-11-09T10:00:00+01:00
+publishdate: 2026-11-17T10:00:00+01:00
 lastmod: 2026-11-11T12:00:00+01:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "Azure Workbook", "API Management", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "The APIM Requests workbook from my previous post focuses on finding specific API Management requests. The APIM Insights workbook in this post gives more insights into capacity, scaling, request volume and duration. It also shows more information for individual operations, like executed requests, dependencies, number of requests and duration."
-draft: true
 ---
 
 A few years ago, I created a workbook for a client to get more insights into how API Management behaves. On a couple of projects afterwards, I really missed it. So, I created a version that can be reused across projects using API Management and Application Insights.
