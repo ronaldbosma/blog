@@ -96,7 +96,7 @@ For a more detailed explanation on how to configure parameters in a workbook, se
 
 #### Auto Scaling
 
-Auto scaling has a separate parameter, because it's a separate resource that needs to be deployed. The Consumption and Developer tiers don't support auto scaling, so the parameter is optional.
+Auto scaling has a separate parameter, because it's a separate resource that needs to be deployed. This parameter is optional because the Developer tier doesn't support auto scaling and the Consumption tier scales automatically without a separate autoscale configuration.
 
 In [api-management.bicep](https://github.com/ronaldbosma/monitor-azure-integration-services/blob/main/infra/01-base/modules/api-management.bicep) of the sample template, I've added a simple auto scale configuration:
 
@@ -258,7 +258,7 @@ The `rowId` and `parentRowId` columns are hidden in the table. Instead, they're 
 
 ![Tree settings of the operation details table](../../../../../images/monitoring-azure-integration-services/apim-insights-workbook/operation-details-tree-settings.png)
 
-The `operation_Name` is a built-in column that includes both the API and the operation name, so it uniquely identifies an operation. For example: `movies-api;rev=1 - get-movies`. The `Operation Name` custom dimension is still extracted, because it's the readable name of the operation shown in the table.
+The `operation_Name` is a built-in column that includes both the API and the operation name, so it uniquely identifies an operation. For example: `movies-api;rev=1 - get-movies`. The `API Name` and `Operation Name` custom dimensions are still extracted, because they are the readable names of the operations shown in the table.
 
 The `operation_Name` and `resultCode` columns are also projected separately and are hidden as well. They're exported as parameters when you select a row, so they can be used as filters for the details below the table. See [Azure Workbook Tips & Tricks - Master-detail Table](/blog/2023/02/28/azure-workbook-tips-tricks/#master-detail-table) for how to set that up.
 
@@ -300,6 +300,6 @@ The capacity and scaling graphs are based on metrics, not on Application Insight
 
 ### Conclusion
 
-The built-in Analytics Overview workbook gives a high-level view of API Management, but it needs diagnostic settings and doesn't include everything that is logged to Application Insights. The APIM Insights workbook fills that gap. It combines capacity and scaling metrics, request and duration graphs and a table with details per operation and result code. From there, you can drill down to view more information like the executed requests, dependencies, traces, etc..
+The built-in Analytics Overview workbook gives a high-level view of API Management, but it needs diagnostic settings and doesn't include everything that is logged to Application Insights. The APIM Insights workbook fills that gap. It combines capacity and scaling metrics, request and duration graphs and a table with details per operation and result code. From there, you can drill down to view more information like the executed requests, dependencies, traces, etc.
 
 The workbook is a starting point. You can remove the groups you don't need and adjust the parameters and queries to fit your own APIs.
