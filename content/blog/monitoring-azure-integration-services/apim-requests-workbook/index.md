@@ -2,7 +2,7 @@
 title: "API Management Requests Workbook"
 date: 2026-11-10T09:00:00+01:00
 publishdate: 2026-11-10T09:00:00+01:00
-lastmod: 2026-11-10T11:39:00+01:00
+lastmod: 2026-11-11T14:30:00+01:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "Azure Workbook", "API Management", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "Finding specific API Management requests in Application Insights means re-adding the same filters every time and the results lack API Management specific data. In this post, I walk through an Azure Workbook that can filter on status, subscription, API, operation and result code, and shows a graph over time and a table with the matching requests."
@@ -231,8 +231,8 @@ When Application Insights sampling is enabled, the graph uses `itemCount` to est
 ```kusto
 union requests, dependencies, pageViews, browserTimings, exceptions, traces
 | where timestamp > ago(1d)
-| summarize RetainedPercentage = 100 / avg(itemCount)
-    by bin(timestamp, 1h), itemType
+| summarize retainedPercentage = 100 / avg(itemCount)
+    by bin(timestamp, 1h), itemType, cloud_RoleName
 ```
 
 Beware that logging every request increases the amount of telemetry, which increases cost as well. API Management doesn't log as much as, for example, a Logic App workflow does, which logs events for every run, trigger and action. API Management logs a request and, when it calls a backend, a dependency. But on an API with a lot of traffic, this can still add up. Keep an eye on the ingestion volume of your Application Insights instance. If the cost becomes an issue, you can configure a sampling percentage in the diagnostic settings.

@@ -2,7 +2,7 @@
 title: "Logic App Workflow Runs Workbook"
 date: 2026-11-03T10:00:00+01:00
 publishdate: 2026-11-03T10:00:00+01:00
-lastmod: 2026-11-03T10:00:00+01:00
+lastmod: 2026-11-11T14:30:00+01:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "Azure Workbook", "Logic Apps", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "The Insights screen of a Logic App shows workflow runs, but only for a single Logic App and with some limitations. In this post, I walk through an Azure Workbook that shows the runs of multiple Logic Apps in one place, including cancelled runs, a graph over time, trace links and the option to view or resubmit a run."
@@ -402,8 +402,8 @@ Queries over Application Insights data can show incomplete results when telemetr
 ```kusto
 union requests, dependencies, pageViews, browserTimings, exceptions, traces
 | where timestamp > ago(1d)
-| summarize RetainedPercentage = 100 / avg(itemCount)
-    by bin(timestamp, 1h), itemType
+| summarize retainedPercentage = 100 / avg(itemCount)
+    by bin(timestamp, 1h), itemType, cloud_RoleName
 ```
 
 To disable sampling for a Logic App, set `isEnabled` to `false` in the `samplingSettings` of your `host.json` file:

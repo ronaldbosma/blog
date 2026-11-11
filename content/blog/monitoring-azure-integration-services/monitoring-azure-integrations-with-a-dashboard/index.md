@@ -2,7 +2,7 @@
 title: "Monitoring Azure Integrations with a Dashboard"
 date: 2026-10-20T13:15:00+02:00
 publishdate: 2026-10-20T13:15:00+02:00
-lastmod: 2026-11-10T11:30:00+02:00
+lastmod: 2026-11-11T14:30:00+01:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "API Management", "Azure Functions", "Logic Apps", "Azure Service Bus", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "Integrations built with Azure Integration Services can include components from several services, each with its own monitoring experience. In this post, I show how I bring API Management requests, Azure Functions, Logic App workflows and Service Bus signals together in an Azure dashboard, then turn that dashboard into a reusable Bicep deployment."
@@ -245,8 +245,8 @@ Queries over Application Insights data can show incomplete results when telemetr
 ```kusto
 union requests, dependencies, pageViews, browserTimings, exceptions, traces
 | where timestamp > ago(1d)
-| summarize RetainedPercentage = 100 / avg(itemCount)
-    by bin(timestamp, 1h), itemType
+| summarize retainedPercentage = 100 / avg(itemCount)
+    by bin(timestamp, 1h), itemType, cloud_RoleName
 ```
 
 If sampling affects the results you need, you can use metrics instead or review the sampling configuration.
