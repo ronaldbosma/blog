@@ -2,7 +2,7 @@
 title: "GitHub Actions Workflow for Azure Developer CLI (azd) Templates"
 date: 2026-03-02T06:00:00+01:00
 publishdate: 2026-03-02T06:00:00+01:00
-lastmod: 2026-04-17T12:00:00+02:00
+lastmod: 2026-11-13T16:55:00+01:00
 tags: [ "Azure", "Azure Developer CLI", "azd", "GitHub Actions" ]
 summary: "In this post, I'll show how I structure a GitHub Actions workflow for Azure Developer CLI (azd) templates so I can automate the process of building, deploying, verifying and cleaning up. The workflow makes it easier to validate my own changes and review external contributions. I'll walk through each job with practical snippets and explain why I split build, deployment and verification."
 ---
@@ -174,34 +174,26 @@ Linting is useful, but I also validate the full deployment at subscription scope
 
 If your `main.bicep` file has more parameters, add those to the validate command as well.
 
-If the application code has unit tests, I run those too. The test results are stored in the `artifacts` folder and uploaded as workflow artifacts, which can be helpful for later inspection. Here's an example of running .NET tests, but you can adapt it to your test framework and language:
+If the application code has unit tests, I run those too. Here's an example of running .NET tests, but you can adapt it to your test framework and language:
 
 ```yaml
 - name: Run Unit Tests for Function App
   run: |
-    dotnet run --report-trx --results-directory "${{ github.workspace }}/artifacts/TestResults/functionApp"
+    dotnet run --report-gh
   working-directory: ./src/functionApp/FunctionApp.Tests
 
 - name: Run Unit Tests for Logic App Functions
   run: |
-    dotnet run --report-trx --results-directory "${{ github.workspace }}/artifacts/TestResults/logicApp"
+    dotnet run --report-gh
   working-directory: ./src/logicApp/Functions.Tests
 
 - name: Run Unit Tests for Logic App Workflows
   run: |
-    dotnet run --report-trx --results-directory "${{ github.workspace }}/artifacts/TestResults/logicApp"
+    dotnet run --report-gh
   working-directory: ./src/logicApp/Workflows.Tests
-
-- name: Upload Unit Test Results
-  if: always()
-  uses: actions/upload-artifact@v7
-  with:
-    name: unit-test-results
-    path: ./artifacts/TestResults/
-    retention-days: 1
 ```
 
-Note that the `if: always()` condition ensures that test results are uploaded even if some tests fail, which is important for diagnosing issues.
+By passing the `--report-gh` flag, test results are reported to the GitHub Actions workflow. You'll need to add the `Microsoft.Testing.Extensions.GitHubActionsReport` NuGet package to your test project for this to work.
 
 > I'm using [Microsoft.Testing.Platform](https://learn.microsoft.com/en-us/dotnet/core/testing/microsoft-testing-platform-intro?tabs=dotnetcli) in my test projects, so I can use `dotnet run` to execute tests. If you're using VSTest, you can use `dotnet test` instead. Just make sure to specify the correct logger and results directory to store the test results as artifacts.
 
@@ -338,22 +330,8 @@ For templates with end-to-end tests, I set up .NET, download the integration tes
 
 - name: Run Integration Tests
   run: |
-    dotnet ./artifacts/integration-tests/IntegrationTests.dll --report-trx --results-directory ./artifacts/integration-tests/TestResults
+    dotnet ./artifacts/integration-tests/IntegrationTests.dll --report-gh
   working-directory: ./
-  env:
-    # Pass the necessary deployed resource properties as environment variables so the integration tests can access them.
-    AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID || vars.AZURE_TENANT_ID }}
-    AZURE_RESOURCE_GROUP: ${{ needs.deploy.outputs.AZURE_RESOURCE_GROUP }}
-    AZURE_API_MANAGEMENT_GATEWAY_URL: ${{ needs.deploy.outputs.AZURE_API_MANAGEMENT_GATEWAY_URL }}
-    AZURE_KEY_VAULT_URI: ${{ needs.deploy.outputs.AZURE_KEY_VAULT_URI }}
-
-- name: Upload Test Results
-  if: always()
-  uses: actions/upload-artifact@v7
-  with:
-    name: integration-test-results
-    path: ./artifacts/integration-tests/TestResults/
-    retention-days: 1
 ```
 
 Note the environment variables passed to the test job. They are taken from the outputs of the deploy job, which in turn are retrieved from the azd environment file created during provisioning. This way, the tests can connect to the correct deployed resources without hardcoding any values.
