@@ -1,7 +1,7 @@
 ---
 title: "API Management Insights Workbook"
-date: 2026-11-17T10:00:00+01:00
-publishdate: 2026-11-17T10:00:00+01:00
+date: 2026-11-17T09:00:00+01:00
+publishdate: 2026-11-17T09:00:00+01:00
 lastmod: 2026-11-11T12:00:00+01:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "Azure Workbook", "API Management", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
