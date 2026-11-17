@@ -2,7 +2,7 @@
 title: "API Management Requests Workbook"
 date: 2026-11-10T09:00:00+01:00
 publishdate: 2026-11-10T09:00:00+01:00
-lastmod: 2026-11-11T14:30:00+01:00
+lastmod: 2026-11-17T09:15:00+01:00
 tags: [ "Azure", "Azure Integration Services", "Azure Monitor", "Application Insights", "Azure Workbook", "API Management", "Bicep", "Kusto" ]
 series: [ "monitoring-azure-integration-services" ]
 summary: "Finding specific API Management requests in Application Insights means re-adding the same filters every time and the results lack API Management specific data. In this post, I walk through an Azure Workbook that can filter on status, subscription, API, operation and result code, and shows a graph over time and a table with the matching requests."
@@ -243,4 +243,4 @@ Finding specific API Management requests in Application Insights is more work th
 
 The workbook is a starting point. You can adjust the parameters, columns and queries to fit your own APIs.
 
-In my next post, I'll cover the APIM Insights workbook. It gives further insights into API Management with capacity and autoscale graphs, graphs with the number of requests and the request duration and details about individual operations.
+In my [next post](/blog/2026/11/17/api-management-insights-workbook/), I'll cover the APIM Insights workbook. It gives further insights into API Management with capacity and autoscale graphs, graphs with the number of requests and the request duration and details about individual operations.
